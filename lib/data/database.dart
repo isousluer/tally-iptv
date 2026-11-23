@@ -272,6 +272,17 @@ class AppDatabase {
     return rows.isEmpty ? null : MediaItem.fromRow(rows.first);
   }
 
+  /// The live channel with this number, leaving out hidden categories and
+  /// locked ones unless they are open.
+  Future<MediaItem?> liveByNumber(int playlistId, int number, {bool includeLocked = false}) async {
+    final rows = await db.rawQuery(
+      'SELECT i.*, $_favExpr FROM items i WHERE i.playlist_id = ? AND i.kind = ? AND i.num = ? '
+      'AND ${_groupFilter(includeLocked)} ORDER BY i.id LIMIT 1',
+      [playlistId, ContentKind.live.dbValue, number],
+    );
+    return rows.isEmpty ? null : MediaItem.fromRow(rows.first);
+  }
+
   // ---------------------------------------------------------------- favorites
 
   Future<void> setFavorite(int playlistId, String key, bool value) async {

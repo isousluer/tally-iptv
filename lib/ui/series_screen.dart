@@ -8,6 +8,23 @@ import 'playback.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
+/// Plays episode [e] of [series]; the episodes after it in [all] (across
+/// seasons) follow automatically.
+PlayRequest episodeRequest(MediaItem series, Episode e, List<Episode> all) {
+  PlayRequest request(Episode e, [List<PlayRequest> upNext = const []]) => PlayRequest(
+    item: series,
+    url: e.url,
+    title: 'S${e.season} · E${e.number}  ${e.title}',
+    subtitle: series.name,
+    historyKey: e.key,
+    description: e.plot ?? series.plot,
+    upNext: upNext,
+  );
+  final i = all.indexWhere((x) => x.key == e.key);
+  final rest = i < 0 ? const <Episode>[] : all.skip(i + 1);
+  return request(e, [for (final n in rest) request(n)]);
+}
+
 class SeriesScreen extends ConsumerStatefulWidget {
   const SeriesScreen({super.key, required this.series});
   final MediaItem series;
@@ -23,22 +40,8 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
 
   MediaItem get s => widget.series;
 
-  PlayRequest _request(Episode e, {List<PlayRequest> upNext = const []}) => PlayRequest(
-    item: s,
-    url: e.url,
-    title: 'S${e.season} · E${e.number}  ${e.title}',
-    subtitle: s.name,
-    historyKey: e.key,
-    description: e.plot ?? s.plot,
-    upNext: upNext,
-  );
-
-  /// Plays [e]; the episodes after it (across seasons) follow automatically.
-  void _playEpisode(Episode e, List<Episode> all, {bool resume = true}) {
-    final i = all.indexWhere((x) => x.key == e.key);
-    final rest = i < 0 ? const <Episode>[] : all.skip(i + 1);
-    play(context, ref, _request(e, upNext: [for (final n in rest) _request(n)]), resume: resume);
-  }
+  void _playEpisode(Episode e, List<Episode> all, {bool resume = true}) =>
+      play(context, ref, episodeRequest(s, e, all), resume: resume);
 
   @override
   Widget build(BuildContext context) {
