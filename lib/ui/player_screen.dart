@@ -33,6 +33,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   // Read once: ref must not be used in dispose(), where progress is saved.
   late final AppDatabase _db = ref.read(databaseProvider);
   late final SettingsNotifier _settings = ref.read(settingsProvider.notifier);
+  // Refreshes the watch history after the last save in dispose(). The screen
+  // that opened the player reloads it when the route pops, which is before
+  // that save lands, so without this the item was missing until the next one.
+  late final ProviderContainer _container = ProviderScope.containerOf(context, listen: false);
 
   /// What is playing now; changes when the next episode starts.
   late PlayRequest _req = widget.request;
@@ -80,6 +84,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     super.initState();
     _db;
     _settings;
+    _container;
     // mpv reports warnings (e.g. "cannot seek in this stream" on live TV)
     // through the same error stream. Only treat a message as a failure when
     // no picture has arrived yet.
@@ -444,7 +449,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     for (final s in _subs) {
       s.cancel();
     }
-    _saveProgress();
+    final container = _container;
+    _saveProgress().whenComplete(() => container.invalidate(historyProvider));
     Device.setAutoPip(false);
     Device.resetBrightness();
     if (_fullscreen && _isMobile) {
