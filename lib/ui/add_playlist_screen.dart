@@ -95,7 +95,9 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
       epgUrl: epg,
     );
     try {
-      await ref.read(playlistsProvider.notifier).add(
+      await ref
+          .read(playlistsProvider.notifier)
+          .add(
             draft,
             onProgress: (p) {
               if (mounted) setState(() => _progress = p);
@@ -111,10 +113,10 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
   }
 
   String _defaultName() => switch (_type) {
-        SourceType.xtream => Uri.tryParse(_server.text.trim())?.host ?? 'Xtream',
-        SourceType.m3uUrl => Uri.tryParse(_url.text.trim())?.host ?? 'Playlist',
-        SourceType.m3uFile => _fileName ?? 'Playlist',
-      };
+    SourceType.xtream => Uri.tryParse(_server.text.trim())?.host ?? 'Xtream',
+    SourceType.m3uUrl => Uri.tryParse(_url.text.trim())?.host ?? 'Playlist',
+    SourceType.m3uFile => _fileName ?? 'Playlist',
+  };
 
   String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
 

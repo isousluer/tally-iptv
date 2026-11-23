@@ -68,7 +68,7 @@ Future<void> showPlaylistSwitcher(BuildContext context, WidgetRef ref) {
 }
 
 String _describe(Playlist p) => switch (p.type) {
-      SourceType.xtream => 'Xtream Codes · ${Uri.tryParse(p.server ?? '')?.host ?? p.server}',
-      SourceType.m3uUrl => 'M3U link · ${Uri.tryParse(p.url ?? '')?.host ?? ''}',
-      SourceType.m3uFile => 'M3U file',
-    };
+  SourceType.xtream => 'Xtream Codes · ${Uri.tryParse(p.server ?? '')?.host ?? p.server}',
+  SourceType.m3uUrl => 'M3U link · ${Uri.tryParse(p.url ?? '')?.host ?? ''}',
+  SourceType.m3uFile => 'M3U file',
+};

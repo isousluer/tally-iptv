@@ -36,9 +36,7 @@ M3uResult parseM3u(String content, int playlistId) {
     }
 
     if (line.startsWith('#EXTINF')) {
-      attrs = {
-        for (final m in _attrRe.allMatches(line)) m.group(1)!.toLowerCase(): m.group(2)!,
-      };
+      attrs = {for (final m in _attrRe.allMatches(line)) m.group(1)!.toLowerCase(): m.group(2)!};
       final comma = _firstCommaOutsideQuotes(line);
       title = comma >= 0 ? line.substring(comma + 1).trim() : null;
       extGroup = null;
@@ -63,21 +61,23 @@ M3uResult parseM3u(String content, int playlistId) {
     final name = (title?.isNotEmpty ?? false)
         ? title!
         : (attrs['tvg-name']?.isNotEmpty ?? false)
-            ? attrs['tvg-name']!
-            : 'Channel $number';
+        ? attrs['tvg-name']!
+        : 'Channel $number';
     final group = attrs['group-title'] ?? extGroup ?? '';
 
-    items.add(MediaItem(
-      playlistId: playlistId,
-      kind: _guessKind(url),
-      key: url,
-      name: name,
-      group: group.isEmpty ? 'Uncategorized' : group,
-      logo: _nonEmpty(attrs['tvg-logo']),
-      url: url,
-      tvgId: _nonEmpty(attrs['tvg-id']),
-      number: int.tryParse(attrs['tvg-chno'] ?? '') ?? number,
-    ));
+    items.add(
+      MediaItem(
+        playlistId: playlistId,
+        kind: _guessKind(url),
+        key: url,
+        name: name,
+        group: group.isEmpty ? 'Uncategorized' : group,
+        logo: _nonEmpty(attrs['tvg-logo']),
+        url: url,
+        tvgId: _nonEmpty(attrs['tvg-id']),
+        number: int.tryParse(attrs['tvg-chno'] ?? '') ?? number,
+      ),
+    );
     attrs = {};
     title = null;
   }

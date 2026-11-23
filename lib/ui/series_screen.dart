@@ -23,20 +23,21 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
 
   MediaItem get s => widget.series;
 
-  void _playEpisode(Episode e, {bool resume = true}) {
-    play(
-      context,
-      ref,
-      PlayRequest(
-        item: s,
-        url: e.url,
-        title: 'S${e.season} · E${e.number}  ${e.title}',
-        subtitle: s.name,
-        historyKey: e.key,
-        description: e.plot ?? s.plot,
-      ),
-      resume: resume,
-    );
+  PlayRequest _request(Episode e, {List<PlayRequest> upNext = const []}) => PlayRequest(
+    item: s,
+    url: e.url,
+    title: 'S${e.season} · E${e.number}  ${e.title}',
+    subtitle: s.name,
+    historyKey: e.key,
+    description: e.plot ?? s.plot,
+    upNext: upNext,
+  );
+
+  /// Plays [e]; the episodes after it (across seasons) follow automatically.
+  void _playEpisode(Episode e, List<Episode> all, {bool resume = true}) {
+    final i = all.indexWhere((x) => x.key == e.key);
+    final rest = i < 0 ? const <Episode>[] : all.skip(i + 1);
+    play(context, ref, _request(e, upNext: [for (final n in rest) _request(n)]), resume: resume);
   }
 
   @override
@@ -83,8 +84,10 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                       await ref.read(favoritesControllerProvider).toggle(s.copyWith(favorite: _favorite));
                       setState(() => _favorite = !_favorite);
                     },
-                    icon: Icon(_favorite ? Icons.star : Icons.star_border,
-                        color: _favorite ? SlayerColors.tally : null),
+                    icon: Icon(
+                      _favorite ? Icons.star : Icons.star_border,
+                      color: _favorite ? SlayerColors.tally : null,
+                    ),
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -109,7 +112,10 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        SizedBox(width: 96, child: Poster(title: s.name, url: s.logo)),
+                        SizedBox(
+                          width: 96,
+                          child: Poster(title: s.name, url: s.logo),
+                        ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(
@@ -138,11 +144,13 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                     const SizedBox(height: 16),
                     if (allEpisodes.isNotEmpty)
                       FilledButton.icon(
-                        onPressed: () => _playEpisode(resumeEp ?? allEpisodes.first),
+                        onPressed: () => _playEpisode(resumeEp ?? allEpisodes.first, allEpisodes),
                         icon: const Icon(Icons.play_arrow),
-                        label: Text(resumeEp == null
-                            ? 'Play S${allEpisodes.first.season} · E${allEpisodes.first.number}'
-                            : 'Continue S${resumeEp.season} · E${resumeEp.number}'),
+                        label: Text(
+                          resumeEp == null
+                              ? 'Play S${allEpisodes.first.season} · E${allEpisodes.first.number}'
+                              : 'Continue S${resumeEp.season} · E${resumeEp.number}',
+                        ),
                       ),
                     const SizedBox(height: 20),
                     if (seasons.length > 1)
@@ -184,7 +192,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                     episode: episodes[i],
                     progress: progress[episodes[i].key],
                     fallbackImage: s.logo,
-                    onTap: () => _playEpisode(episodes[i]),
+                    onTap: () => _playEpisode(episodes[i], allEpisodes),
                   ),
                 ),
               ),
@@ -240,22 +248,28 @@ class _EpisodeRow extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text('${episode.number}. ${episode.title}',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.titleSmall!.copyWith(color: started ? SlayerColors.tally : null)),
+                          child: Text(
+                            '${episode.number}. ${episode.title}',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: t.titleSmall!.copyWith(color: started ? SlayerColors.tally : null),
+                          ),
                         ),
                         if (episode.duration != null)
-                          Text(episode.duration!,
-                              style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular)),
+                          Text(
+                            episode.duration!,
+                            style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                          ),
                       ],
                     ),
                     if (episode.plot != null) ...[
                       const SizedBox(height: 4),
-                      Text(episode.plot!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                      Text(
+                        episode.plot!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                      ),
                     ],
                   ],
                 ),

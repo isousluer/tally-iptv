@@ -16,7 +16,12 @@ Future<void> showVodDetails(BuildContext context, WidgetRef ref, MediaItem movie
     builder: (_) => _VodDetails(movie: movie),
   );
   if (resume == null || !context.mounted) return;
-  await play(context, ref, PlayRequest(item: movie, url: movie.url!), resume: resume);
+  await play(
+    context,
+    ref,
+    PlayRequest(item: movie, url: movie.url!),
+    resume: resume,
+  );
 }
 
 final _resumeProvider = FutureProvider.autoDispose.family<(int, bool), MediaItem>((ref, item) async {
@@ -51,16 +56,18 @@ class _VodDetails extends ConsumerWidget {
     final muted = t.bodySmall!.copyWith(color: SlayerColors.muted);
 
     Widget credit(String label, String value, {int lines = 2}) => Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(text: '$label  ', style: muted),
-              TextSpan(text: value, style: t.bodySmall),
-            ]),
-            maxLines: lines,
-            overflow: TextOverflow.ellipsis,
-          ),
-        );
+      padding: const EdgeInsets.only(top: 8),
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '$label  ', style: muted),
+            TextSpan(text: value, style: t.bodySmall),
+          ],
+        ),
+        maxLines: lines,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
 
     void start({required bool resume}) {
       Navigator.pop(context, resume);
@@ -76,7 +83,10 @@ class _VodDetails extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 120, child: Poster(title: movie.name, url: movie.logo)),
+                SizedBox(
+                  width: 120,
+                  child: Poster(title: movie.name, url: movie.logo),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -100,10 +110,7 @@ class _VodDetails extends ConsumerWidget {
             Flexible(
               child: SingleChildScrollView(
                 child: infoAsync.isLoading && info == null
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: LinearProgressIndicator(),
-                      )
+                    ? const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: LinearProgressIndicator())
                     : _Plot(text: info?.plot ?? movie.plot),
               ),
             ),
@@ -118,10 +125,7 @@ class _VodDetails extends ConsumerWidget {
               children: [
                 if (resumeMs > 0) ...[
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => start(resume: false),
-                      child: const Text('Start over'),
-                    ),
+                    child: OutlinedButton(onPressed: () => start(resume: false), child: const Text('Start over')),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -131,8 +135,7 @@ class _VodDetails extends ConsumerWidget {
                       await ref.read(favoritesControllerProvider).toggle(movie.copyWith(favorite: favorite));
                       ref.invalidate(_resumeProvider(movie));
                     },
-                    icon: Icon(favorite ? Icons.star : Icons.star_border,
-                        color: favorite ? SlayerColors.tally : null),
+                    icon: Icon(favorite ? Icons.star : Icons.star_border, color: favorite ? SlayerColors.tally : null),
                     label: Text(favorite ? 'In favorites' : 'Add to favorites'),
                   ),
                 ),
@@ -156,16 +159,21 @@ class VodInfoText extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final plot = info?.plot ?? fallbackPlot;
     Widget credit(String label, String value) => Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text.rich(
-            TextSpan(children: [
-              TextSpan(text: '$label  ', style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
-              TextSpan(text: value, style: t.bodySmall),
-            ]),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        );
+      padding: const EdgeInsets.only(top: 6),
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$label  ',
+              style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+            ),
+            TextSpan(text: value, style: t.bodySmall),
+          ],
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -179,6 +187,7 @@ class VodInfoText extends StatelessWidget {
     );
   }
 }
+
 /// Plot text, collapsed to a few lines until tapped.
 class _Plot extends StatefulWidget {
   const _Plot({required this.text});

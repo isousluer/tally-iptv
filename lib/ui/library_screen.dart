@@ -6,6 +6,7 @@ import '../state/providers.dart';
 import 'continue_row.dart';
 import 'live_screen.dart';
 import 'playback.dart';
+import 'search_screen.dart';
 import 'theme.dart';
 import 'vod_screen.dart';
 import 'widgets.dart';
@@ -24,19 +25,15 @@ class LibraryScreen extends ConsumerWidget {
 
     final favChannels = favorites.where((f) => f.kind == ContentKind.live).toList();
     final favVod = favorites.where((f) => f.kind != ContentKind.live).toList();
-    final recentChannels = history
-        .map((h) => h.$1.item)
-        .where((i) => i.kind == ContentKind.live)
-        .take(10)
-        .toList();
+    final recentChannels = history.map((h) => h.$1.item).where((i) => i.kind == ContentKind.live).take(10).toList();
     final hasContinue = history.any((h) => h.$1.item.kind != ContentKind.live && h.$1.positionMs > 0);
 
     final empty = favorites.isEmpty && history.isEmpty;
 
     Widget section(String title) => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-          child: Text(title, style: t.titleLarge),
-        );
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+      child: Text(title, style: t.titleLarge),
+    );
 
     Widget channelRow(MediaItem c, List<MediaItem> siblings) {
       final program = c.tvgId == null ? null : guide[c.tvgId!.toLowerCase()];
@@ -59,7 +56,9 @@ class LibraryScreen extends ConsumerWidget {
       bottom: false,
       child: CustomScrollView(
         slivers: [
-          const SliverToBoxAdapter(child: ScreenHeader(title: 'Library')),
+          const SliverToBoxAdapter(
+            child: ScreenHeader(title: 'Library', actions: [SearchButton()]),
+          ),
           if (empty)
             const SliverFillRemaining(
               hasScrollBody: false,
@@ -125,8 +124,10 @@ class LibraryScreen extends ConsumerWidget {
             child: favorites.isEmpty && !empty
                 ? Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Tip: tap the star on any channel, movie or series to add it to favorites.',
-                        style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                    child: Text(
+                      'Tip: tap the star on any channel, movie or series to add it to favorites.',
+                      style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                    ),
                   )
                 : const SizedBox.shrink(),
           ),

@@ -13,13 +13,9 @@ class XtreamException implements Exception {
 
 /// Minimal client for the Xtream Codes player API.
 class XtreamClient {
-  XtreamClient({
-    required String server,
-    required this.username,
-    required this.password,
-    http.Client? client,
-  })  : server = normalizeServer(server),
-        _http = client ?? http.Client();
+  XtreamClient({required String server, required this.username, required this.password, http.Client? client})
+    : server = normalizeServer(server),
+      _http = client ?? http.Client();
 
   final String server;
   final String username;
@@ -41,11 +37,8 @@ class XtreamClient {
   String get epgUrl => '$server/xmltv.php?username=$_u&password=$_p';
 
   Future<dynamic> _get(Map<String, String> params) async {
-    final uri = Uri.parse('$server/player_api.php').replace(queryParameters: {
-      'username': username,
-      'password': password,
-      ...params,
-    });
+    final uri = Uri.parse('$server/player_api.php')
+        .replace(queryParameters: {'username': username, 'password': password, ...params});
     // Large libraries (50k+ movies) can take a while to generate server-side.
     final res = await _http.get(uri).timeout(const Duration(seconds: 180));
     if (res.statusCode != 200) {
@@ -74,10 +67,7 @@ class XtreamClient {
   Future<Map<String, String>> _categories(String action) async {
     final data = await _get({'action': action});
     if (data is! List) return {};
-    return {
-      for (final c in data.whereType<Map>())
-        '${c['category_id']}': '${c['category_name'] ?? 'Uncategorized'}',
-    };
+    return {for (final c in data.whereType<Map>()) '${c['category_id']}': '${c['category_name'] ?? 'Uncategorized'}'};
   }
 
   Future<List<MediaItem>> fetchLive(int playlistId) async {
@@ -86,17 +76,19 @@ class XtreamClient {
     final items = <MediaItem>[];
     for (final s in _list(streams)) {
       final id = '${s['stream_id']}';
-      items.add(MediaItem(
-        playlistId: playlistId,
-        kind: ContentKind.live,
-        key: 'x:live:$id',
-        name: _str(s['name']) ?? 'Channel $id',
-        group: liveCats['${s['category_id']}'] ?? 'Uncategorized',
-        logo: _str(s['stream_icon']),
-        url: '$server/live/$_u/$_p/$id.ts',
-        tvgId: _str(s['epg_channel_id']),
-        number: int.tryParse('${s['num']}'),
-      ));
+      items.add(
+        MediaItem(
+          playlistId: playlistId,
+          kind: ContentKind.live,
+          key: 'x:live:$id',
+          name: _str(s['name']) ?? 'Channel $id',
+          group: liveCats['${s['category_id']}'] ?? 'Uncategorized',
+          logo: _str(s['stream_icon']),
+          url: '$server/live/$_u/$_p/$id.ts',
+          tvgId: _str(s['epg_channel_id']),
+          number: int.tryParse('${s['num']}'),
+        ),
+      );
     }
     return items;
   }
@@ -108,17 +100,19 @@ class XtreamClient {
     for (final s in _list(streams)) {
       final id = '${s['stream_id']}';
       final ext = _str(s['container_extension']) ?? 'mp4';
-      items.add(MediaItem(
-        playlistId: playlistId,
-        kind: ContentKind.movie,
-        key: 'x:movie:$id',
-        name: _str(s['name']) ?? 'Movie $id',
-        group: vodCats['${s['category_id']}'] ?? 'Uncategorized',
-        logo: _str(s['stream_icon']),
-        url: '$server/movie/$_u/$_p/$id.$ext',
-        rating: _rating(s['rating']),
-        year: _str(s['year']) ?? _yearFrom(_str(s['releasedate'])),
-      ));
+      items.add(
+        MediaItem(
+          playlistId: playlistId,
+          kind: ContentKind.movie,
+          key: 'x:movie:$id',
+          name: _str(s['name']) ?? 'Movie $id',
+          group: vodCats['${s['category_id']}'] ?? 'Uncategorized',
+          logo: _str(s['stream_icon']),
+          url: '$server/movie/$_u/$_p/$id.$ext',
+          rating: _rating(s['rating']),
+          year: _str(s['year']) ?? _yearFrom(_str(s['releasedate'])),
+        ),
+      );
     }
     return items;
   }
@@ -129,17 +123,19 @@ class XtreamClient {
     final items = <MediaItem>[];
     for (final s in _list(list)) {
       final id = '${s['series_id']}';
-      items.add(MediaItem(
-        playlistId: playlistId,
-        kind: ContentKind.series,
-        key: 'x:series:$id',
-        name: _str(s['name']) ?? 'Series $id',
-        group: seriesCats['${s['category_id']}'] ?? 'Uncategorized',
-        logo: _str(s['cover']),
-        rating: _rating(s['rating']),
-        year: _str(s['year']) ?? _yearFrom(_str(s['releaseDate'])),
-        plot: _str(s['plot']),
-      ));
+      items.add(
+        MediaItem(
+          playlistId: playlistId,
+          kind: ContentKind.series,
+          key: 'x:series:$id',
+          name: _str(s['name']) ?? 'Series $id',
+          group: seriesCats['${s['category_id']}'] ?? 'Uncategorized',
+          logo: _str(s['cover']),
+          rating: _rating(s['rating']),
+          year: _str(s['year']) ?? _yearFrom(_str(s['releaseDate'])),
+          plot: _str(s['plot']),
+        ),
+      );
     }
     return items;
   }
@@ -154,8 +150,8 @@ class XtreamClient {
     final Iterable<MapEntry<dynamic, dynamic>> entries = eps is Map
         ? eps.entries
         : eps is List
-            ? eps.asMap().entries
-            : const [];
+        ? eps.asMap().entries
+        : const [];
     for (final e in entries) {
       final list = e.value is List ? e.value as List : const [];
       for (final ep in list.whereType<Map>()) {
@@ -163,16 +159,20 @@ class XtreamClient {
         final epId = '${ep['id']}';
         final ext = _str(ep['container_extension']) ?? 'mp4';
         final meta = ep['info'] is Map ? ep['info'] as Map : const {};
-        seasons.putIfAbsent(season, () => []).add(Episode(
-              key: 'x:episode:$epId',
-              season: season,
-              number: int.tryParse('${ep['episode_num']}') ?? 0,
-              title: _str(ep['title']) ?? 'Episode ${ep['episode_num']}',
-              url: '$server/series/$_u/$_p/$epId.$ext',
-              plot: _str(meta['plot']) ?? _str(meta['description']) ?? _str(meta['overview']),
-              image: _str(meta['movie_image']),
-              duration: _str(meta['duration']),
-            ));
+        seasons
+            .putIfAbsent(season, () => [])
+            .add(
+              Episode(
+                key: 'x:episode:$epId',
+                season: season,
+                number: int.tryParse('${ep['episode_num']}') ?? 0,
+                title: _str(ep['title']) ?? 'Episode ${ep['episode_num']}',
+                url: '$server/series/$_u/$_p/$epId.$ext',
+                plot: _str(meta['plot']) ?? _str(meta['description']) ?? _str(meta['overview']),
+                image: _str(meta['movie_image']),
+                duration: _str(meta['duration']),
+              ),
+            );
       }
     }
     for (final list in seasons.values) {
@@ -214,13 +214,15 @@ class XtreamClient {
       final stop = time(m, 'stop_timestamp', 'end');
       final title = decode(m['title']);
       if (start == null || stop == null || title == null) continue;
-      out.add(EpgProgram(
-        channelId: channel.tvgId ?? id,
-        start: start,
-        stop: stop,
-        title: title,
-        description: decode(m['description']),
-      ));
+      out.add(
+        EpgProgram(
+          channelId: channel.tvgId ?? id,
+          start: start,
+          stop: stop,
+          title: title,
+          description: decode(m['description']),
+        ),
+      );
     }
     return out..sort((a, b) => a.start.compareTo(b.start));
   }

@@ -1,21 +1,35 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../state/providers.dart';
 import 'library_screen.dart';
 import 'live_screen.dart';
 import 'settings_screen.dart';
 import 'vod_screen.dart';
 import 'widgets.dart';
 
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh stale online playlists in the background after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!ref.read(settingsProvider).autoRefresh) return;
+      final updated = await ref.read(playlistsProvider.notifier).refreshStale();
+      if (!mounted || updated.isEmpty) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Updated ${updated.join(', ')}')));
+    });
+  }
 
   static const _destinations = [
     (Icons.live_tv_outlined, Icons.live_tv, 'Live TV'),
@@ -29,25 +43,24 @@ class _HomeShellState extends State<HomeShell> {
   final _built = <int>{0};
 
   Widget _page(int i) => switch (i) {
-        0 => const LiveScreen(),
-        1 => const VodScreen(kind: ContentKind.movie),
-        2 => const VodScreen(kind: ContentKind.series),
-        3 => const LibraryScreen(),
-        _ => const SettingsScreen(),
-      };
+    0 => const LiveScreen(),
+    1 => const VodScreen(kind: ContentKind.movie),
+    2 => const VodScreen(kind: ContentKind.series),
+    3 => const LibraryScreen(),
+    _ => const SettingsScreen(),
+  };
 
   void _select(int i) => setState(() {
-        _index = i;
-        _built.add(i);
-      });
+    _index = i;
+    _built.add(i);
+  });
 
   @override
   Widget build(BuildContext context) {
     final body = IndexedStack(
       index: _index,
       children: [
-        for (var i = 0; i < _destinations.length; i++)
-          _built.contains(i) ? _page(i) : const SizedBox.shrink(),
+        for (var i = 0; i < _destinations.length; i++) _built.contains(i) ? _page(i) : const SizedBox.shrink(),
       ],
     );
 
@@ -62,11 +75,7 @@ class _HomeShellState extends State<HomeShell> {
               groupAlignment: -0.85,
               destinations: [
                 for (final (icon, selected, label) in _destinations)
-                  NavigationRailDestination(
-                    icon: Icon(icon),
-                    selectedIcon: Icon(selected),
-                    label: Text(label),
-                  ),
+                  NavigationRailDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: Text(label)),
               ],
             ),
             Expanded(child: body),

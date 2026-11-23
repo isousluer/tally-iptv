@@ -3,8 +3,10 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
 import '../state/providers.dart';
+import 'category_picker.dart';
 import 'playback.dart';
 import 'playlist_switcher.dart';
+import 'search_screen.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -17,14 +19,12 @@ class LiveScreen extends ConsumerStatefulWidget {
 
 class _LiveScreenState extends ConsumerState<LiveScreen> {
   String _group = groupAll;
-  String _search = '';
-  bool _searching = false;
+  final String _search = '';
 
   @override
   Widget build(BuildContext context) {
     final playlist = ref.watch(activePlaylistProvider);
     final count = ref.watch(countProvider(ContentKind.live)).value ?? 0;
-    final groups = ref.watch(groupsProvider(ContentKind.live)).value ?? const [];
     final query = (kind: ContentKind.live, group: _group, search: _search);
     final items = ref.watch(itemsProvider(query));
 
@@ -32,37 +32,15 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
       bottom: false,
       child: Column(
         children: [
-          if (_searching)
-            SearchBarField(
-              hint: 'Search channels',
-              onChanged: (v) => setState(() => _search = v),
-              onClose: () => setState(() {
-                _searching = false;
-                _search = '';
-              }),
-            )
-          else
-            ScreenHeader(
-              title: 'Live TV',
-              subtitle: playlist == null ? null : '${playlist.name} · ${compactCount(count)} channels',
-              actions: [
-                IconButton(
-                  tooltip: 'Search channels',
-                  onPressed: () => setState(() => _searching = true),
-                  icon: const Icon(Icons.search),
-                ),
-                const PlaylistSwitcherButton(),
-              ],
-            ),
-          CategoryStrip(
-            entries: [
-              (groupAll, 'All'),
-              (groupFavorites, 'Favorites'),
-              for (final g in groups) (g, g),
+          ScreenHeader(
+            title: 'Live TV',
+            subtitle: playlist == null ? null : '${playlist.name} · ${compactCount(count)} channels',
+            actions: const [
+              SearchButton(first: ContentKind.live),
+              PlaylistSwitcherButton(),
             ],
-            selected: _group,
-            onSelected: (g) => setState(() => _group = g),
           ),
+          CategoryBar(kind: ContentKind.live, selected: _group, onSelected: (g) => setState(() => _group = g)),
           const SizedBox(height: 8),
           Expanded(
             child: items.when(
@@ -75,8 +53,8 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
                     title: _search.isNotEmpty
                         ? 'No channels match "$_search"'
                         : _group == groupFavorites
-                            ? 'No favorite channels yet'
-                            : 'No channels here',
+                        ? 'No favorite channels yet'
+                        : 'No channels here',
                     message: _group == groupFavorites ? 'Tap the star next to a channel to keep it here.' : null,
                   );
                 }
@@ -166,8 +144,7 @@ class ChannelRow extends StatelessWidget {
                           const SizedBox(width: 8),
                         ],
                         Expanded(
-                          child: Text(channel.name,
-                              maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleSmall),
+                          child: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleSmall),
                         ),
                       ],
                     ),
@@ -180,10 +157,7 @@ class ChannelRow extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: t.bodySmall!.copyWith(color: SlayerColors.muted),
                     ),
-                    if (program != null) ...[
-                      const SizedBox(height: 7),
-                      TallyBar(value: program!.progressAt(now)),
-                    ],
+                    if (program != null) ...[const SizedBox(height: 7), TallyBar(value: program!.progressAt(now))],
                   ],
                 ),
               ),

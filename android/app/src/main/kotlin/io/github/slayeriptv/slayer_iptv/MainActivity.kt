@@ -1,5 +1,140 @@
 package io.github.slayeriptv.slayer_iptv
 
+import android.app.PictureInPictureParams
+import android.app.UiModeManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.media.AudioManager
+import android.os.Build
+import android.provider.Settings
+import android.util.Rational
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity()
+/**
+ * Hosts the Flutter UI and exposes a few device controls the player needs:
+ * screen brightness, media volume, picture-in-picture and TV detection.
+ */
+class MainActivity : FlutterActivity() {
+    private var channel: MethodChannel? = null
+
+    /** True while a video is open, so leaving the app enters picture-in-picture. */
+    private var autoPip = false
+    private var pipAspect = Rational(16, 9)
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        val ch = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "slayer/device")
+        channel = ch
+        ch.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "getBrightness" -> result.success(currentBrightness())
+                "setBrightness" -> {
+                    val v = (call.arguments as Number).toFloat().coerceIn(0.01f, 1f)
+                    setWindowBrightness(v)
+                    result.success(null)
+                }
+                "resetBrightness" -> {
+                    setWindowBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+                    result.success(null)
+                }
+                "getVolume" -> {
+                    val am = audio()
+                    val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
+                    result.success(am.getStreamVolume(AudioManager.STREAM_MUSIC).toDouble() / max)
+                }
+                "setVolume" -> {
+                    val am = audio()
+                    val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val v = (call.arguments as Number).toDouble().coerceIn(0.0, 1.0)
+                    am.setStreamVolume(AudioManager.STREAM_MUSIC, Math.round(v * max).toInt(), 0)
+                    result.success(null)
+                }
+                "pipSupported" -> result.success(pipSupported())
+                "setAutoPip" -> {
+                    val args = call.arguments as Map<*, *>
+                    autoPip = args["enabled"] as Boolean
+                    val w = (args["width"] as? Number)?.toInt() ?: 16
+                    val h = (args["height"] as? Number)?.toInt() ?: 9
+                    pipAspect = clampAspect(w, h)
+                    updatePipParams()
+                    result.success(null)
+                }
+                "enterPip" -> result.success(enterPip())
+                "isTv" -> result.success(isTv())
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun audio() = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+    private fun currentBrightness(): Double {
+        val override = window.attributes.screenBrightness
+        if (override >= 0) return override.toDouble()
+        return try {
+            Settings.System.getInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255.0
+        } catch (e: Exception) {
+            0.5
+        }
+    }
+
+    private fun setWindowBrightness(v: Float) {
+        val lp = window.attributes
+        lp.screenBrightness = v
+        window.attributes = lp
+    }
+
+    private fun isTv(): Boolean {
+        val ui = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
+        return ui.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION ||
+            packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+    }
+
+    private fun pipSupported() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    // Android only accepts ratios between 1:2.39 and 2.39:1.
+    private fun clampAspect(w: Int, h: Int): Rational {
+        if (w <= 0 || h <= 0) return Rational(16, 9)
+        val r = w.toDouble() / h
+        return when {
+            r > 2.39 -> Rational(239, 100)
+            r < 1 / 2.39 -> Rational(100, 239)
+            else -> Rational(w, h)
+        }
+    }
+
+    private fun updatePipParams() {
+        if (!pipSupported()) return
+        val b = PictureInPictureParams.Builder().setAspectRatio(pipAspect)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) b.setAutoEnterEnabled(autoPip)
+        try {
+            setPictureInPictureParams(b.build())
+        } catch (_: Exception) {
+        }
+    }
+
+    private fun enterPip(): Boolean {
+        if (!pipSupported()) return false
+        return try {
+            enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(pipAspect).build())
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    // Android 8–11 have no auto-enter flag, so enter manually on Home.
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (autoPip && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) enterPip()
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        channel?.invokeMethod("pipChanged", isInPictureInPictureMode)
+    }
+}

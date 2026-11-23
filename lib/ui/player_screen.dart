@@ -9,6 +9,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../data/database.dart';
 import '../data/models.dart';
+import '../platform/device.dart';
 import '../state/providers.dart';
 import 'theme.dart';
 import 'vod_details_sheet.dart' show VodInfoText;
@@ -29,15 +30,31 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   late final VideoController _video = VideoController(_player);
   // Read once: ref must not be used in dispose(), where progress is saved.
   late final AppDatabase _db = ref.read(databaseProvider);
+  late final SettingsNotifier _settings = ref.read(settingsProvider.notifier);
+
+  /// What is playing now; changes when the next episode starts.
+  late PlayRequest _req = widget.request;
   late MediaItem _item = widget.request.item;
   late String _url = widget.request.url;
 
-  bool _fullscreen = false;
+  bool _fullscreen = Device.isTv;
   bool _controlsVisible = true;
+  bool _pip = Device.inPip;
+  bool _pipSupported = false;
   Timer? _hideTimer;
   Timer? _saveTimer;
   String? _error;
   bool _hasVideo = false;
+  bool _tracksApplied = false;
+  double _rate = 1;
+
+  Timer? _sleepTimer;
+  DateTime? _sleepAt;
+
+  /// Seconds left before the next episode starts, or null when hidden.
+  int? _nextIn;
+  bool _nextCancelled = false;
+
   final _subs = <StreamSubscription<Object?>>[];
 
   bool get _isLive => _item.kind == ContentKind.live;
@@ -46,41 +63,76 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   @override
   void initState() {
     super.initState();
-    _db; // initialize while ref is valid
+    _db;
+    _settings;
     // mpv reports warnings (e.g. "cannot seek in this stream" on live TV)
     // through the same error stream. Only treat a message as a failure when
     // no picture has arrived yet.
-    _subs.add(_player.stream.error.listen((e) {
-      if (!mounted || _hasVideo || e.toLowerCase().contains('seek')) return;
-      setState(() => _error = e);
-    }));
-    _subs.add(_player.stream.width.listen((w) {
-      if (w != null && w > 0) {
-        _hasVideo = true;
-        if (mounted && _error != null) setState(() => _error = null);
-      }
-    }));
-    _open(_url, start: widget.request.startAt);
-    if (!_isLive) {
-      _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) => _saveProgress());
-    }
+    _subs.add(
+      _player.stream.error.listen((e) {
+        if (!mounted || _hasVideo || e.toLowerCase().contains('seek')) return;
+        setState(() => _error = e);
+      }),
+    );
+    _subs.add(
+      _player.stream.width.listen((w) {
+        if (w != null && w > 0) {
+          _hasVideo = true;
+          if (mounted && _error != null) setState(() => _error = null);
+          _updatePip();
+        }
+      }),
+    );
+    _subs.add(_player.stream.tracks.listen(_applyTrackPrefs));
+    _subs.add(_player.stream.position.listen(_watchForNext));
+    _subs.add(
+      _player.stream.completed.listen((done) {
+        if (done && _req.upNext.isNotEmpty && !_nextCancelled && ref.read(settingsProvider).autoNext) _playNext();
+      }),
+    );
+    _subs.add(
+      Device.pipChanges.listen((v) {
+        if (mounted) setState(() => _pip = v);
+      }),
+    );
+    Device.pipSupported().then((v) {
+      if (!mounted) return;
+      setState(() => _pipSupported = v);
+      _updatePip();
+    });
+    _open(_url, start: _req.startAt);
+    _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) => _saveProgress());
+    if (_fullscreen) _setFullscreen(true);
     _bumpControls();
+  }
+
+  void _updatePip() {
+    if (!_pipSupported) return;
+    final w = _player.state.width ?? 16;
+    final h = _player.state.height ?? 9;
+    Device.setAutoPip(true, width: w, height: h);
   }
 
   Future<void> _open(String url, {Duration start = Duration.zero}) async {
     _hasVideo = false;
-    setState(() => _error = null);
+    _tracksApplied = false;
+    _nextCancelled = false;
+    setState(() {
+      _error = null;
+      _nextIn = null;
+    });
     await _player.open(Media(url, start: start > Duration.zero ? start : null));
+    if (_rate != 1 && !_isLive) await _player.setRate(_rate);
     if (_isLive) unawaited(_recordLive());
   }
 
   Future<void> _recordLive() => _db.saveProgress(
-        playlistId: _item.playlistId,
-        historyKey: _item.key,
-        itemKey: _item.key,
-        positionMs: 0,
-        durationMs: 0,
-      );
+    playlistId: _item.playlistId,
+    historyKey: _item.key,
+    itemKey: _item.key,
+    positionMs: 0,
+    durationMs: 0,
+  );
 
   Future<void> _saveProgress() async {
     if (_isLive) return;
@@ -90,18 +142,97 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     // Finished items restart from the beginning next time.
     final done = dur - pos < const Duration(minutes: 2);
     await _db.saveProgress(
-          playlistId: _item.playlistId,
-          historyKey: widget.request.historyKey ?? _item.key,
-          itemKey: _item.key,
-          title: widget.request.title,
-          url: _url,
-          positionMs: done ? 0 : pos.inMilliseconds,
-          durationMs: dur.inMilliseconds,
-        );
+      playlistId: _item.playlistId,
+      historyKey: _req.historyKey ?? _item.key,
+      itemKey: _item.key,
+      title: _req.title,
+      url: _url,
+      positionMs: done ? 0 : pos.inMilliseconds,
+      durationMs: dur.inMilliseconds,
+    );
   }
 
+  // ------------------------------------------------------------ next episode
+
+  void _watchForNext(Duration pos) {
+    if (_isLive || _req.upNext.isEmpty || _nextCancelled || !ref.read(settingsProvider).autoNext) return;
+    final dur = _player.state.duration;
+    if (dur <= const Duration(minutes: 1)) return;
+    final left = (dur - pos).inSeconds;
+    final show = left <= 15 && left >= 0;
+    final value = show ? left : null;
+    if (value != _nextIn && mounted) setState(() => _nextIn = value);
+  }
+
+  Future<void> _playNext() async {
+    if (_req.upNext.isEmpty) return;
+    await _saveProgress();
+    final next = _req.upNext.first;
+    final key = next.historyKey ?? next.item.key;
+    final ms = await _db.progressOf(next.item.playlistId, key);
+    if (!mounted) return;
+    setState(() {
+      _req = next.copyWith(upNext: _req.upNext.skip(1).toList(), historyKey: key);
+      _item = next.item;
+      _url = next.url;
+    });
+    await _open(_url, start: Duration(milliseconds: ms));
+    _bumpControls();
+  }
+
+  // ------------------------------------------------------- track preferences
+
+  void _applyTrackPrefs(Tracks tracks) {
+    if (_tracksApplied) return;
+    final audio = tracks.audio.where((a) => a.id != 'auto' && a.id != 'no').toList();
+    if (audio.isEmpty) return;
+    _tracksApplied = true;
+    final prefs = ref.read(settingsProvider);
+    final wantAudio = prefs.audioLanguage;
+    if (wantAudio != null && audio.length > 1) {
+      final match = audio.where((a) => sameLanguage(a.language, wantAudio)).firstOrNull;
+      if (match != null) _player.setAudioTrack(match);
+    }
+    final wantSub = prefs.subtitleLanguage;
+    if (wantSub == 'off') {
+      _player.setSubtitleTrack(SubtitleTrack.no());
+    } else if (wantSub != null) {
+      final subs = tracks.subtitle.where((s) => s.id != 'auto' && s.id != 'no');
+      final match = subs.where((s) => sameLanguage(s.language, wantSub)).firstOrNull;
+      if (match != null) _player.setSubtitleTrack(match);
+    }
+  }
+
+  void _pickAudio(AudioTrack a) {
+    _player.setAudioTrack(a);
+    if (a.language != null && a.language!.isNotEmpty) _settings.setAudioLanguage(a.language);
+  }
+
+  void _pickSubtitle(SubtitleTrack s) {
+    _player.setSubtitleTrack(s);
+    if (s.id == 'no') {
+      _settings.setSubtitleLanguage('off');
+    } else if (s.language != null && s.language!.isNotEmpty) {
+      _settings.setSubtitleLanguage(s.language);
+    }
+  }
+
+  // ------------------------------------------------------------- sleep timer
+
+  void _setSleep(Duration? d) {
+    _sleepTimer?.cancel();
+    setState(() => _sleepAt = d == null ? null : DateTime.now().add(d));
+    if (d == null) return;
+    _sleepTimer = Timer(d, () async {
+      await _player.pause();
+      if (mounted) Navigator.of(context).maybePop();
+    });
+  }
+
+  // ---------------------------------------------------------------- controls
+
   void _zap(int delta) {
-    final list = widget.request.siblings;
+    final list = _req.siblings;
     if (list.length < 2) return;
     final i = list.indexWhere((c) => c.key == _item.key);
     final next = list[((i < 0 ? 0 : i) + delta) % list.length];
@@ -126,8 +257,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_isMobile) {
       if (value) {
         await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-        await SystemChrome.setPreferredOrientations(
-            [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight]);
+        if (!Device.isTv) {
+          await SystemChrome.setPreferredOrientations([
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ]);
+        }
       } else {
         await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
         await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -135,14 +270,37 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     }
   }
 
+  void _showOptions() {
+    _bumpControls();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _OptionsSheet(
+        isLive: _isLive,
+        rate: _rate,
+        sleepAt: _sleepAt,
+        pipSupported: _pipSupported,
+        onRate: (r) {
+          setState(() => _rate = r);
+          _player.setRate(r);
+        },
+        onSleep: _setSleep,
+        onPip: Device.enterPip,
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _hideTimer?.cancel();
     _saveTimer?.cancel();
+    _sleepTimer?.cancel();
     for (final s in _subs) {
       s.cancel();
     }
     _saveProgress();
+    Device.setAutoPip(false);
+    Device.resetBrightness();
     if (_fullscreen && _isMobile) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -154,19 +312,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   KeyEventResult _onKey(FocusNode _, KeyEvent e) {
     if (e is! KeyDownEvent) return KeyEventResult.ignored;
     final k = e.logicalKey;
-    if (k == LogicalKeyboardKey.space || k == LogicalKeyboardKey.mediaPlayPause) {
+    if (k == LogicalKeyboardKey.space ||
+        k == LogicalKeyboardKey.mediaPlayPause ||
+        k == LogicalKeyboardKey.select ||
+        k == LogicalKeyboardKey.enter) {
+      if (!_controlsVisible && (k == LogicalKeyboardKey.select || k == LogicalKeyboardKey.enter)) {
+        _bumpControls();
+        return KeyEventResult.handled;
+      }
       _player.playOrPause();
     } else if (k == LogicalKeyboardKey.keyF) {
       _setFullscreen(!_fullscreen);
-    } else if (k == LogicalKeyboardKey.escape && _fullscreen) {
+    } else if (k == LogicalKeyboardKey.escape && _fullscreen && !Device.isTv) {
       _setFullscreen(false);
+    } else if (k == LogicalKeyboardKey.contextMenu || k == LogicalKeyboardKey.keyM) {
+      _showOptions();
     } else if (_isLive && (k == LogicalKeyboardKey.arrowUp || k == LogicalKeyboardKey.channelUp)) {
       _zap(-1);
     } else if (_isLive && (k == LogicalKeyboardKey.arrowDown || k == LogicalKeyboardKey.channelDown)) {
       _zap(1);
-    } else if (!_isLive && k == LogicalKeyboardKey.arrowRight) {
+    } else if (!_isLive && (k == LogicalKeyboardKey.arrowRight || k == LogicalKeyboardKey.mediaFastForward)) {
       _player.seek(_player.state.position + const Duration(seconds: 10));
-    } else if (!_isLive && k == LogicalKeyboardKey.arrowLeft) {
+    } else if (!_isLive && (k == LogicalKeyboardKey.arrowLeft || k == LogicalKeyboardKey.mediaRewind)) {
       _player.seek(_player.state.position - const Duration(seconds: 10));
     } else {
       return KeyEventResult.ignored;
@@ -175,26 +342,58 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     return KeyEventResult.handled;
   }
 
+  BoxFit get _fit => switch (ref.watch(settingsProvider).videoFit) {
+    VideoFit.fit => BoxFit.contain,
+    VideoFit.fill => BoxFit.cover,
+    VideoFit.stretch => BoxFit.fill,
+  };
+
   @override
   Widget build(BuildContext context) {
+    final fit = _fit;
+    if (_pip) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Video(controller: _video, controls: NoVideoControls, fill: Colors.black, fit: fit),
+      );
+    }
+
     final orientation = MediaQuery.orientationOf(context);
     final wide = isWide(context);
     final videoOnly = _fullscreen || (_isMobile && orientation == Orientation.landscape);
+    final next = _req.upNext.firstOrNull;
 
     final surface = _VideoSurface(
       video: _video,
       player: _player,
-      title: widget.request.title ?? _item.name,
-      subtitle: widget.request.subtitle,
+      fit: fit,
+      title: _req.title ?? _item.name,
+      subtitle: _req.subtitle,
       isLive: _isLive,
       error: _error,
       controlsVisible: _controlsVisible,
       fullscreen: videoOnly,
+      sleepAt: _sleepAt,
       onTap: () => _controlsVisible ? setState(() => _controlsVisible = false) : _bumpControls(),
       onInteract: _bumpControls,
-      onBack: () => videoOnly && _fullscreen ? _setFullscreen(false) : Navigator.of(context).pop(),
+      onBack: () => videoOnly && _fullscreen && !Device.isTv ? _setFullscreen(false) : Navigator.of(context).pop(),
       onFullscreen: () => _setFullscreen(!_fullscreen),
       onRetry: () => _open(_url, start: _player.state.position),
+      onOptions: _showOptions,
+      onPip: _pipSupported ? Device.enterPip : null,
+      onAudio: _pickAudio,
+      onSubtitle: _pickSubtitle,
+      nextCard: next == null || _nextIn == null
+          ? null
+          : _NextEpisodeCard(
+              title: next.title ?? next.item.name,
+              seconds: _nextIn!,
+              onPlay: _playNext,
+              onCancel: () => setState(() {
+                _nextCancelled = true;
+                _nextIn = null;
+              }),
+            ),
     );
 
     Widget body;
@@ -204,15 +403,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       body = Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: Container(color: Colors.black, child: Center(child: surface))),
-          SizedBox(width: 380, child: _InfoPanel(item: _item, request: widget.request, onZap: _zap)),
+          Expanded(
+            child: Container(
+              color: Colors.black,
+              child: Center(child: surface),
+            ),
+          ),
+          SizedBox(
+            width: 380,
+            child: _InfoPanel(item: _item, request: _req, onZap: _zap),
+          ),
         ],
       );
     } else {
       body = Column(
         children: [
-          ColoredBox(color: Colors.black, child: SafeArea(bottom: false, child: surface)),
-          Expanded(child: _InfoPanel(item: _item, request: widget.request, onZap: _zap)),
+          ColoredBox(
+            color: Colors.black,
+            child: SafeArea(bottom: false, child: surface),
+          ),
+          Expanded(
+            child: _InfoPanel(item: _item, request: _req, onZap: _zap),
+          ),
         ],
       );
     }
@@ -220,10 +432,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     return Focus(
       autofocus: true,
       onKeyEvent: _onKey,
-      child: Scaffold(
-        backgroundColor: videoOnly ? Colors.black : SlayerColors.canvas,
-        body: body,
-      ),
+      child: Scaffold(backgroundColor: videoOnly ? Colors.black : SlayerColors.canvas, body: body),
     );
   }
 }
@@ -232,32 +441,46 @@ class _VideoSurface extends StatelessWidget {
   const _VideoSurface({
     required this.video,
     required this.player,
+    required this.fit,
     required this.title,
     required this.subtitle,
     required this.isLive,
     required this.error,
     required this.controlsVisible,
     required this.fullscreen,
+    required this.sleepAt,
     required this.onTap,
     required this.onInteract,
     required this.onBack,
     required this.onFullscreen,
     required this.onRetry,
+    required this.onOptions,
+    required this.onPip,
+    required this.onAudio,
+    required this.onSubtitle,
+    required this.nextCard,
   });
 
   final VideoController video;
   final Player player;
+  final BoxFit fit;
   final String title;
   final String? subtitle;
   final bool isLive;
   final String? error;
   final bool controlsVisible;
   final bool fullscreen;
+  final DateTime? sleepAt;
   final VoidCallback onTap;
   final VoidCallback onInteract;
   final VoidCallback onBack;
   final VoidCallback onFullscreen;
   final VoidCallback onRetry;
+  final VoidCallback onOptions;
+  final VoidCallback? onPip;
+  final ValueChanged<AudioTrack> onAudio;
+  final ValueChanged<SubtitleTrack> onSubtitle;
+  final Widget? nextCard;
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +488,7 @@ class _VideoSurface extends StatelessWidget {
     final stack = Stack(
       fit: StackFit.expand,
       children: [
-        Video(controller: video, controls: NoVideoControls, fill: Colors.black),
+        Video(controller: video, controls: NoVideoControls, fill: Colors.black, fit: fit),
         StreamBuilder<bool>(
           stream: player.stream.buffering,
           builder: (_, s) => (s.data ?? false) && error == null
@@ -284,22 +507,19 @@ class _VideoSurface extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text('This stream could not be played', style: t.titleMedium),
                 const SizedBox(height: 4),
-                Text(error!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                Text(
+                  error!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                ),
                 const SizedBox(height: 14),
                 OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
               ],
             ),
           ),
-        GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: onTap,
-          onDoubleTap: onFullscreen,
-          child: MouseRegion(onHover: (_) => onInteract()),
-        ),
+        _GestureLayer(player: player, onTap: onTap, onDoubleTap: onFullscreen, onInteract: onInteract),
         IgnorePointer(
           ignoring: !controlsVisible,
           child: AnimatedOpacity(
@@ -311,15 +531,354 @@ class _VideoSurface extends StatelessWidget {
               subtitle: subtitle,
               isLive: isLive,
               fullscreen: fullscreen,
+              sleepAt: sleepAt,
               onBack: onBack,
               onFullscreen: onFullscreen,
               onInteract: onInteract,
+              onOptions: onOptions,
+              onPip: onPip,
+              onAudio: onAudio,
+              onSubtitle: onSubtitle,
             ),
           ),
         ),
+        if (nextCard != null) Positioned(right: 12, bottom: 56, child: nextCard!),
       ],
     );
     return fullscreen ? stack : AspectRatio(aspectRatio: 16 / 9, child: stack);
+  }
+}
+
+/// Tap to show controls, double tap for full screen, and vertical swipes:
+/// left half for brightness (phones), right half for volume.
+class _GestureLayer extends StatefulWidget {
+  const _GestureLayer({required this.player, required this.onTap, required this.onDoubleTap, required this.onInteract});
+  final Player player;
+  final VoidCallback onTap;
+  final VoidCallback onDoubleTap;
+  final VoidCallback onInteract;
+
+  @override
+  State<_GestureLayer> createState() => _GestureLayerState();
+}
+
+enum _Adjust { brightness, volume }
+
+class _GestureLayerState extends State<_GestureLayer> {
+  _Adjust? _adjusting;
+  double _value = 0;
+  double _brightness = 0.5;
+  double _volume = 0.5;
+  Timer? _hide;
+
+  bool get _android => Platform.isAndroid;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (_android) {
+      _brightness = await Device.brightness();
+      _volume = await Device.volume();
+    } else {
+      _volume = widget.player.state.volume / 100;
+    }
+  }
+
+  void _start(DragStartDetails d, double width) {
+    _hide?.cancel();
+    final left = d.localPosition.dx < width / 2;
+    final kind = left && _android ? _Adjust.brightness : _Adjust.volume;
+    setState(() {
+      _adjusting = kind;
+      _value = kind == _Adjust.brightness ? _brightness : _volume;
+    });
+    // Volume may have changed with the hardware buttons since last time.
+    if (kind == _Adjust.volume && _android) {
+      Device.volume().then((v) {
+        if (mounted && _adjusting == _Adjust.volume) setState(() => _value = _volume = v);
+      });
+    }
+  }
+
+  void _update(DragUpdateDetails d, double height) {
+    if (_adjusting == null) return;
+    // A swipe over ~70% of the picture height covers the full range.
+    final v = (_value - d.delta.dy / (height * 0.7)).clamp(0.0, 1.0);
+    setState(() => _value = v);
+    if (_adjusting == _Adjust.brightness) {
+      _brightness = v;
+      Device.setBrightness(v);
+    } else {
+      _volume = v;
+      if (_android) {
+        Device.setVolume(v);
+      } else {
+        widget.player.setVolume(v * 100);
+      }
+    }
+  }
+
+  void _end() {
+    _hide = Timer(const Duration(milliseconds: 700), () {
+      if (mounted) setState(() => _adjusting = null);
+    });
+  }
+
+  @override
+  void dispose() {
+    _hide?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: widget.onTap,
+        onDoubleTap: widget.onDoubleTap,
+        onVerticalDragStart: (d) => _start(d, box.maxWidth),
+        onVerticalDragUpdate: (d) => _update(d, box.maxHeight),
+        onVerticalDragEnd: (_) => _end(),
+        onVerticalDragCancel: _end,
+        child: MouseRegion(
+          onHover: (_) => widget.onInteract(),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_adjusting != null)
+                Align(
+                  alignment: _adjusting == _Adjust.brightness ? const Alignment(-0.75, 0) : const Alignment(0.75, 0),
+                  child: _LevelIndicator(
+                    icon: _adjusting == _Adjust.brightness
+                        ? (_value < 0.3
+                              ? Icons.brightness_low
+                              : _value < 0.7
+                              ? Icons.brightness_medium
+                              : Icons.brightness_high)
+                        : (_value == 0
+                              ? Icons.volume_off
+                              : _value < 0.5
+                              ? Icons.volume_down
+                              : Icons.volume_up),
+                    value: _value,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LevelIndicator extends StatelessWidget {
+  const _LevelIndicator({required this.icon, required this.value});
+  final IconData icon;
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 52,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(color: const Color(0xB3000000), borderRadius: BorderRadius.circular(26)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 22),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 110,
+            width: 4,
+            child: RotatedBox(
+              quarterTurns: 3,
+              child: LinearProgressIndicator(
+                value: value,
+                backgroundColor: Colors.white24,
+                color: SlayerColors.tally,
+                minHeight: 4,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${(value * 100).round()}',
+            style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, fontFeatures: tabular),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NextEpisodeCard extends StatelessWidget {
+  const _NextEpisodeCard({required this.title, required this.seconds, required this.onPlay, required this.onCancel});
+  final String title;
+  final int seconds;
+  final VoidCallback onPlay;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.fromLTRB(14, 12, 8, 8),
+      decoration: BoxDecoration(
+        color: const Color(0xE616292E),
+        borderRadius: BorderRadius.circular(10),
+        border: const Border(left: BorderSide(color: SlayerColors.tally, width: 3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Next episode in $seconds s', style: t.labelMedium!.copyWith(color: SlayerColors.tally)),
+          const SizedBox(height: 4),
+          Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: t.titleSmall),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(onPressed: onCancel, child: const Text('Cancel')),
+              const SizedBox(width: 4),
+              FilledButton(onPressed: onPlay, child: const Text('Play now')),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Picture size, speed, sleep timer and picture-in-picture.
+class _OptionsSheet extends ConsumerStatefulWidget {
+  const _OptionsSheet({
+    required this.isLive,
+    required this.rate,
+    required this.sleepAt,
+    required this.pipSupported,
+    required this.onRate,
+    required this.onSleep,
+    required this.onPip,
+  });
+  final bool isLive;
+  final double rate;
+  final DateTime? sleepAt;
+  final bool pipSupported;
+  final ValueChanged<double> onRate;
+  final ValueChanged<Duration?> onSleep;
+  final Future<bool> Function() onPip;
+
+  @override
+  ConsumerState<_OptionsSheet> createState() => _OptionsSheetState();
+}
+
+class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
+  late double _rate = widget.rate;
+  late DateTime? _sleepAt = widget.sleepAt;
+
+  static const _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+  static const _sleeps = [15, 30, 45, 60, 90, 120];
+
+  String _rateLabel(double r) => r == 1 ? 'Normal' : '${r.toString().replaceAll(RegExp(r'\.0$'), '')}×';
+
+  Widget _choices<T>(List<T> values, T? selected, String Function(T) label, ValueChanged<T> onTap) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final v in values)
+            ChoiceChip(
+              label: Text(label(v)),
+              selected: v == selected,
+              showCheckmark: false,
+              onSelected: (_) => onTap(v),
+              labelStyle: Theme.of(context).textTheme.labelMedium!
+                  .copyWith(color: v == selected ? SlayerColors.onTally : SlayerColors.text),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final fit = ref.watch(settingsProvider).videoFit;
+    final left = _sleepAt?.difference(DateTime.now());
+
+    Widget heading(String text, [String? trailing]) => Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(text, style: t.titleSmall!.copyWith(color: SlayerColors.muted)),
+          ),
+          if (trailing != null) Text(trailing, style: t.labelMedium!.copyWith(color: SlayerColors.tally)),
+        ],
+      ),
+    );
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            heading('Picture size'),
+            _choices<VideoFit>(
+              VideoFit.values,
+              fit,
+              (f) => switch (f) {
+                VideoFit.fit => 'Fit',
+                VideoFit.fill => 'Fill screen',
+                VideoFit.stretch => 'Stretch',
+              },
+              (f) => ref.read(settingsProvider.notifier).setVideoFit(f),
+            ),
+            if (!widget.isLive) ...[
+              heading('Playback speed'),
+              _choices<double>(_rates, _rate, _rateLabel, (r) {
+                setState(() => _rate = r);
+                widget.onRate(r);
+              }),
+            ],
+            heading(
+              'Sleep timer',
+              left == null || left.isNegative ? null : 'Stops in ${formatDuration(left + const Duration(seconds: 59))}',
+            ),
+            _choices<int?>(
+              [null, ..._sleeps],
+              null,
+              (m) => m == null ? 'Off' : (m < 60 ? '$m min' : '${m ~/ 60} h${m % 60 == 0 ? '' : ' ${m % 60} min'}'),
+              (m) {
+                widget.onSleep(m == null ? null : Duration(minutes: m));
+                setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
+              },
+            ),
+            if (widget.pipSupported)
+              ListTile(
+                leading: const Icon(Icons.picture_in_picture_alt_outlined),
+                title: const Text('Picture in picture'),
+                subtitle: const Text('Keep watching in a small window. Pressing Home does this too.'),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onPip();
+                },
+              ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -330,9 +889,14 @@ class _Controls extends StatelessWidget {
     required this.subtitle,
     required this.isLive,
     required this.fullscreen,
+    required this.sleepAt,
     required this.onBack,
     required this.onFullscreen,
     required this.onInteract,
+    required this.onOptions,
+    required this.onPip,
+    required this.onAudio,
+    required this.onSubtitle,
   });
 
   final Player player;
@@ -340,105 +904,134 @@ class _Controls extends StatelessWidget {
   final String? subtitle;
   final bool isLive;
   final bool fullscreen;
+  final DateTime? sleepAt;
   final VoidCallback onBack;
   final VoidCallback onFullscreen;
   final VoidCallback onInteract;
+  final VoidCallback onOptions;
+  final VoidCallback? onPip;
+  final ValueChanged<AudioTrack> onAudio;
+  final ValueChanged<SubtitleTrack> onSubtitle;
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
-    return DecoratedBox(
-      decoration: const BoxDecoration(color: Color(0x66000000)),
-      child: SafeArea(
-        top: fullscreen,
-        bottom: fullscreen,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  tooltip: 'Back',
-                  onPressed: onBack,
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                ),
-                if (isLive) const Padding(padding: EdgeInsets.only(right: 8), child: LiveBadge()),
-                Expanded(
-                  child: Text(title,
+    // The scrim lets touches through, so swipes work while controls show.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const IgnorePointer(child: ColoredBox(color: Color(0x66000000))),
+        SafeArea(
+          top: fullscreen,
+          bottom: fullscreen,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Back',
+                    onPressed: onBack,
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  ),
+                  if (isLive) const Padding(padding: EdgeInsets.only(right: 8), child: LiveBadge()),
+                  Expanded(
+                    child: Text(
+                      title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.titleMedium!.copyWith(color: Colors.white)),
-                ),
-                _TracksButton(player: player, onInteract: onInteract),
-              ],
-            ),
-            Expanded(
-              child: Center(
-                child: StreamBuilder<bool>(
-                  stream: player.stream.playing,
-                  initialData: player.state.playing,
-                  builder: (_, s) {
-                    final playing = s.data ?? false;
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!isLive)
-                          _RoundButton(
-                            icon: Icons.replay_10,
-                            tooltip: 'Back 10 seconds',
-                            onPressed: () {
-                              player.seek(player.state.position - const Duration(seconds: 10));
-                              onInteract();
-                            },
-                          ),
-                        const SizedBox(width: 20),
-                        _RoundButton(
-                          icon: playing ? Icons.pause : Icons.play_arrow,
-                          tooltip: playing ? 'Pause' : 'Play',
-                          big: true,
-                          onPressed: () {
-                            player.playOrPause();
-                            onInteract();
-                          },
-                        ),
-                        const SizedBox(width: 20),
-                        if (!isLive)
-                          _RoundButton(
-                            icon: Icons.forward_10,
-                            tooltip: 'Forward 10 seconds',
-                            onPressed: () {
-                              player.seek(player.state.position + const Duration(seconds: 10));
-                              onInteract();
-                            },
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 4, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: isLive
-                        ? Text(subtitle ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: t.bodySmall!.copyWith(color: Colors.white70))
-                        : _SeekBar(player: player, onInteract: onInteract),
+                      style: t.titleMedium!.copyWith(color: Colors.white),
+                    ),
                   ),
+                  if (sleepAt != null)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(Icons.bedtime_outlined, color: SlayerColors.tally, size: 20),
+                    ),
+                  _TracksButtons(player: player, onInteract: onInteract, onAudio: onAudio, onSubtitle: onSubtitle),
                   IconButton(
-                    tooltip: fullscreen ? 'Exit full screen' : 'Full screen',
-                    onPressed: onFullscreen,
-                    icon: Icon(fullscreen ? Icons.fullscreen_exit : Icons.fullscreen, color: Colors.white),
+                    tooltip: 'Player options',
+                    onPressed: onOptions,
+                    icon: const Icon(Icons.tune, color: Colors.white),
                   ),
                 ],
               ),
-            ),
-          ],
+              Expanded(
+                child: Center(
+                  child: StreamBuilder<bool>(
+                    stream: player.stream.playing,
+                    initialData: player.state.playing,
+                    builder: (_, s) {
+                      final playing = s.data ?? false;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!isLive)
+                            _RoundButton(
+                              icon: Icons.replay_10,
+                              tooltip: 'Back 10 seconds',
+                              onPressed: () {
+                                player.seek(player.state.position - const Duration(seconds: 10));
+                                onInteract();
+                              },
+                            ),
+                          const SizedBox(width: 20),
+                          _RoundButton(
+                            icon: playing ? Icons.pause : Icons.play_arrow,
+                            tooltip: playing ? 'Pause' : 'Play',
+                            big: true,
+                            onPressed: () {
+                              player.playOrPause();
+                              onInteract();
+                            },
+                          ),
+                          const SizedBox(width: 20),
+                          if (!isLive)
+                            _RoundButton(
+                              icon: Icons.forward_10,
+                              tooltip: 'Forward 10 seconds',
+                              onPressed: () {
+                                player.seek(player.state.position + const Duration(seconds: 10));
+                                onInteract();
+                              },
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 4, 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: isLive
+                          ? Text(
+                              subtitle ?? '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: t.bodySmall!.copyWith(color: Colors.white70),
+                            )
+                          : _SeekBar(player: player, onInteract: onInteract),
+                    ),
+                    if (onPip != null)
+                      IconButton(
+                        tooltip: 'Picture in picture',
+                        onPressed: onPip,
+                        icon: const Icon(Icons.picture_in_picture_alt_outlined, color: Colors.white),
+                      ),
+                    IconButton(
+                      tooltip: fullscreen ? 'Exit full screen' : 'Full screen',
+                      onPressed: onFullscreen,
+                      icon: Icon(fullscreen ? Icons.fullscreen_exit : Icons.fullscreen, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -534,73 +1127,184 @@ class _SeekBarState extends State<_SeekBar> {
   }
 }
 
-/// Audio and subtitle track picker.
-class _TracksButton extends StatelessWidget {
-  const _TracksButton({required this.player, required this.onInteract});
+/// Separate audio and subtitle pickers. Each button only appears when the
+/// stream actually offers a choice: several audio tracks, or any subtitles.
+class _TracksButtons extends StatelessWidget {
+  const _TracksButtons({
+    required this.player,
+    required this.onInteract,
+    required this.onAudio,
+    required this.onSubtitle,
+  });
   final Player player;
   final VoidCallback onInteract;
 
-  String _label(dynamic t, int i) {
-    final title = t.title as String?;
-    final lang = t.language as String?;
-    final parts = [if (title != null && title.isNotEmpty) title, if (lang != null && lang.isNotEmpty) lang];
-    return parts.isEmpty ? 'Track ${i + 1}' : parts.join(' – ');
+  /// Also remember the language for the next video.
+  final ValueChanged<AudioTrack> onAudio;
+  final ValueChanged<SubtitleTrack> onSubtitle;
+
+  static bool _real(String id) => id != 'auto' && id != 'no';
+
+  static String _label(String? title, String? lang, int i) {
+    final parts = [
+      if (title != null && title.isNotEmpty) title,
+      if (lang != null && lang.isNotEmpty) _languageName(lang),
+    ];
+    return parts.isEmpty ? 'Track ${i + 1}' : parts.join(' · ');
   }
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: 'Audio and subtitles',
-      icon: const Icon(Icons.subtitles_outlined, color: Colors.white),
-      onPressed: () {
-        onInteract();
-        final tracks = player.state.tracks;
-        final audio = tracks.audio.where((a) => a.id != 'auto' && a.id != 'no').toList();
-        final subs = tracks.subtitle.where((s) => s.id != 'auto').toList();
-        showModalBottomSheet<void>(
-          context: context,
-          builder: (ctx) => SafeArea(
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                _section(ctx, 'Audio'),
-                if (audio.isEmpty) const ListTile(title: Text('Default')),
-                for (final (i, a) in audio.indexed)
-                  ListTile(
-                    title: Text(_label(a, i)),
-                    trailing: player.state.track.audio.id == a.id
-                        ? const Icon(Icons.check, color: SlayerColors.tally)
-                        : null,
-                    onTap: () {
-                      player.setAudioTrack(a);
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                _section(ctx, 'Subtitles'),
-                for (final (i, s) in subs.indexed)
-                  ListTile(
-                    title: Text(s.id == 'no' ? 'Off' : _label(s, i)),
-                    trailing: player.state.track.subtitle.id == s.id
-                        ? const Icon(Icons.check, color: SlayerColors.tally)
-                        : null,
-                    onTap: () {
-                      player.setSubtitleTrack(s);
-                      Navigator.pop(ctx);
-                    },
-                  ),
-                const SizedBox(height: 12),
-              ],
-            ),
-          ),
+    return StreamBuilder<Tracks>(
+      stream: player.stream.tracks,
+      initialData: player.state.tracks,
+      builder: (context, snap) {
+        final tracks = snap.data ?? const Tracks();
+        final audio = tracks.audio.where((a) => _real(a.id)).toList();
+        final subs = tracks.subtitle.where((s) => _real(s.id)).toList();
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (audio.length > 1)
+              IconButton(
+                tooltip: 'Audio',
+                icon: const Icon(Icons.audiotrack_outlined, color: Colors.white),
+                onPressed: () => _pick<AudioTrack>(
+                  context,
+                  title: 'Audio',
+                  options: [for (final (i, a) in audio.indexed) (a, _label(a.title, a.language, i))],
+                  selectedId: player.state.track.audio.id,
+                  id: (a) => a.id,
+                  onSelect: onAudio,
+                ),
+              ),
+            if (subs.isNotEmpty)
+              IconButton(
+                tooltip: 'Subtitles',
+                icon: const Icon(Icons.closed_caption_outlined, color: Colors.white),
+                onPressed: () => _pick<SubtitleTrack>(
+                  context,
+                  title: 'Subtitles',
+                  options: [
+                    (SubtitleTrack.no(), 'Off'),
+                    for (final (i, s) in subs.indexed) (s, _label(s.title, s.language, i)),
+                  ],
+                  selectedId: player.state.track.subtitle.id,
+                  id: (s) => s.id,
+                  onSelect: onSubtitle,
+                ),
+              ),
+          ],
         );
       },
     );
   }
 
-  Widget _section(BuildContext context, String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-        child: Text(text, style: Theme.of(context).textTheme.titleSmall!.copyWith(color: SlayerColors.muted)),
-      );
+  void _pick<T>(
+    BuildContext context, {
+    required String title,
+    required List<(T, String)> options,
+    required String selectedId,
+    required String Function(T) id,
+    required void Function(T) onSelect,
+  }) {
+    onInteract();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.7),
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Text(title, style: Theme.of(ctx).textTheme.titleMedium),
+              ),
+              for (final (track, label) in options)
+                ListTile(
+                  title: Text(label),
+                  trailing: id(track) == selectedId ? const Icon(Icons.check, color: SlayerColors.tally) : null,
+                  onTap: () {
+                    onSelect(track);
+                    Navigator.pop(ctx);
+                  },
+                ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Whether two language codes ("tr", "tur", "Turkish") mean the same language.
+bool sameLanguage(String? a, String b) {
+  if (a == null || a.isEmpty) return false;
+  return _languageName(a).toLowerCase() == _languageName(b).toLowerCase();
+}
+
+/// Readable names for the language codes streams usually carry.
+String languageName(String code) => _languageName(code);
+
+String _languageName(String code) {
+  const names = {
+    'tur': 'Turkish',
+    'tr': 'Turkish',
+    'eng': 'English',
+    'en': 'English',
+    'ger': 'German',
+    'deu': 'German',
+    'de': 'German',
+    'fre': 'French',
+    'fra': 'French',
+    'fr': 'French',
+    'spa': 'Spanish',
+    'es': 'Spanish',
+    'ita': 'Italian',
+    'it': 'Italian',
+    'ara': 'Arabic',
+    'ar': 'Arabic',
+    'rus': 'Russian',
+    'ru': 'Russian',
+    'por': 'Portuguese',
+    'pt': 'Portuguese',
+    'dut': 'Dutch',
+    'nld': 'Dutch',
+    'nl': 'Dutch',
+    'pol': 'Polish',
+    'pl': 'Polish',
+    'gre': 'Greek',
+    'ell': 'Greek',
+    'jpn': 'Japanese',
+    'ja': 'Japanese',
+    'kor': 'Korean',
+    'ko': 'Korean',
+    'chi': 'Chinese',
+    'zho': 'Chinese',
+    'zh': 'Chinese',
+    'hin': 'Hindi',
+    'per': 'Persian',
+    'fas': 'Persian',
+    'kur': 'Kurdish',
+    'aze': 'Azerbaijani',
+    'swe': 'Swedish',
+    'nor': 'Norwegian',
+    'dan': 'Danish',
+    'fin': 'Finnish',
+    'ron': 'Romanian',
+    'rum': 'Romanian',
+    'bul': 'Bulgarian',
+    'hun': 'Hungarian',
+    'cze': 'Czech',
+    'ces': 'Czech',
+    'ukr': 'Ukrainian',
+    'heb': 'Hebrew',
+    'und': 'Unknown',
+  };
+  return names[code.toLowerCase()] ?? code;
 }
 
 /// Channel details, now/next guide and zapping for live; title info for VOD.
@@ -627,7 +1331,12 @@ class _InfoPanel extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(request.title ?? item.name, style: t.headlineSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    request.title ?? item.name,
+                    style: t.headlineSmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     request.subtitle ?? item.group,
@@ -644,8 +1353,10 @@ class _InfoPanel extends ConsumerWidget {
                 await ref.read(favoritesControllerProvider).toggle(item.copyWith(favorite: favorite));
                 ref.invalidate(_favoriteProvider(item));
               },
-              icon: Icon(favorite ? Icons.star : Icons.star_border,
-                  color: favorite ? SlayerColors.tally : SlayerColors.muted),
+              icon: Icon(
+                favorite ? Icons.star : Icons.star_border,
+                color: favorite ? SlayerColors.tally : SlayerColors.muted,
+              ),
             ),
           ],
         ),
@@ -679,7 +1390,9 @@ class _InfoPanel extends ConsumerWidget {
           if (request.description != null || item.kind != ContentKind.movie)
             VodInfoText(info: null, fallbackPlot: request.description ?? item.plot)
           else
-            ref.watch(movieInfoProvider(item)).when(
+            ref
+                .watch(movieInfoProvider(item))
+                .when(
                   loading: () => const LinearProgressIndicator(),
                   error: (_, _) => VodInfoText(info: null, fallbackPlot: item.plot),
                   data: (info) => VodInfoText(info: info, fallbackPlot: item.plot),
@@ -731,21 +1444,27 @@ class _Guide extends ConsumerWidget {
                       children: [
                         Text('Now', style: t.labelMedium!.copyWith(color: SlayerColors.tally)),
                         const SizedBox(width: 8),
-                        Text('${formatTime(current.start)} – ${formatTime(current.stop)}',
-                            style: t.labelMedium!.copyWith(color: SlayerColors.muted, fontFeatures: tabular)),
+                        Text(
+                          '${formatTime(current.start)} – ${formatTime(current.stop)}',
+                          style: t.labelMedium!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                        ),
                         const Spacer(),
-                        Text('${formatDuration(current.stop.difference(now))} left',
-                            style: t.labelMedium!.copyWith(color: SlayerColors.muted)),
+                        Text(
+                          '${formatDuration(current.stop.difference(now))} left',
+                          style: t.labelMedium!.copyWith(color: SlayerColors.muted),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(current.title, style: t.titleLarge),
                     if (current.description != null) ...[
                       const SizedBox(height: 4),
-                      Text(current.description!,
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.bodyMedium!.copyWith(color: SlayerColors.muted)),
+                      Text(
+                        current.description!,
+                        maxLines: 4,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                      ),
                     ],
                     const SizedBox(height: 12),
                     TallyBar(value: current.progressAt(now), height: 4),
@@ -764,8 +1483,10 @@ class _Guide extends ConsumerWidget {
                     children: [
                       SizedBox(
                         width: 56,
-                        child: Text(formatTime(p.start),
-                            style: t.titleSmall!.copyWith(color: SlayerColors.tally, fontFeatures: tabular)),
+                        child: Text(
+                          formatTime(p.start),
+                          style: t.titleSmall!.copyWith(color: SlayerColors.tally, fontFeatures: tabular),
+                        ),
                       ),
                       Expanded(
                         child: Column(
@@ -773,10 +1494,12 @@ class _Guide extends ConsumerWidget {
                           children: [
                             Text(p.title, style: t.titleSmall),
                             if (p.description != null)
-                              Text(p.description!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                              Text(
+                                p.description!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                              ),
                           ],
                         ),
                       ),

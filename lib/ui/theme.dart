@@ -1,4 +1,4 @@
-﻿import 'package:material_ui/material_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// "Broadcast control room" palette: petrol-teal surfaces with a single
 /// amber tally accent. Red is reserved for the live badge.
@@ -15,15 +15,14 @@ abstract final class SlayerColors {
 }
 
 /// Variable fonts need an explicit weight axis.
-TextStyle _font(String family, double size, FontWeight weight, {double? height, double? spacing}) =>
-    TextStyle(
-      fontFamily: family,
-      fontSize: size,
-      fontWeight: weight,
-      height: height,
-      letterSpacing: spacing,
-      fontVariations: [FontVariation.weight(weight.value.toDouble())],
-    );
+TextStyle _font(String family, double size, FontWeight weight, {double? height, double? spacing}) => TextStyle(
+  fontFamily: family,
+  fontSize: size,
+  fontWeight: weight,
+  height: height,
+  letterSpacing: spacing,
+  fontVariations: [FontVariation.weight(weight.value.toDouble())],
+);
 
 const tabular = [FontFeature.tabularFigures()];
 
@@ -65,6 +64,8 @@ ThemeData buildTheme() {
   const side = BorderSide(color: SlayerColors.border);
 
   return ThemeData(
+    // Visible focus for keyboards and TV remotes.
+    focusColor: SlayerColors.tally.withAlpha(0x40),
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: scheme,
@@ -85,12 +86,14 @@ ThemeData buildTheme() {
       surfaceTintColor: Colors.transparent,
       indicatorColor: SlayerColors.tally.withValues(alpha: 0.16),
       height: 68,
-      labelTextStyle: WidgetStateProperty.resolveWith((s) => text.labelSmall!.copyWith(
-            color: s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.muted,
-          )),
-      iconTheme: WidgetStateProperty.resolveWith((s) => IconThemeData(
-            color: s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.muted,
-          )),
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (s) => text.labelSmall!.copyWith(
+          color: s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.muted,
+        ),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith(
+        (s) => IconThemeData(color: s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.muted),
+      ),
     ),
     navigationRailTheme: NavigationRailThemeData(
       backgroundColor: SlayerColors.surface,
@@ -193,9 +196,11 @@ ThemeData buildTheme() {
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? SlayerColors.onTally : SlayerColors.muted),
+        (s) => s.contains(WidgetState.selected) ? SlayerColors.onTally : SlayerColors.muted,
+      ),
       trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.raised),
+        (s) => s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.raised,
+      ),
     ),
   );
 }

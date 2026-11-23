@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'theme.dart';
@@ -24,18 +24,12 @@ class ChannelLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = Center(
-      child: Text(
-        initials(name),
-        style: Theme.of(context).textTheme.labelLarge!.copyWith(color: SlayerColors.tally),
-      ),
+      child: Text(initials(name), style: Theme.of(context).textTheme.labelLarge!.copyWith(color: SlayerColors.tally)),
     );
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: SlayerColors.raised,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(color: SlayerColors.raised, borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.all(5),
       child: url == null
@@ -123,8 +117,7 @@ class LiveBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(color: SlayerColors.live, borderRadius: BorderRadius.circular(99)),
-      child: Text('Live',
-          style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, height: 1.2)),
+      child: Text('Live', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, height: 1.2)),
     );
   }
 }
@@ -136,12 +129,16 @@ class CategoryStrip extends StatelessWidget {
     required this.entries,
     required this.selected,
     required this.onSelected,
+    this.locked = const {},
   });
 
   /// (value, label) pairs.
   final List<(String, String)> entries;
   final String selected;
   final ValueChanged<String> onSelected;
+
+  /// Values shown with a lock (parental PIN needed).
+  final Set<String> locked;
 
   @override
   Widget build(BuildContext context) {
@@ -157,12 +154,15 @@ class CategoryStrip extends StatelessWidget {
           final active = value == selected;
           return Center(
             child: ChoiceChip(
+              avatar: locked.contains(value)
+                  ? Icon(Icons.lock_outline, size: 16, color: active ? SlayerColors.onTally : SlayerColors.muted)
+                  : null,
+              showCheckmark: false,
               label: Text(label),
               selected: active,
               onSelected: (_) => onSelected(value),
-              labelStyle: Theme.of(context).textTheme.labelMedium!.copyWith(
-                    color: active ? SlayerColors.onTally : SlayerColors.text,
-                  ),
+              labelStyle: Theme.of(context).textTheme.labelMedium!
+                  .copyWith(color: active ? SlayerColors.onTally : SlayerColors.text),
               side: BorderSide(color: active ? SlayerColors.tally : SlayerColors.border),
             ),
           );
@@ -194,10 +194,12 @@ class ScreenHeader extends StatelessWidget {
                 if (subtitle != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Text(subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                    child: Text(
+                      subtitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                    ),
                   ),
               ],
             ),
@@ -264,8 +266,11 @@ class EmptyState extends StatelessWidget {
               Text(title, style: t.titleLarge, textAlign: TextAlign.center),
               if (message != null) ...[
                 const SizedBox(height: 6),
-                Text(message!,
-                    style: t.bodyMedium!.copyWith(color: SlayerColors.muted), textAlign: TextAlign.center),
+                Text(
+                  message!,
+                  style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                  textAlign: TextAlign.center,
+                ),
               ],
               if (action != null) ...[const SizedBox(height: 18), action!],
             ],
@@ -283,15 +288,14 @@ class ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => EmptyState(
-        icon: Icons.error_outline,
-        title: 'Something went wrong',
-        message: '$error',
-        action: onRetry == null ? null : OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
-      );
+    icon: Icons.error_outline,
+    title: 'Something went wrong',
+    message: '$error',
+    action: onRetry == null ? null : OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+  );
 }
 
-String formatTime(DateTime t) =>
-    '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+String formatTime(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
 String formatDuration(Duration d) {
   final h = d.inHours;

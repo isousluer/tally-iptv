@@ -1,11 +1,13 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
 import '../state/providers.dart';
+import 'category_picker.dart';
 import 'continue_row.dart';
 import 'playback.dart';
 import 'playlist_switcher.dart';
+import 'search_screen.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -20,15 +22,14 @@ class VodScreen extends ConsumerStatefulWidget {
 
 class _VodScreenState extends ConsumerState<VodScreen> {
   String _group = groupAll;
-  String _search = '';
-  bool _searching = false;
+  final String _search = '';
 
   bool get _movies => widget.kind == ContentKind.movie;
 
   @override
   Widget build(BuildContext context) {
     final count = ref.watch(countProvider(widget.kind)).value ?? 0;
-    final groups = ref.watch(groupsProvider(widget.kind)).value ?? const [];
+
     final query = (kind: widget.kind, group: _group, search: _search);
     final items = ref.watch(itemsProvider(query));
     final noun = _movies ? 'movies' : 'series';
@@ -40,41 +41,19 @@ class _VodScreenState extends ConsumerState<VodScreen> {
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: _searching
-                ? SearchBarField(
-                    hint: 'Search $noun',
-                    onChanged: (v) => setState(() => _search = v),
-                    onClose: () => setState(() {
-                      _searching = false;
-                      _search = '';
-                    }),
-                  )
-                : ScreenHeader(
-                    title: _movies ? 'Movies' : 'Series',
-                    subtitle: '${compactCount(count)} $noun',
-                    actions: [
-                      IconButton(
-                        tooltip: 'Search $noun',
-                        onPressed: () => setState(() => _searching = true),
-                        icon: const Icon(Icons.search),
-                      ),
-                      const PlaylistSwitcherButton(),
-                    ],
-                  ),
-          ),
-          SliverToBoxAdapter(
-            child: CategoryStrip(
-              entries: [
-                (groupAll, 'All'),
-                (groupFavorites, 'Favorites'),
-                for (final g in groups) (g, g),
+            child: ScreenHeader(
+              title: _movies ? 'Movies' : 'Series',
+              subtitle: '${compactCount(count)} $noun',
+              actions: [
+                SearchButton(first: widget.kind),
+                const PlaylistSwitcherButton(),
               ],
-              selected: _group,
-              onSelected: (g) => setState(() => _group = g),
             ),
           ),
-          if (_group == groupAll && _search.isEmpty)
-            SliverToBoxAdapter(child: ContinueRow(kind: widget.kind)),
+          SliverToBoxAdapter(
+            child: CategoryBar(kind: widget.kind, selected: _group, onSelected: (g) => setState(() => _group = g)),
+          ),
+          if (_group == groupAll && _search.isEmpty) SliverToBoxAdapter(child: ContinueRow(kind: widget.kind)),
           const SliverToBoxAdapter(child: SizedBox(height: 12)),
           ...items.when(
             loading: () => [const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))],
@@ -89,8 +68,8 @@ class _VodScreenState extends ConsumerState<VodScreen> {
                       title: _search.isNotEmpty
                           ? 'Nothing matches "$_search"'
                           : _group == groupFavorites
-                              ? 'No favorite $noun yet'
-                              : 'No $noun in this playlist',
+                          ? 'No favorite $noun yet'
+                          : 'No $noun in this playlist',
                       message: count == 0 && _search.isEmpty && _group == groupAll
                           ? 'Your playlist doesn\'t include $noun. Xtream Codes accounts usually do.'
                           : null,
@@ -109,10 +88,8 @@ class _VodScreenState extends ConsumerState<VodScreen> {
                       childAspectRatio: 0.52,
                     ),
                     itemCount: list.length,
-                    itemBuilder: (context, i) => PosterTile(
-                      item: list[i],
-                      onTap: () => openItem(context, ref, list[i]),
-                    ),
+                    itemBuilder: (context, i) =>
+                        PosterTile(item: list[i], onTap: () => openItem(context, ref, list[i])),
                   ),
                 ),
               ];
@@ -150,11 +127,7 @@ class PosterTile extends StatelessWidget {
               children: [
                 Poster(title: title, url: item.logo, aspectRatio: null),
                 if (item.favorite)
-                  const Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Icon(Icons.star, size: 18, color: SlayerColors.tally),
-                  ),
+                  const Positioned(top: 6, right: 6, child: Icon(Icons.star, size: 18, color: SlayerColors.tally)),
               ],
             ),
           ),
@@ -166,10 +139,12 @@ class PosterTile extends StatelessWidget {
               children: [
                 Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: t.labelMedium!.copyWith(height: 1.25)),
                 if (meta.isNotEmpty)
-                  Text(meta,
-                      maxLines: 1,
-                      overflow: TextOverflow.clip,
-                      style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular)),
+                  Text(
+                    meta,
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                  ),
               ],
             ),
           ),

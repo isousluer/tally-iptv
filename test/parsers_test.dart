@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:slayer_iptv/data/epg_parser.dart';
@@ -54,7 +54,8 @@ http://example.com/live/3.ts
 
     test('turns get.php links into an Xtream login', () {
       final p = PlaylistRepository.upgradeXtreamLink(
-          m3u('http://tv.example.com:8080/get.php?username=ann&password=s3cret&type=m3u_plus&output=ts'));
+        m3u('http://tv.example.com:8080/get.php?username=ann&password=s3cret&type=m3u_plus&output=ts'),
+      );
       expect(p.type, SourceType.xtream);
       expect(p.server, 'http://tv.example.com:8080');
       expect(p.username, 'ann');
@@ -75,11 +76,11 @@ http://example.com/live/3.ts
 
     test('keeps programs for known channels only', () async {
       final now = DateTime.now().toUtc();
-      String fmt(DateTime d) =>
-          '${d.year}${pad2(d.month)}${pad2(d.day)}${pad2(d.hour)}${pad2(d.minute)}00 +0000';
+      String fmt(DateTime d) => '${d.year}${pad2(d.month)}${pad2(d.day)}${pad2(d.hour)}${pad2(d.minute)}00 +0000';
       final start = fmt(now.subtract(const Duration(minutes: 30)));
       final stop = fmt(now.add(const Duration(minutes: 30)));
-      final xml = '''<?xml version="1.0" encoding="UTF-8"?>
+      final xml =
+          '''<?xml version="1.0" encoding="UTF-8"?>
 <tv>
   <channel id="news.us"><display-name>News</display-name></channel>
   <programme start="$start" stop="$stop" channel="news.us">

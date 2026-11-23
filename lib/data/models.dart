@@ -43,42 +43,39 @@ class Playlist {
   bool get isXtream => type == SourceType.xtream;
 
   Map<String, Object?> toRow() => {
-        'name': name,
-        'type': type.name,
-        'url': url,
-        'server': server,
-        'username': username,
-        'password': password,
-        'epg_url': epgUrl,
-        'last_updated': lastUpdated?.millisecondsSinceEpoch,
-      };
+    'name': name,
+    'type': type.name,
+    'url': url,
+    'server': server,
+    'username': username,
+    'password': password,
+    'epg_url': epgUrl,
+    'last_updated': lastUpdated?.millisecondsSinceEpoch,
+  };
 
   factory Playlist.fromRow(Map<String, Object?> r) => Playlist(
-        id: r['id'] as int,
-        name: r['name'] as String,
-        type: SourceType.values.firstWhere((t) => t.name == r['type'],
-            orElse: () => SourceType.m3uUrl),
-        url: r['url'] as String?,
-        server: r['server'] as String?,
-        username: r['username'] as String?,
-        password: r['password'] as String?,
-        epgUrl: r['epg_url'] as String?,
-        lastUpdated: r['last_updated'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(r['last_updated'] as int),
-      );
+    id: r['id'] as int,
+    name: r['name'] as String,
+    type: SourceType.values.firstWhere((t) => t.name == r['type'], orElse: () => SourceType.m3uUrl),
+    url: r['url'] as String?,
+    server: r['server'] as String?,
+    username: r['username'] as String?,
+    password: r['password'] as String?,
+    epgUrl: r['epg_url'] as String?,
+    lastUpdated: r['last_updated'] == null ? null : DateTime.fromMillisecondsSinceEpoch(r['last_updated'] as int),
+  );
 
   Playlist copyWith({String? name, String? epgUrl, DateTime? lastUpdated}) => Playlist(
-        id: id,
-        name: name ?? this.name,
-        type: type,
-        url: url,
-        server: server,
-        username: username,
-        password: password,
-        epgUrl: epgUrl ?? this.epgUrl,
-        lastUpdated: lastUpdated ?? this.lastUpdated,
-      );
+    id: id,
+    name: name ?? this.name,
+    type: type,
+    url: url,
+    server: server,
+    username: username,
+    password: password,
+    epgUrl: epgUrl ?? this.epgUrl,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
 }
 
 /// A playable or browsable entry: live channel, movie, or series.
@@ -120,62 +117,72 @@ class MediaItem {
   final bool favorite;
 
   Map<String, Object?> toRow() => {
-        'playlist_id': playlistId,
-        'kind': kind.dbValue,
-        'ukey': key,
-        'name': name,
-        'grp': group,
-        'logo': logo,
-        'url': url,
-        'tvg_id': tvgId,
-        'num': number,
-        'rating': rating,
-        'year': year,
-        'plot': plot,
-      };
+    'playlist_id': playlistId,
+    'kind': kind.dbValue,
+    'ukey': key,
+    'name': name,
+    'grp': group,
+    'logo': logo,
+    'url': url,
+    'tvg_id': tvgId,
+    'num': number,
+    'rating': rating,
+    'year': year,
+    'plot': plot,
+  };
 
   factory MediaItem.fromRow(Map<String, Object?> r) => MediaItem(
-        id: r['id'] as int,
-        playlistId: r['playlist_id'] as int,
-        kind: ContentKindX.parse(r['kind'] as String),
-        key: r['ukey'] as String,
-        name: r['name'] as String,
-        group: (r['grp'] as String?) ?? '',
-        logo: r['logo'] as String?,
-        url: r['url'] as String?,
-        tvgId: r['tvg_id'] as String?,
-        number: r['num'] as int?,
-        rating: r['rating'] as String?,
-        year: r['year'] as String?,
-        plot: r['plot'] as String?,
-        favorite: (r['fav'] as int? ?? 0) == 1,
-      );
+    id: r['id'] as int,
+    playlistId: r['playlist_id'] as int,
+    kind: ContentKindX.parse(r['kind'] as String),
+    key: r['ukey'] as String,
+    name: r['name'] as String,
+    group: (r['grp'] as String?) ?? '',
+    logo: r['logo'] as String?,
+    url: r['url'] as String?,
+    tvgId: r['tvg_id'] as String?,
+    number: r['num'] as int?,
+    rating: r['rating'] as String?,
+    year: r['year'] as String?,
+    plot: r['plot'] as String?,
+    favorite: (r['fav'] as int? ?? 0) == 1,
+  );
 
   /// Identity is the playlist + stable key, so providers keyed by an item
   /// survive rebuilds and favorite toggles.
   @override
-  bool operator ==(Object other) =>
-      other is MediaItem && other.playlistId == playlistId && other.key == key;
+  bool operator ==(Object other) => other is MediaItem && other.playlistId == playlistId && other.key == key;
 
   @override
   int get hashCode => Object.hash(playlistId, key);
 
   MediaItem copyWith({bool? favorite}) => MediaItem(
-        id: id,
-        playlistId: playlistId,
-        kind: kind,
-        key: key,
-        name: name,
-        group: group,
-        logo: logo,
-        url: url,
-        tvgId: tvgId,
-        number: number,
-        rating: rating,
-        year: year,
-        plot: plot,
-        favorite: favorite ?? this.favorite,
-      );
+    id: id,
+    playlistId: playlistId,
+    kind: kind,
+    key: key,
+    name: name,
+    group: group,
+    logo: logo,
+    url: url,
+    tvgId: tvgId,
+    number: number,
+    rating: rating,
+    year: year,
+    plot: plot,
+    favorite: favorite ?? this.favorite,
+  );
+}
+
+/// A category with the viewer's choices for it.
+class GroupInfo {
+  const GroupInfo({required this.name, this.count = 0, this.hidden = false, this.locked = false});
+  final String name;
+  final int count;
+  final bool hidden;
+
+  /// Needs the parental PIN to open.
+  final bool locked;
 }
 
 class Episode {
@@ -276,8 +283,7 @@ class WatchEntry {
   /// Episode title when the entry is a series episode.
   final String? title;
 
-  double get progress =>
-      durationMs <= 0 ? 0 : (positionMs / durationMs).clamp(0.0, 1.0);
+  double get progress => durationMs <= 0 ? 0 : (positionMs / durationMs).clamp(0.0, 1.0);
 }
 
 /// What the player should open.
@@ -291,7 +297,23 @@ class PlayRequest {
     this.startAt = Duration.zero,
     this.siblings = const [],
     this.description,
+    this.upNext = const [],
   });
+
+  /// Episodes that follow this one, played automatically in order.
+  final List<PlayRequest> upNext;
+
+  PlayRequest copyWith({String? historyKey, Duration? startAt, List<PlayRequest>? upNext}) => PlayRequest(
+    item: item,
+    url: url,
+    title: title,
+    subtitle: subtitle,
+    historyKey: historyKey ?? this.historyKey,
+    startAt: startAt ?? this.startAt,
+    siblings: siblings,
+    description: description,
+    upNext: upNext ?? this.upNext,
+  );
 
   final MediaItem item;
   final String url;

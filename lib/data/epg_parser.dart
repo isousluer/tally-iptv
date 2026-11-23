@@ -69,11 +69,7 @@ Future<List<EpgProgram>> parseXmltv(
   String? textTarget;
   final text = StringBuffer();
 
-  final events = bytes
-      .transform(utf8.decoder)
-      .toXmlEvents()
-      .normalizeEvents()
-      .flatten();
+  final events = bytes.transform(utf8.decoder).toXmlEvents().normalizeEvents().flatten();
 
   await for (final e in events) {
     if (e is XmlStartElementEvent) {
@@ -114,13 +110,7 @@ Future<List<EpgProgram>> parseXmltv(
             lowerIds.contains(channel.toLowerCase()) &&
             stop.isAfter(from) &&
             start.isBefore(to)) {
-          out.add(EpgProgram(
-            channelId: channel,
-            start: start,
-            stop: stop,
-            title: title,
-            description: desc,
-          ));
+          out.add(EpgProgram(channelId: channel, start: start, stop: stop, title: title, description: desc));
         }
         channel = null;
       }

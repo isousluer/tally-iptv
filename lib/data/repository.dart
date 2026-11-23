@@ -44,11 +44,8 @@ class PlaylistRepository {
   PlaylistRepository(this.db);
   final AppDatabase db;
 
-  XtreamClient xtreamFor(Playlist p) => XtreamClient(
-        server: p.server ?? '',
-        username: p.username ?? '',
-        password: p.password ?? '',
-      );
+  XtreamClient xtreamFor(Playlist p) =>
+      XtreamClient(server: p.server ?? '', username: p.username ?? '', password: p.password ?? '');
 
   /// Recognizes Xtream "get.php?username=…&password=…" M3U links and turns
   /// them into an Xtream login, which gives proper movie and series data.
@@ -151,9 +148,11 @@ class PlaylistRepository {
       programs = await Isolate.run(() => downloadEpg(url, ids));
     } on HttpException catch (e) {
       if (e.message.contains('404') || e.message.contains('403')) {
-        throw SourceException(p.isXtream && url == xtreamFor(p).epgUrl
-            ? 'Your provider doesn\'t offer a TV guide. You can add a guide (XMLTV) link from the playlist menu.'
-            : 'The guide link was not found. Check the link in the playlist menu.');
+        throw SourceException(
+          p.isXtream && url == xtreamFor(p).epgUrl
+              ? 'Your provider doesn\'t offer a TV guide. You can add a guide (XMLTV) link from the playlist menu.'
+              : 'The guide link was not found. Check the link in the playlist menu.',
+        );
       }
       rethrow;
     } on SocketException {
@@ -163,8 +162,7 @@ class PlaylistRepository {
     return programs.length;
   }
 
-  Future<SeriesDetails> seriesDetails(Playlist p, MediaItem series) =>
-      xtreamFor(p).seriesInfo(series.key);
+  Future<SeriesDetails> seriesDetails(Playlist p, MediaItem series) => xtreamFor(p).seriesInfo(series.key);
 
   /// Turns low-level network errors into messages people can act on.
   Future<T> _guard<T>(Future<T> Function() run) async {

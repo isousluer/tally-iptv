@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../data/backup.dart';
 import '../data/database.dart';
 import '../data/models.dart';
 import '../data/repository.dart';
@@ -45,6 +46,47 @@ class PlaylistsNotifier extends AsyncNotifier<List<Playlist>> {
       debugPrint('TV guide update failed: $e\n$st');
       ref.read(epgStatusProvider.notifier).set(EpgStatus.failed, message: '$e');
     }
+  }
+
+  /// Quietly updates online playlists that are more than a day old.
+  /// Returns the names of the playlists that were updated.
+  Future<List<String>> refreshStale() async {
+    final list = state.value ?? await future;
+    final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+    final done = <String>[];
+    for (final p in list) {
+      if (p.type == SourceType.m3uFile) continue;
+      if (p.lastUpdated != null && p.lastUpdated!.isAfter(cutoff)) continue;
+      try {
+        await refresh(p);
+        done.add(p.name);
+      } catch (e) {
+        debugPrint('Auto update of ${p.name} failed: $e');
+      }
+    }
+    return done;
+  }
+
+  /// Restores a backup, then downloads the channels of each restored playlist.
+  Future<RestoreResult> restore(String json, {void Function(String name)? onLoading}) async {
+    final result = await importBackup(ref.read(databaseProvider), ref.read(prefsProvider), json);
+    await _reload();
+    for (final p in result.playlists) {
+      onLoading?.call(p.name);
+      try {
+        await ref.read(repositoryProvider).refresh(p);
+      } catch (e) {
+        debugPrint('Restoring ${p.name} failed: $e');
+      }
+    }
+    await _reload();
+    ref.read(contentVersionProvider.notifier).bump();
+    ref.read(groupsVersionProvider.notifier).bump();
+    ref.invalidate(settingsProvider);
+    if (ref.read(activePlaylistIdProvider) == null && (state.value ?? const []).isNotEmpty) {
+      await ref.read(activePlaylistIdProvider.notifier).select(state.value!.first.id);
+    }
+    return result;
   }
 
   Future<void> rename(Playlist p, String name) async {
@@ -116,12 +158,23 @@ final epgVersionProvider = NotifierProvider<DataVersion, int>(DataVersion.new);
 
 // -------------------------------------------------------------------- content
 
-final groupsProvider = FutureProvider.family<List<String>, ContentKind>((ref, kind) async {
+/// All categories, including hidden ones (the category manager needs them).
+final groupsProvider = FutureProvider.family<List<GroupInfo>, ContentKind>((ref, kind) async {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(contentVersionProvider);
+  ref.watch(groupsVersionProvider);
   if (p == null) return const [];
   return ref.watch(databaseProvider).groups(p.id, kind);
 });
+
+/// Bumped when categories are hidden, locked or reordered.
+final groupsVersionProvider = NotifierProvider<DataVersion, int>(DataVersion.new);
+
+/// Whether locked categories are open right now: no PIN set, or the PIN was
+/// entered during this session.
+final lockedContentOpenProvider = Provider<bool>(
+  (ref) => ref.watch(parentalPinProvider) == null || ref.watch(parentalUnlockedProvider),
+);
 
 final countProvider = FutureProvider.family<int, ContentKind>((ref, kind) async {
   final p = ref.watch(activePlaylistProvider);
@@ -139,21 +192,41 @@ typedef ItemQuery = ({ContentKind kind, String group, String search});
 final itemsProvider = FutureProvider.family<List<MediaItem>, ItemQuery>((ref, q) async {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(contentVersionProvider);
+  ref.watch(groupsVersionProvider);
+  final open = ref.watch(lockedContentOpenProvider);
   if (p == null) return const [];
-  return ref.watch(databaseProvider).items(
+  return ref
+      .watch(databaseProvider)
+      .items(
         p.id,
         q.kind,
         group: q.group == groupAll || q.group == groupFavorites ? null : q.group,
         favoritesOnly: q.group == groupFavorites,
         search: q.search,
+        includeLocked: open,
       );
 });
 
 final favoritesProvider = FutureProvider<List<MediaItem>>((ref) async {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(contentVersionProvider);
+  ref.watch(groupsVersionProvider);
+  final open = ref.watch(lockedContentOpenProvider);
   if (p == null) return const [];
-  return ref.watch(databaseProvider).favorites(p.id);
+  return ref.watch(databaseProvider).favorites(p.id, includeLocked: open);
+});
+
+/// Search across live channels, movies and series at once.
+final searchProvider = FutureProvider.autoDispose.family<Map<ContentKind, List<MediaItem>>, String>((ref, text) async {
+  final p = ref.watch(activePlaylistProvider);
+  ref.watch(contentVersionProvider);
+  final open = ref.watch(lockedContentOpenProvider);
+  if (p == null || text.trim().length < 2) return const {};
+  final db = ref.watch(databaseProvider);
+  return {
+    for (final kind in ContentKind.values)
+      kind: await db.items(p.id, kind, search: text, includeLocked: open, limit: 60),
+  };
 });
 
 final historyProvider = FutureProvider<List<(WatchEntry, String?)>>((ref) async {
@@ -255,3 +328,108 @@ final scheduleProvider = FutureProvider.autoDispose.family<List<EpgProgram>, Med
     return const [];
   }
 });
+
+// ------------------------------------------------------------ parental lock
+
+class ParentalPin extends Notifier<String?> {
+  static const _key = 'parental_pin';
+
+  @override
+  String? build() => ref.watch(prefsProvider).getString(_key);
+
+  Future<void> set(String? pin) async {
+    final prefs = ref.read(prefsProvider);
+    if (pin == null) {
+      await prefs.remove(_key);
+    } else {
+      await prefs.setString(_key, pin);
+    }
+    state = pin;
+  }
+}
+
+final parentalPinProvider = NotifierProvider<ParentalPin, String?>(ParentalPin.new);
+
+/// Unlocked by entering the PIN; locks again when the app restarts.
+class ParentalUnlocked extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void set(bool v) => state = v;
+}
+
+final parentalUnlockedProvider = NotifierProvider<ParentalUnlocked, bool>(ParentalUnlocked.new);
+
+/// Category names that usually hold adult content.
+final adultGroupPattern = RegExp(r'adult|xxx|porn|erotic|\+18|18\+|\bfor adults\b|yeti[sş]kin', caseSensitive: false);
+
+// ----------------------------------------------------------------- settings
+
+/// How the picture fills the player.
+enum VideoFit { fit, fill, stretch }
+
+class AppSettings {
+  const AppSettings({
+    this.videoFit = VideoFit.fit,
+    this.audioLanguage,
+    this.subtitleLanguage,
+    this.autoNext = true,
+    this.autoRefresh = true,
+  });
+
+  final VideoFit videoFit;
+
+  /// Language code last picked in the player; applied to new videos.
+  final String? audioLanguage;
+
+  /// Language code, `off`, or null for the stream's default.
+  final String? subtitleLanguage;
+  final bool autoNext;
+
+  /// Update playlists older than a day when the app opens.
+  final bool autoRefresh;
+}
+
+class SettingsNotifier extends Notifier<AppSettings> {
+  SharedPreferences get _p => ref.read(prefsProvider);
+
+  @override
+  AppSettings build() {
+    final p = ref.watch(prefsProvider);
+    return AppSettings(
+      videoFit: VideoFit.values.firstWhere((f) => f.name == p.getString('video_fit'), orElse: () => VideoFit.fit),
+      audioLanguage: p.getString('audio_lang'),
+      subtitleLanguage: p.getString('subtitle_lang'),
+      autoNext: p.getBool('auto_next') ?? true,
+      autoRefresh: p.getBool('auto_refresh') ?? true,
+    );
+  }
+
+  Future<void> _str(String key, String? v) => v == null ? _p.remove(key) : _p.setString(key, v);
+
+  Future<void> setVideoFit(VideoFit f) async {
+    await _p.setString('video_fit', f.name);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAudioLanguage(String? lang) async {
+    await _str('audio_lang', lang);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setSubtitleLanguage(String? lang) async {
+    await _str('subtitle_lang', lang);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAutoNext(bool v) async {
+    await _p.setBool('auto_next', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAutoRefresh(bool v) async {
+    await _p.setBool('auto_refresh', v);
+    ref.invalidateSelf();
+  }
+}
+
+final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(SettingsNotifier.new);

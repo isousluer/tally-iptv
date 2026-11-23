@@ -1,9 +1,11 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/database.dart';
+import 'platform/device.dart';
 import 'state/providers.dart';
 import 'ui/add_playlist_screen.dart';
 import 'ui/home_shell.dart';
@@ -12,14 +14,12 @@ import 'ui/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+  await Device.init();
   final db = await AppDatabase.open();
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
-      overrides: [
-        databaseProvider.overrideWithValue(db),
-        prefsProvider.overrideWithValue(prefs),
-      ],
+      overrides: [databaseProvider.overrideWithValue(db), prefsProvider.overrideWithValue(prefs)],
       child: const SlayerApp(),
     ),
   );
@@ -36,6 +36,11 @@ class SlayerApp extends StatelessWidget {
       theme: buildTheme(),
       darkTheme: buildTheme(),
       themeMode: ThemeMode.dark,
+      // TV remotes send "select" for the OK button.
+      shortcuts: {
+        ...WidgetsApp.defaultShortcuts,
+        const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+      },
       home: const _Root(),
     );
   }

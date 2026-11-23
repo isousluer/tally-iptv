@@ -25,11 +25,17 @@ class AppDatabase {
     final db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 2,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
-        onCreate: (db, _) => _create(db),
+        onCreate: (db, _) async {
+          await _create(db);
+          await _createGroupPrefs(db);
+        },
+        onUpgrade: (db, from, _) async {
+          if (from < 2) await _createGroupPrefs(db);
+        },
       ),
     );
     return AppDatabase._(db);
@@ -89,6 +95,18 @@ class AppDatabase {
     await db.execute('CREATE INDEX idx_epg ON epg(playlist_id, channel_id, start)');
   }
 
+  /// Per-category choices: hidden, locked behind the parental PIN, and order.
+  static Future<void> _createGroupPrefs(Database db) => db.execute('''
+      CREATE TABLE group_prefs(
+        playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL,
+        grp TEXT NOT NULL,
+        hidden INTEGER NOT NULL DEFAULT 0,
+        locked INTEGER NOT NULL DEFAULT 0,
+        position INTEGER,
+        PRIMARY KEY(playlist_id, kind, grp)
+      )''');
+
   // ---------------------------------------------------------------- playlists
 
   Future<List<Playlist>> playlists() async =>
@@ -96,8 +114,7 @@ class AppDatabase {
 
   Future<int> insertPlaylist(Playlist p) => db.insert('playlists', p.toRow());
 
-  Future<void> updatePlaylist(Playlist p) =>
-      db.update('playlists', p.toRow(), where: 'id = ?', whereArgs: [p.id]);
+  Future<void> updatePlaylist(Playlist p) => db.update('playlists', p.toRow(), where: 'id = ?', whereArgs: [p.id]);
 
   Future<void> deletePlaylist(int id) => db.delete('playlists', where: 'id = ?', whereArgs: [id]);
 
@@ -122,20 +139,87 @@ class AppDatabase {
   static const _favExpr =
       'EXISTS(SELECT 1 FROM favorites f WHERE f.playlist_id = i.playlist_id AND f.ukey = i.ukey) AS fav';
 
-  Future<List<String>> groups(int playlistId, ContentKind kind) async {
+  /// Categories in the user's order (new ones go last, in playlist order),
+  /// with their hidden/locked flags.
+  Future<List<GroupInfo>> groups(int playlistId, ContentKind kind) async {
     final rows = await db.rawQuery(
-      'SELECT grp, MIN(id) AS first FROM items WHERE playlist_id = ? AND kind = ? '
-      'GROUP BY grp ORDER BY first',
+      'SELECT i.grp, MIN(i.id) AS first, COUNT(*) AS n, '
+      'COALESCE(g.hidden, 0) AS hidden, COALESCE(g.locked, 0) AS locked, g.position '
+      'FROM items i LEFT JOIN group_prefs g '
+      'ON g.playlist_id = i.playlist_id AND g.kind = i.kind AND g.grp = i.grp '
+      'WHERE i.playlist_id = ? AND i.kind = ? '
+      'GROUP BY i.grp ORDER BY COALESCE(g.position, 1000000000 + MIN(i.id))',
       [playlistId, kind.dbValue],
     );
-    return rows.map((r) => r['grp'] as String).toList();
+    return rows
+        .map(
+          (r) => GroupInfo(
+            name: r['grp'] as String,
+            count: r['n'] as int,
+            hidden: r['hidden'] == 1,
+            locked: r['locked'] == 1,
+          ),
+        )
+        .toList();
   }
 
-  Future<int> count(int playlistId, ContentKind kind) async {
-    final r = await db.rawQuery(
-      'SELECT COUNT(*) AS c FROM items WHERE playlist_id = ? AND kind = ?',
-      [playlistId, kind.dbValue],
+  Future<void> _ensureGroupPref(DatabaseExecutor ex, int playlistId, ContentKind kind, String group) => ex.insert(
+    'group_prefs',
+    {'playlist_id': playlistId, 'kind': kind.dbValue, 'grp': group},
+    conflictAlgorithm: ConflictAlgorithm.ignore,
+  );
+
+  Future<void> setGroupFlags(int playlistId, ContentKind kind, String group, {bool? hidden, bool? locked}) async {
+    await _ensureGroupPref(db, playlistId, kind, group);
+    await db.update(
+      'group_prefs',
+      {if (hidden != null) 'hidden': hidden ? 1 : 0, if (locked != null) 'locked': locked ? 1 : 0},
+      where: 'playlist_id = ? AND kind = ? AND grp = ?',
+      whereArgs: [playlistId, kind.dbValue, group],
     );
+  }
+
+  Future<void> setGroupOrder(int playlistId, ContentKind kind, List<String> order) async {
+    await db.transaction((txn) async {
+      for (final (i, g) in order.indexed) {
+        await _ensureGroupPref(txn, playlistId, kind, g);
+        await txn.update(
+          'group_prefs',
+          {'position': i},
+          where: 'playlist_id = ? AND kind = ? AND grp = ?',
+          whereArgs: [playlistId, kind.dbValue, g],
+        );
+      }
+    });
+  }
+
+  Future<bool> isGroupLocked(int playlistId, ContentKind kind, String group) async {
+    final r = await db.query(
+      'group_prefs',
+      columns: ['locked'],
+      where: 'playlist_id = ? AND kind = ? AND grp = ? AND locked = 1',
+      whereArgs: [playlistId, kind.dbValue, group],
+    );
+    return r.isNotEmpty;
+  }
+
+  Future<void> resetGroupPrefs(int playlistId, ContentKind kind) => db.update(
+    'group_prefs',
+    {'hidden': 0, 'position': null},
+    where: 'playlist_id = ? AND kind = ?',
+    whereArgs: [playlistId, kind.dbValue],
+  );
+
+  /// Hides items of hidden categories, and of locked ones unless unlocked.
+  static String _groupFilter(bool includeLocked) =>
+      'NOT EXISTS(SELECT 1 FROM group_prefs g WHERE g.playlist_id = i.playlist_id AND g.kind = i.kind '
+      'AND g.grp = i.grp AND (g.hidden = 1${includeLocked ? '' : ' OR g.locked = 1'}))';
+
+  Future<int> count(int playlistId, ContentKind kind) async {
+    final r = await db.rawQuery('SELECT COUNT(*) AS c FROM items WHERE playlist_id = ? AND kind = ?', [
+      playlistId,
+      kind.dbValue,
+    ]);
     return r.first['c'] as int;
   }
 
@@ -145,6 +229,7 @@ class AppDatabase {
     String? group,
     bool favoritesOnly = false,
     String? search,
+    bool includeLocked = false,
     int limit = 5000,
   }) async {
     final where = <String>['i.playlist_id = ?', 'i.kind = ?'];
@@ -152,6 +237,8 @@ class AppDatabase {
     if (group != null) {
       where.add('i.grp = ?');
       args.add(group);
+    } else {
+      where.add(_groupFilter(includeLocked));
     }
     if (search != null && search.trim().isNotEmpty) {
       where.add('i.name LIKE ?');
@@ -179,21 +266,21 @@ class AppDatabase {
 
   Future<void> setFavorite(int playlistId, String key, bool value) async {
     if (value) {
-      await db.insert(
-        'favorites',
-        {'playlist_id': playlistId, 'ukey': key, 'added_at': DateTime.now().millisecondsSinceEpoch},
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      await db.insert('favorites', {
+        'playlist_id': playlistId,
+        'ukey': key,
+        'added_at': DateTime.now().millisecondsSinceEpoch,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
     } else {
       await db.delete('favorites', where: 'playlist_id = ? AND ukey = ?', whereArgs: [playlistId, key]);
     }
   }
 
-  Future<List<MediaItem>> favorites(int playlistId) async {
+  Future<List<MediaItem>> favorites(int playlistId, {bool includeLocked = false}) async {
     final rows = await db.rawQuery(
       'SELECT i.*, 1 AS fav FROM favorites f JOIN items i '
       'ON i.playlist_id = f.playlist_id AND i.ukey = f.ukey '
-      'WHERE f.playlist_id = ? ORDER BY f.added_at DESC',
+      'WHERE f.playlist_id = ? AND ${_groupFilter(includeLocked)} ORDER BY f.added_at DESC',
       [playlistId],
     );
     return rows.map(MediaItem.fromRow).toList();
@@ -209,27 +296,24 @@ class AppDatabase {
     String? url,
     required int positionMs,
     required int durationMs,
-  }) =>
-      db.insert(
-        'history',
-        {
-          'playlist_id': playlistId,
-          'hkey': historyKey,
-          'item_key': itemKey,
-          'title': title,
-          'url': url,
-          'position_ms': positionMs,
-          'duration_ms': durationMs,
-          'updated_at': DateTime.now().millisecondsSinceEpoch,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+  }) => db.insert('history', {
+    'playlist_id': playlistId,
+    'hkey': historyKey,
+    'item_key': itemKey,
+    'title': title,
+    'url': url,
+    'position_ms': positionMs,
+    'duration_ms': durationMs,
+    'updated_at': DateTime.now().millisecondsSinceEpoch,
+  }, conflictAlgorithm: ConflictAlgorithm.replace);
 
   Future<int> progressOf(int playlistId, String historyKey) async {
-    final r = await db.query('history',
-        columns: ['position_ms'],
-        where: 'playlist_id = ? AND hkey = ?',
-        whereArgs: [playlistId, historyKey]);
+    final r = await db.query(
+      'history',
+      columns: ['position_ms'],
+      where: 'playlist_id = ? AND hkey = ?',
+      whereArgs: [playlistId, historyKey],
+    );
     return r.isEmpty ? 0 : r.first['position_ms'] as int;
   }
 
@@ -242,22 +326,23 @@ class AppDatabase {
       [playlistId, limit],
     );
     return rows
-        .map((r) => (
-              WatchEntry(
-                item: MediaItem.fromRow(r),
-                positionMs: r['position_ms'] as int,
-                durationMs: r['duration_ms'] as int,
-                updatedAt: DateTime.fromMillisecondsSinceEpoch(r['updated_at'] as int),
-                historyKey: r['hkey'] as String,
-                title: r['h_title'] as String?,
-              ),
-              r['h_url'] as String?,
-            ))
+        .map(
+          (r) => (
+            WatchEntry(
+              item: MediaItem.fromRow(r),
+              positionMs: r['position_ms'] as int,
+              durationMs: r['duration_ms'] as int,
+              updatedAt: DateTime.fromMillisecondsSinceEpoch(r['updated_at'] as int),
+              historyKey: r['hkey'] as String,
+              title: r['h_title'] as String?,
+            ),
+            r['h_url'] as String?,
+          ),
+        )
         .toList();
   }
 
-  Future<void> clearHistory(int playlistId) =>
-      db.delete('history', where: 'playlist_id = ?', whereArgs: [playlistId]);
+  Future<void> clearHistory(int playlistId) => db.delete('history', where: 'playlist_id = ?', whereArgs: [playlistId]);
 
   // ---------------------------------------------------------------------- epg
 
@@ -293,10 +378,11 @@ class AppDatabase {
   /// Current program of every channel in the playlist, keyed by lowercase id.
   Future<Map<String, EpgProgram>> nowPlayingAll(int playlistId, DateTime at) async {
     final ms = at.millisecondsSinceEpoch;
-    final rows = await db.rawQuery(
-      'SELECT * FROM epg WHERE playlist_id = ? AND start <= ? AND stop > ?',
-      [playlistId, ms, ms],
-    );
+    final rows = await db.rawQuery('SELECT * FROM epg WHERE playlist_id = ? AND start <= ? AND stop > ?', [
+      playlistId,
+      ms,
+      ms,
+    ]);
     return {for (final r in rows) (r['channel_id'] as String).toLowerCase(): _program(r)};
   }
 
@@ -334,10 +420,10 @@ class AppDatabase {
   }
 
   static EpgProgram _program(Map<String, Object?> r) => EpgProgram(
-        channelId: r['channel_id'] as String,
-        start: DateTime.fromMillisecondsSinceEpoch(r['start'] as int),
-        stop: DateTime.fromMillisecondsSinceEpoch(r['stop'] as int),
-        title: r['title'] as String,
-        description: r['description'] as String?,
-      );
+    channelId: r['channel_id'] as String,
+    start: DateTime.fromMillisecondsSinceEpoch(r['start'] as int),
+    stop: DateTime.fromMillisecondsSinceEpoch(r['stop'] as int),
+    title: r['title'] as String,
+    description: r['description'] as String?,
+  );
 }

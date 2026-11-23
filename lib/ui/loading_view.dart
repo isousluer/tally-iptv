@@ -11,12 +11,12 @@ class LoadingPlaylistView extends StatelessWidget {
   final LoadProgress? progress;
 
   static String label(LoadStage s, {required bool m3u}) => switch (s) {
-        LoadStage.connect => m3u ? 'Downloading playlist' : 'Connecting to server',
-        LoadStage.live => 'Live TV',
-        LoadStage.movies => 'Movies',
-        LoadStage.series => 'Series',
-        LoadStage.save => 'Saving to this device',
-      };
+    LoadStage.connect => m3u ? 'Downloading playlist' : 'Connecting to server',
+    LoadStage.live => 'Live TV',
+    LoadStage.movies => 'Movies',
+    LoadStage.series => 'Series',
+    LoadStage.save => 'Saving to this device',
+  };
 
   static String? countLabel(LoadStage s, int? n) {
     if (n == null) return null;
@@ -61,10 +61,10 @@ class LoadingPlaylistView extends StatelessWidget {
                       state: p == null
                           ? _State.active
                           : p.current == s
-                              ? _State.active
-                              : p.isDone(s)
-                                  ? _State.done
-                                  : _State.waiting,
+                          ? _State.active
+                          : p.isDone(s)
+                          ? _State.done
+                          : _State.waiting,
                     ),
                 ],
               ),
@@ -90,10 +90,10 @@ class _StageRow extends StatelessWidget {
     final icon = switch (state) {
       _State.done => const Icon(Icons.check_circle, color: SlayerColors.tally, size: 22),
       _State.active => const SizedBox(
-          width: 22,
-          height: 22,
-          child: Padding(padding: EdgeInsets.all(2), child: CircularProgressIndicator(strokeWidth: 2.4)),
-        ),
+        width: 22,
+        height: 22,
+        child: Padding(padding: EdgeInsets.all(2), child: CircularProgressIndicator(strokeWidth: 2.4)),
+      ),
       _State.waiting => const Icon(Icons.radio_button_unchecked, color: SlayerColors.border, size: 22),
     };
     return Padding(
@@ -105,13 +105,14 @@ class _StageRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: t.titleSmall!.copyWith(
-                color: state == _State.waiting ? SlayerColors.muted : SlayerColors.text,
-              ),
+              style: t.titleSmall!.copyWith(color: state == _State.waiting ? SlayerColors.muted : SlayerColors.text),
             ),
           ),
           if (count != null)
-            Text(count!, style: t.bodySmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular)),
+            Text(
+              count!,
+              style: t.bodySmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+            ),
         ],
       ),
     );
