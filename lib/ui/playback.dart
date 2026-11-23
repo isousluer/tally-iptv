@@ -35,7 +35,10 @@ Future<void> play(BuildContext context, WidgetRef ref, PlayRequest request, {boo
     final key = request.historyKey ?? request.item.key;
     final ms = await ref.read(databaseProvider).progressOf(request.item.playlistId, key);
     if (ms > 0) {
-      req = request.copyWith(historyKey: key, startAt: Duration(milliseconds: ms));
+      req = request.copyWith(
+        historyKey: key,
+        startAt: Duration(milliseconds: ms),
+      );
     }
   }
   if (!context.mounted) return;

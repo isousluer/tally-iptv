@@ -7,6 +7,7 @@ import 'category_picker.dart';
 import 'playback.dart';
 import 'playlist_switcher.dart';
 import 'search_screen.dart';
+import 'sort_button.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -28,40 +29,56 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
     final query = (kind: ContentKind.live, group: _group, search: _search);
     final items = ref.watch(itemsProvider(query));
 
+    final wide = isWide(context);
+    void select(String g) => setState(() => _group = g);
+    final content = items.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => ErrorState(error: e, onRetry: () => ref.invalidate(itemsProvider(query))),
+      data: (list) {
+        if (list.isEmpty) {
+          return EmptyState(
+            icon: _group == groupFavorites ? Icons.star_border : Icons.live_tv_outlined,
+            title: _search.isNotEmpty
+                ? 'No channels match "$_search"'
+                : _group == groupFavorites
+                ? 'No favorite channels yet'
+                : 'No channels here',
+            message: _group == groupFavorites ? 'Tap the star next to a channel to keep it here.' : null,
+          );
+        }
+        return _ChannelList(channels: list);
+      },
+    );
+
     return SafeArea(
       bottom: false,
       child: Column(
         children: [
           ScreenHeader(
             title: 'Live TV',
-            subtitle: playlist == null ? null : '${playlist.name} · ${compactCount(count)} channels',
+            subtitle: playlist == null ? null : '${compactCount(count)} channels',
             actions: const [
               SearchButton(first: ContentKind.live),
+              SortButton(kind: ContentKind.live),
               PlaylistSwitcherButton(),
             ],
           ),
-          CategoryBar(kind: ContentKind.live, selected: _group, onSelected: (g) => setState(() => _group = g)),
-          const SizedBox(height: 8),
-          Expanded(
-            child: items.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => ErrorState(error: e, onRetry: () => ref.invalidate(itemsProvider(query))),
-              data: (list) {
-                if (list.isEmpty) {
-                  return EmptyState(
-                    icon: _group == groupFavorites ? Icons.star_border : Icons.live_tv_outlined,
-                    title: _search.isNotEmpty
-                        ? 'No channels match "$_search"'
-                        : _group == groupFavorites
-                        ? 'No favorite channels yet'
-                        : 'No channels here',
-                    message: _group == groupFavorites ? 'Tap the star next to a channel to keep it here.' : null,
-                  );
-                }
-                return _ChannelList(channels: list);
-              },
-            ),
-          ),
+          if (wide)
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CategoryPanel(kind: ContentKind.live, selected: _group, onSelected: select),
+                  const SizedBox(width: 8),
+                  Expanded(child: content),
+                ],
+              ),
+            )
+          else ...[
+            CategoryBar(kind: ContentKind.live, selected: _group, onSelected: select),
+            const SizedBox(height: 12),
+            Expanded(child: content),
+          ],
         ],
       ),
     );

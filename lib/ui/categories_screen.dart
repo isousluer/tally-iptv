@@ -93,100 +93,109 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     // Keep the dragged order on screen until the stored one has caught up.
     final groups = _order != null && (fresh == null || !_sameOrder(_order!, fresh)) ? _order : fresh;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Categories'),
-        actions: [
-          PopupMenuButton<String>(
-            tooltip: 'More',
-            onSelected: (v) {
-              if (v == 'adult') _lockAdult(groups ?? const []);
-              if (v == 'reset') _reset();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'adult', child: Text('Lock adult categories')),
-              PopupMenuItem(value: 'reset', child: Text('Show all and restore order')),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: SegmentedButton<ContentKind>(
-              segments: const [
-                ButtonSegment(value: ContentKind.live, label: Text('Live TV')),
-                ButtonSegment(value: ContentKind.movie, label: Text('Movies')),
-                ButtonSegment(value: ContentKind.series, label: Text('Series')),
+    // Locks take effect as soon as you leave: the PIN entered here only
+    // opens locked categories while editing them.
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop && ref.read(parentalPinProvider) != null) {
+          ref.read(parentalUnlockedProvider.notifier).set(false);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Categories'),
+          actions: [
+            PopupMenuButton<String>(
+              tooltip: 'More',
+              onSelected: (v) {
+                if (v == 'adult') _lockAdult(groups ?? const []);
+                if (v == 'reset') _reset();
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(value: 'adult', child: Text('Lock adult categories')),
+                PopupMenuItem(value: 'reset', child: Text('Show all and restore order')),
               ],
-              selected: {_kind},
-              onSelectionChanged: (s) => setState(() {
-                _kind = s.first;
-                _order = null;
-              }),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text(
-              'Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.',
-              style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: SegmentedButton<ContentKind>(
+                segments: const [
+                  ButtonSegment(value: ContentKind.live, label: Text('Live TV')),
+                  ButtonSegment(value: ContentKind.movie, label: Text('Movies')),
+                  ButtonSegment(value: ContentKind.series, label: Text('Series')),
+                ],
+                selected: {_kind},
+                onSelectionChanged: (s) => setState(() {
+                  _kind = s.first;
+                  _order = null;
+                }),
+              ),
             ),
-          ),
-          Expanded(
-            child: groups == null
-                ? const Center(child: CircularProgressIndicator())
-                : groups.isEmpty
-                ? const EmptyState(icon: Icons.category_outlined, title: 'No categories here')
-                : ReorderableListView.builder(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    itemCount: groups.length,
-                    buildDefaultDragHandles: false,
-                    onReorderItem: (a, b) => _reorder(groups, a, b),
-                    itemBuilder: (_, i) {
-                      final g = groups[i];
-                      return ListTile(
-                        contentPadding: const EdgeInsets.only(left: 16, right: 4),
-                        key: ValueKey(g.name),
-                        title: Text(
-                          g.name.isEmpty ? 'Uncategorized' : g.name,
-                          style: TextStyle(color: g.hidden ? SlayerColors.muted : null),
-                        ),
-                        subtitle: Text(compactCount(g.count)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              tooltip: g.locked ? 'Unlock' : 'Lock with PIN',
-                              onPressed: () => _toggleLocked(g),
-                              icon: Icon(
-                                g.locked ? Icons.lock : Icons.lock_open_outlined,
-                                color: g.locked ? SlayerColors.tally : SlayerColors.muted,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Text(
+                'Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.',
+                style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+              ),
+            ),
+            Expanded(
+              child: groups == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : groups.isEmpty
+                  ? const EmptyState(icon: Icons.category_outlined, title: 'No categories here')
+                  : ReorderableListView.builder(
+                      padding: const EdgeInsets.only(bottom: 24),
+                      itemCount: groups.length,
+                      buildDefaultDragHandles: false,
+                      onReorderItem: (a, b) => _reorder(groups, a, b),
+                      itemBuilder: (_, i) {
+                        final g = groups[i];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.only(left: 16, right: 4),
+                          key: ValueKey(g.name),
+                          title: Text(
+                            g.name.isEmpty ? 'Uncategorized' : g.name,
+                            style: TextStyle(color: g.hidden ? SlayerColors.muted : null),
+                          ),
+                          subtitle: Text(compactCount(g.count)),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                tooltip: g.locked ? 'Unlock' : 'Lock with PIN',
+                                onPressed: () => _toggleLocked(g),
+                                icon: Icon(
+                                  g.locked ? Icons.lock : Icons.lock_open_outlined,
+                                  color: g.locked ? SlayerColors.tally : SlayerColors.muted,
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              tooltip: g.hidden ? 'Show' : 'Hide',
-                              onPressed: () => _toggleHidden(g),
-                              icon: Icon(
-                                g.hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: g.hidden ? SlayerColors.muted : SlayerColors.text,
+                              IconButton(
+                                tooltip: g.hidden ? 'Show' : 'Hide',
+                                onPressed: () => _toggleHidden(g),
+                                icon: Icon(
+                                  g.hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  color: g.hidden ? SlayerColors.muted : SlayerColors.text,
+                                ),
                               ),
-                            ),
-                            ReorderableDragStartListener(
-                              index: i,
-                              child: const Padding(
-                                padding: EdgeInsets.fromLTRB(4, 8, 8, 8),
-                                child: Icon(Icons.drag_handle, color: SlayerColors.muted),
+                              ReorderableDragStartListener(
+                                index: i,
+                                child: const Padding(
+                                  padding: EdgeInsets.fromLTRB(4, 8, 8, 8),
+                                  child: Icon(Icons.drag_handle, color: SlayerColors.muted),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

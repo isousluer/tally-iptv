@@ -277,6 +277,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       isScrollControlled: true,
       builder: (_) => _OptionsSheet(
         isLive: _isLive,
+        smallPlayer: !(_fullscreen || (_isMobile && MediaQuery.orientationOf(context) == Orientation.landscape)),
         rate: _rate,
         sleepAt: _sleepAt,
         pipSupported: _pipSupported,
@@ -761,6 +762,7 @@ class _NextEpisodeCard extends StatelessWidget {
 class _OptionsSheet extends ConsumerStatefulWidget {
   const _OptionsSheet({
     required this.isLive,
+    required this.smallPlayer,
     required this.rate,
     required this.sleepAt,
     required this.pipSupported,
@@ -769,6 +771,10 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     required this.onPip,
   });
   final bool isLive;
+
+  /// The video sits in a 16:9 box above the details, where size choices
+  /// rarely make a visible difference.
+  final bool smallPlayer;
   final double rate;
   final DateTime? sleepAt;
   final bool pipSupported;
@@ -834,6 +840,14 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             heading('Picture size'),
+            if (widget.smallPlayer)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: Text(
+                  'You see the difference in full screen. The small player keeps the original shape, so most videos look the same here.',
+                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                ),
+              ),
             _choices<VideoFit>(
               VideoFit.values,
               fit,

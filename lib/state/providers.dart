@@ -204,6 +204,7 @@ final itemsProvider = FutureProvider.family<List<MediaItem>, ItemQuery>((ref, q)
         favoritesOnly: q.group == groupFavorites,
         search: q.search,
         includeLocked: open,
+        sort: ref.watch(sortProvider(q.kind)),
       );
 });
 
@@ -433,3 +434,26 @@ class SettingsNotifier extends Notifier<AppSettings> {
 }
 
 final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(SettingsNotifier.new);
+
+// ------------------------------------------------------------------- sorting
+
+/// How each tab orders its list; remembered per tab.
+class SortNotifier extends Notifier<ItemSort> {
+  SortNotifier(this.kind);
+  final ContentKind kind;
+
+  String get _key => 'sort_${kind.name}';
+
+  @override
+  ItemSort build() {
+    final saved = ref.watch(prefsProvider).getString(_key);
+    return ItemSort.values.firstWhere((s) => s.name == saved, orElse: () => ItemSort.playlist);
+  }
+
+  Future<void> set(ItemSort s) async {
+    await ref.read(prefsProvider).setString(_key, s.name);
+    state = s;
+  }
+}
+
+final sortProvider = NotifierProvider.family<SortNotifier, ItemSort, ContentKind>(SortNotifier.new);

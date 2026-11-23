@@ -122,56 +122,6 @@ class LiveBadge extends StatelessWidget {
   }
 }
 
-/// Horizontal category chip strip.
-class CategoryStrip extends StatelessWidget {
-  const CategoryStrip({
-    super.key,
-    required this.entries,
-    required this.selected,
-    required this.onSelected,
-    this.locked = const {},
-  });
-
-  /// (value, label) pairs.
-  final List<(String, String)> entries;
-  final String selected;
-  final ValueChanged<String> onSelected;
-
-  /// Values shown with a lock (parental PIN needed).
-  final Set<String> locked;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: entries.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final (value, label) = entries[i];
-          final active = value == selected;
-          return Center(
-            child: ChoiceChip(
-              avatar: locked.contains(value)
-                  ? Icon(Icons.lock_outline, size: 16, color: active ? SlayerColors.onTally : SlayerColors.muted)
-                  : null,
-              showCheckmark: false,
-              label: Text(label),
-              selected: active,
-              onSelected: (_) => onSelected(value),
-              labelStyle: Theme.of(context).textTheme.labelMedium!
-                  .copyWith(color: active ? SlayerColors.onTally : SlayerColors.text),
-              side: BorderSide(color: active ? SlayerColors.tally : SlayerColors.border),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 /// Screen header with title, a muted subtitle and trailing actions.
 class ScreenHeader extends StatelessWidget {
   const ScreenHeader({super.key, required this.title, this.subtitle, this.actions = const []});

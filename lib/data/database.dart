@@ -230,6 +230,7 @@ class AppDatabase {
     bool favoritesOnly = false,
     String? search,
     bool includeLocked = false,
+    ItemSort sort = ItemSort.playlist,
     int limit = 5000,
   }) async {
     final where = <String>['i.playlist_id = ?', 'i.kind = ?'];
@@ -248,11 +249,20 @@ class AppDatabase {
       where.add('EXISTS(SELECT 1 FROM favorites f WHERE f.playlist_id = i.playlist_id AND f.ukey = i.ukey)');
     }
     final rows = await db.rawQuery(
-      'SELECT i.*, $_favExpr FROM items i WHERE ${where.join(' AND ')} ORDER BY i.id LIMIT ?',
+      'SELECT i.*, $_favExpr FROM items i WHERE ${where.join(' AND ')} ORDER BY ${_orderBy(sort)} LIMIT ?',
       [...args, limit],
     );
     return rows.map(MediaItem.fromRow).toList();
   }
+
+  static String _orderBy(ItemSort s) => switch (s) {
+    ItemSort.playlist => 'i.id',
+    ItemSort.number => 'i.num IS NULL, i.num, i.id',
+    ItemSort.nameAsc => 'i.name COLLATE NOCASE, i.id',
+    ItemSort.nameDesc => 'i.name COLLATE NOCASE DESC, i.id',
+    ItemSort.rating => 'COALESCE(CAST(i.rating AS REAL), 0) DESC, i.id',
+    ItemSort.year => "COALESCE(i.year, '') DESC, i.id",
+  };
 
   Future<MediaItem?> itemByKey(int playlistId, String key) async {
     final rows = await db.rawQuery(

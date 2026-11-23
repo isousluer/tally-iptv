@@ -174,6 +174,24 @@ class MediaItem {
   );
 }
 
+/// Order of items in a list.
+enum ItemSort {
+  playlist('Playlist order'),
+  number('Channel number'),
+  nameAsc('Name A–Z'),
+  nameDesc('Name Z–A'),
+  rating('Highest rated'),
+  year('Newest first');
+
+  const ItemSort(this.label);
+  final String label;
+
+  /// Choices that make sense for [kind].
+  static List<ItemSort> forKind(ContentKind kind) => kind == ContentKind.live
+      ? const [playlist, number, nameAsc, nameDesc]
+      : const [playlist, nameAsc, nameDesc, rating, year];
+}
+
 /// A category with the viewer's choices for it.
 class GroupInfo {
   const GroupInfo({required this.name, this.count = 0, this.hidden = false, this.locked = false});

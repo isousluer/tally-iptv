@@ -11,10 +11,29 @@ class PlaylistSwitcherButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return IconButton(
-      tooltip: 'Switch playlist',
-      icon: const Icon(Icons.swap_vert),
-      onPressed: () => showPlaylistSwitcher(context, ref),
+    final active = ref.watch(activePlaylistProvider);
+    // Shows which playlist is open; tapping it switches to another one.
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Tooltip(
+        message: 'Switch playlist',
+        child: ActionChip(
+          onPressed: () => showPlaylistSwitcher(context, ref),
+          avatar: const Icon(Icons.playlist_play, size: 18, color: SlayerColors.tally),
+          label: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 96),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: Text(active?.name ?? 'Playlist', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                const Icon(Icons.arrow_drop_down, size: 18),
+              ],
+            ),
+          ),
+          side: const BorderSide(color: SlayerColors.border),
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
     );
   }
 }
