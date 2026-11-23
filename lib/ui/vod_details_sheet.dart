@@ -53,7 +53,7 @@ class _VodDetails extends ConsumerWidget {
     final genre = info?.genre ?? movie.group;
     // The year is in the meta line, so don't repeat it in the title.
     final title = year == null ? movie.name : movie.name.replaceFirst(RegExp(r'\s*\(\d{4}\)\s*$'), '');
-    final muted = t.bodySmall!.copyWith(color: SlayerColors.muted);
+    final muted = t.bodySmall!.copyWith(color: AppColors.muted);
 
     Widget credit(String label, String value, {int lines = 2}) => Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -135,7 +135,7 @@ class _VodDetails extends ConsumerWidget {
                       await ref.read(favoritesControllerProvider).toggle(movie.copyWith(favorite: favorite));
                       ref.invalidate(_resumeProvider(movie));
                     },
-                    icon: Icon(favorite ? Icons.star : Icons.star_border, color: favorite ? SlayerColors.tally : null),
+                    icon: Icon(favorite ? Icons.star : Icons.star_border, color: favorite ? AppColors.tally : null),
                     label: Text(favorite ? 'In favorites' : 'Add to favorites'),
                   ),
                 ),
@@ -165,7 +165,7 @@ class VodInfoText extends StatelessWidget {
           children: [
             TextSpan(
               text: '$label  ',
-              style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+              style: t.bodySmall!.copyWith(color: AppColors.muted),
             ),
             TextSpan(text: value, style: t.bodySmall),
           ],
@@ -179,7 +179,7 @@ class VodInfoText extends StatelessWidget {
       children: [
         Text(
           plot ?? 'No description available.',
-          style: t.bodyMedium!.copyWith(color: plot == null ? SlayerColors.muted : null),
+          style: t.bodyMedium!.copyWith(color: plot == null ? AppColors.muted : null),
         ),
         if (info?.director != null) credit('Director', info!.director!),
         if (info?.cast != null) credit('Cast', info!.cast!),
@@ -204,7 +204,7 @@ class _PlotState extends State<_Plot> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     if (widget.text == null) {
-      return Text('No description available.', style: t.bodyMedium!.copyWith(color: SlayerColors.muted));
+      return Text('No description available.', style: t.bodyMedium!.copyWith(color: AppColors.muted));
     }
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),

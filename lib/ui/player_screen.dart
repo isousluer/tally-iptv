@@ -27,7 +27,7 @@ class PlayerScreen extends ConsumerStatefulWidget {
 
 class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   late final Player _player = Player(
-    configuration: const PlayerConfiguration(title: 'Slayer IPTV', bufferSize: 64 * 1024 * 1024),
+    configuration: const PlayerConfiguration(title: 'Tally', bufferSize: 64 * 1024 * 1024),
   );
   late final VideoController _video = VideoController(_player);
   // Read once: ref must not be used in dispose(), where progress is saved.
@@ -301,7 +301,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       picked = await showModalBottomSheet<MediaItem>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: SlayerColors.canvas,
+        backgroundColor: AppColors.canvas,
         builder: (ctx) => SizedBox(height: MediaQuery.sizeOf(ctx).height * 0.6, child: list),
       );
     } else {
@@ -314,7 +314,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         pageBuilder: (ctx, _, _) => Align(
           alignment: Alignment.centerRight,
           child: Material(
-            color: SlayerColors.canvas,
+            color: AppColors.canvas,
             child: SizedBox(
               width: min(420, MediaQuery.sizeOf(ctx).width * 0.45),
               height: double.infinity,
@@ -652,7 +652,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       focusNode: _keys,
       autofocus: true,
       onKeyEvent: _onKey,
-      child: Scaffold(backgroundColor: videoOnly ? Colors.black : SlayerColors.canvas, body: body),
+      child: Scaffold(backgroundColor: videoOnly ? Colors.black : AppColors.canvas, body: body),
     );
   }
 }
@@ -733,7 +733,7 @@ class _VideoSurface extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.portable_wifi_off, color: SlayerColors.muted, size: 34),
+                const Icon(Icons.portable_wifi_off, color: AppColors.muted, size: 34),
                 const SizedBox(height: 10),
                 Text('This stream could not be played', style: t.titleMedium),
                 const SizedBox(height: 4),
@@ -742,7 +742,7 @@ class _VideoSurface extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                  style: t.bodySmall!.copyWith(color: AppColors.muted),
                 ),
                 const SizedBox(height: 14),
                 OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
@@ -943,7 +943,7 @@ class _LevelIndicator extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: value,
                 backgroundColor: Colors.white24,
-                color: SlayerColors.tally,
+                color: AppColors.tally,
                 minHeight: 4,
                 borderRadius: BorderRadius.circular(2),
               ),
@@ -963,7 +963,7 @@ class _LevelIndicator extends StatelessWidget {
 const _cardDecoration = BoxDecoration(
   color: Color(0xE616292E),
   borderRadius: BorderRadius.all(Radius.circular(10)),
-  border: Border(left: BorderSide(color: SlayerColors.tally, width: 3)),
+  border: Border(left: BorderSide(color: AppColors.tally, width: 3)),
 );
 
 /// Shown for a few seconds after a channel change: number, name, what's on
@@ -998,7 +998,7 @@ class _ChannelCard extends ConsumerWidget {
                     if (item.number != null) ...[
                       Text(
                         item.number.toString().padLeft(3, '0'),
-                        style: t.labelMedium!.copyWith(color: SlayerColors.tally, fontFeatures: tabular),
+                        style: t.labelMedium!.copyWith(color: AppColors.tally, fontFeatures: tabular),
                       ),
                       const SizedBox(width: 8),
                     ],
@@ -1019,12 +1019,12 @@ class _ChannelCard extends ConsumerWidget {
                     'Next  ${formatTime(next.start)}  ${next.title}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                    style: t.bodySmall!.copyWith(color: AppColors.muted),
                   ),
                 ],
                 if (current == null && next == null && item.group.isNotEmpty) ...[
                   const SizedBox(height: 2),
-                  Text(item.group, style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                  Text(item.group, style: t.bodySmall!.copyWith(color: AppColors.muted)),
                 ],
               ],
             ),
@@ -1054,12 +1054,12 @@ class _DigitsCard extends StatelessWidget {
           Text(
             digits,
             style: t.headlineMedium!.copyWith(
-              color: missing ? SlayerColors.muted : Colors.white,
+              color: missing ? AppColors.muted : Colors.white,
               fontFeatures: tabular,
               letterSpacing: 2,
             ),
           ),
-          if (missing) Text('No channel $digits', style: t.labelSmall!.copyWith(color: SlayerColors.muted)),
+          if (missing) Text('No channel $digits', style: t.labelSmall!.copyWith(color: AppColors.muted)),
         ],
       ),
     );
@@ -1082,13 +1082,13 @@ class _NextEpisodeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xE616292E),
         borderRadius: BorderRadius.circular(10),
-        border: const Border(left: BorderSide(color: SlayerColors.tally, width: 3)),
+        border: const Border(left: BorderSide(color: AppColors.tally, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Next episode in $seconds s', style: t.labelMedium!.copyWith(color: SlayerColors.tally)),
+          Text('Next episode in $seconds s', style: t.labelMedium!.copyWith(color: AppColors.tally)),
           const SizedBox(height: 4),
           Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: t.titleSmall),
           const SizedBox(height: 6),
@@ -1157,7 +1157,7 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
               showCheckmark: false,
               onSelected: (_) => onTap(v),
               labelStyle: Theme.of(context).textTheme.labelMedium!
-                  .copyWith(color: v == selected ? SlayerColors.onTally : SlayerColors.text),
+                  .copyWith(color: v == selected ? AppColors.onTally : AppColors.text),
             ),
         ],
       ),
@@ -1175,9 +1175,9 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
       child: Row(
         children: [
           Expanded(
-            child: Text(text, style: t.titleSmall!.copyWith(color: SlayerColors.muted)),
+            child: Text(text, style: t.titleSmall!.copyWith(color: AppColors.muted)),
           ),
-          if (trailing != null) Text(trailing, style: t.labelMedium!.copyWith(color: SlayerColors.tally)),
+          if (trailing != null) Text(trailing, style: t.labelMedium!.copyWith(color: AppColors.tally)),
         ],
       ),
     );
@@ -1193,7 +1193,7 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                 child: Text(
                   'You see the difference in full screen. The small player keeps the original shape, so most videos look the same here.',
-                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                  style: t.bodySmall!.copyWith(color: AppColors.muted),
                 ),
               ),
             _choices<VideoFit>(
@@ -1313,7 +1313,7 @@ class _Controls extends StatelessWidget {
                   if (sleepAt != null)
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Icon(Icons.bedtime_outlined, color: SlayerColors.tally, size: 20),
+                      child: Icon(Icons.bedtime_outlined, color: AppColors.tally, size: 20),
                     ),
                   if (onChannels != null)
                     IconButton(
@@ -1444,8 +1444,8 @@ class _RoundButton extends StatelessWidget {
       onPressed: onPressed,
       iconSize: big ? 40 : 28,
       style: IconButton.styleFrom(
-        backgroundColor: big ? SlayerColors.tally : const Color(0x33000000),
-        foregroundColor: big ? SlayerColors.onTally : Colors.white,
+        backgroundColor: big ? AppColors.tally : const Color(0x33000000),
+        foregroundColor: big ? AppColors.onTally : Colors.white,
         padding: EdgeInsets.all(big ? 12 : 8),
       ),
       icon: Icon(icon),
@@ -1490,9 +1490,9 @@ class _SeekBarState extends State<_SeekBar> {
               child: SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   trackHeight: 3,
-                  activeTrackColor: SlayerColors.tally,
+                  activeTrackColor: AppColors.tally,
                   inactiveTrackColor: Colors.white24,
-                  thumbColor: SlayerColors.tally,
+                  thumbColor: AppColors.tally,
                   overlayShape: SliderComponentShape.noOverlay,
                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                 ),
@@ -1671,7 +1671,7 @@ class _TracksButtons extends StatelessWidget {
               for (final (track, label) in options)
                 ListTile(
                   title: Text(label),
-                  trailing: id(track) == selected ? const Icon(Icons.check, color: SlayerColors.tally) : null,
+                  trailing: id(track) == selected ? const Icon(Icons.check, color: AppColors.tally) : null,
                   onTap: () {
                     onSelect(track);
                     Navigator.pop(ctx);
@@ -1848,7 +1848,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
         final active = i == current;
         final program = c.tvgId == null ? null : guide[c.tvgId!.toLowerCase()];
         return Material(
-          color: active ? SlayerColors.tally.withAlpha(0x1F) : Colors.transparent,
+          color: active ? AppColors.tally.withAlpha(0x1F) : Colors.transparent,
           child: InkWell(
             autofocus: widget.autofocus && active,
             onTap: () => widget.onPick(c),
@@ -1861,7 +1861,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
                     child: Text(
                       c.number?.toString() ?? '',
                       style: t.labelMedium!.copyWith(
-                        color: active ? SlayerColors.tally : SlayerColors.muted,
+                        color: active ? AppColors.tally : AppColors.muted,
                         fontFeatures: tabular,
                       ),
                     ),
@@ -1877,7 +1877,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
                           c.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: t.titleSmall!.copyWith(color: active ? SlayerColors.tally : null),
+                          style: t.titleSmall!.copyWith(color: active ? AppColors.tally : null),
                         ),
                         if (program != null) ...[
                           const SizedBox(height: 2),
@@ -1885,7 +1885,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
                             program.title,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                            style: t.bodySmall!.copyWith(color: AppColors.muted),
                           ),
                           const SizedBox(height: 5),
                           TallyBar(value: program.progressAt(now)),
@@ -1896,7 +1896,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
                   if (active)
                     const Padding(
                       padding: EdgeInsets.only(left: 8),
-                      child: Icon(Icons.equalizer, color: SlayerColors.tally, size: 20),
+                      child: Icon(Icons.equalizer, color: AppColors.tally, size: 20),
                     ),
                 ],
               ),
@@ -1938,7 +1938,7 @@ class _InfoPanel extends ConsumerWidget {
                 request.subtitle ?? item.group,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                style: t.bodySmall!.copyWith(color: AppColors.muted),
               ),
             ],
           ),
@@ -1949,10 +1949,7 @@ class _InfoPanel extends ConsumerWidget {
             await ref.read(favoritesControllerProvider).toggle(item.copyWith(favorite: favorite));
             ref.invalidate(_favoriteProvider(item));
           },
-          icon: Icon(
-            favorite ? Icons.star : Icons.star_border,
-            color: favorite ? SlayerColors.tally : SlayerColors.muted,
-          ),
+          icon: Icon(favorite ? Icons.star : Icons.star_border, color: favorite ? AppColors.tally : AppColors.muted),
         ),
       ],
     );
@@ -2060,7 +2057,7 @@ class _EpisodesState extends ConsumerState<_Episodes> {
                     label: Text('Season ${seasons[i]}'),
                     selected: active,
                     onSelected: (_) => setState(() => _season = seasons[i]),
-                    labelStyle: t.labelMedium!.copyWith(color: active ? SlayerColors.onTally : SlayerColors.text),
+                    labelStyle: t.labelMedium!.copyWith(color: active ? AppColors.onTally : AppColors.text),
                   ),
                 );
               },
@@ -2103,7 +2100,7 @@ class _EpisodeTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Material(
-        color: playing ? SlayerColors.tally.withAlpha(0x1F) : SlayerColors.surface,
+        color: playing ? AppColors.tally.withAlpha(0x1F) : AppColors.surface,
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -2135,13 +2132,13 @@ class _EpisodeTile extends StatelessWidget {
                         '${episode.number}. ${episode.title}',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: t.titleSmall!.copyWith(color: playing ? SlayerColors.tally : null),
+                        style: t.titleSmall!.copyWith(color: playing ? AppColors.tally : null),
                       ),
                       const SizedBox(height: 3),
                       Text(
                         playing ? 'Playing' : episode.duration ?? '',
                         style: t.labelSmall!.copyWith(
-                          color: playing ? SlayerColors.tally : SlayerColors.muted,
+                          color: playing ? AppColors.tally : AppColors.muted,
                           fontFeatures: tabular,
                         ),
                       ),
@@ -2231,7 +2228,7 @@ class _Guide extends ConsumerWidget {
       data: (list) {
         if (list.isEmpty) {
           if (compact) return const SizedBox.shrink();
-          return Text('No guide data for this channel.', style: t.bodySmall!.copyWith(color: SlayerColors.muted));
+          return Text('No guide data for this channel.', style: t.bodySmall!.copyWith(color: AppColors.muted));
         }
         final current = list.first.isLiveAt(now) ? list.first : null;
         final upcoming = current == null ? list : list.skip(1).toList();
@@ -2241,9 +2238,9 @@ class _Guide extends ConsumerWidget {
             if (current != null)
               Container(
                 decoration: BoxDecoration(
-                  color: SlayerColors.surface,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(8),
-                  border: const Border(left: BorderSide(color: SlayerColors.tally, width: 3)),
+                  border: const Border(left: BorderSide(color: AppColors.tally, width: 3)),
                 ),
                 padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
                 child: Column(
@@ -2251,16 +2248,16 @@ class _Guide extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text('Now', style: t.labelMedium!.copyWith(color: SlayerColors.tally)),
+                        Text('Now', style: t.labelMedium!.copyWith(color: AppColors.tally)),
                         const SizedBox(width: 8),
                         Text(
                           '${formatTime(current.start)} – ${formatTime(current.stop)}',
-                          style: t.labelMedium!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                          style: t.labelMedium!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                         ),
                         const Spacer(),
                         Text(
                           '${formatDuration(current.stop.difference(now))} left',
-                          style: t.labelMedium!.copyWith(color: SlayerColors.muted),
+                          style: t.labelMedium!.copyWith(color: AppColors.muted),
                         ),
                       ],
                     ),
@@ -2272,7 +2269,7 @@ class _Guide extends ConsumerWidget {
                         current.description!,
                         maxLines: compact ? 2 : 4,
                         overflow: TextOverflow.ellipsis,
-                        style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                        style: t.bodyMedium!.copyWith(color: AppColors.muted),
                       ),
                     ],
                     const SizedBox(height: 12),
@@ -2287,7 +2284,7 @@ class _Guide extends ConsumerWidget {
                   'Next  ${formatTime(upcoming.first.start)}  ${upcoming.first.title}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                  style: t.bodySmall!.copyWith(color: AppColors.muted),
                 ),
               ),
             if (!compact && upcoming.isNotEmpty) ...[
@@ -2304,7 +2301,7 @@ class _Guide extends ConsumerWidget {
                         width: 56,
                         child: Text(
                           formatTime(p.start),
-                          style: t.titleSmall!.copyWith(color: SlayerColors.tally, fontFeatures: tabular),
+                          style: t.titleSmall!.copyWith(color: AppColors.tally, fontFeatures: tabular),
                         ),
                       ),
                       Expanded(
@@ -2317,7 +2314,7 @@ class _Guide extends ConsumerWidget {
                                 p.description!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                                style: t.bodySmall!.copyWith(color: AppColors.muted),
                               ),
                           ],
                         ),

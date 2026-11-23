@@ -17,7 +17,7 @@ class SortButton extends ConsumerWidget {
       tooltip: 'Sort',
       initialValue: current,
       onSelected: (s) => ref.read(sortProvider(kind).notifier).set(s),
-      icon: Icon(Icons.sort, color: current == ItemSort.playlist ? null : SlayerColors.tally),
+      icon: Icon(Icons.sort, color: current == ItemSort.playlist ? null : AppColors.tally),
       itemBuilder: (_) => [
         for (final s in ItemSort.forKind(kind))
           PopupMenuItem(
@@ -25,7 +25,7 @@ class SortButton extends ConsumerWidget {
             child: Row(
               children: [
                 Expanded(child: Text(s.label)),
-                if (s == current) const Icon(Icons.check, size: 18, color: SlayerColors.tally),
+                if (s == current) const Icon(Icons.check, size: 18, color: AppColors.tally),
               ],
             ),
           ),

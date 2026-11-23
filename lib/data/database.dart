@@ -21,7 +21,7 @@ class AppDatabase {
     }
     final dir = await getApplicationSupportDirectory();
     await dir.create(recursive: true);
-    final path = p.join(dir.path, 'slayer_iptv.db');
+    final path = p.join(dir.path, 'tally.db');
     final db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(

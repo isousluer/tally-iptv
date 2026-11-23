@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 class Device {
   Device._();
 
-  static const _ch = MethodChannel('slayer/device');
+  static const _ch = MethodChannel('tally/device');
   static bool get _android => Platform.isAndroid;
 
   /// Set once in `main()`.

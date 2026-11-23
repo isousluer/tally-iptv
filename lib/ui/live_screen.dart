@@ -135,7 +135,7 @@ class ChannelRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     return Material(
-      color: SlayerColors.surface,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -156,7 +156,7 @@ class ChannelRow extends StatelessWidget {
                         if (channel.number != null) ...[
                           Text(
                             channel.number.toString().padLeft(3, '0'),
-                            style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                            style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                           ),
                           const SizedBox(width: 8),
                         ],
@@ -172,7 +172,7 @@ class ChannelRow extends StatelessWidget {
                           : '${program!.title}  ${formatTime(program!.start)} – ${formatTime(program!.stop)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                      style: t.bodySmall!.copyWith(color: AppColors.muted),
                     ),
                     if (program != null) ...[const SizedBox(height: 7), TallyBar(value: program!.progressAt(now))],
                   ],
@@ -183,7 +183,7 @@ class ChannelRow extends StatelessWidget {
                 onPressed: onFavorite,
                 icon: Icon(
                   channel.favorite ? Icons.star : Icons.star_border,
-                  color: channel.favorite ? SlayerColors.tally : SlayerColors.muted,
+                  color: channel.favorite ? AppColors.tally : AppColors.muted,
                 ),
               ),
             ],

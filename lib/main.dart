@@ -20,18 +20,18 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [databaseProvider.overrideWithValue(db), prefsProvider.overrideWithValue(prefs)],
-      child: const SlayerApp(),
+      child: const TallyApp(),
     ),
   );
 }
 
-class SlayerApp extends StatelessWidget {
-  const SlayerApp({super.key});
+class TallyApp extends StatelessWidget {
+  const TallyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Slayer IPTV',
+      title: 'Tally',
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       darkTheme: buildTheme(),

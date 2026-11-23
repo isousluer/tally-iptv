@@ -1,4 +1,4 @@
-/// Core data models used across Slayer IPTV.
+/// Core data models used across Tally.
 library;
 
 enum SourceType { m3uUrl, m3uFile, xtream }

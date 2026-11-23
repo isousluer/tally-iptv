@@ -16,7 +16,7 @@ import 'theme.dart';
 import 'widgets.dart';
 
 const appVersion = '0.1.0';
-const repoUrl = 'https://github.com/isousluer/slayer-iptv';
+const repoUrl = 'https://github.com/isousluer/tally-iptv';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -33,7 +33,7 @@ class SettingsScreen extends ConsumerWidget {
 
     Widget heading(String text) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(text, style: t.titleMedium!.copyWith(color: SlayerColors.muted)),
+      child: Text(text, style: t.titleMedium!.copyWith(color: AppColors.muted)),
     );
 
     return SafeArea(
@@ -48,7 +48,7 @@ class SettingsScreen extends ConsumerWidget {
               heading('Playlists'),
               for (final p in playlists) _PlaylistTile(playlist: p, active: p.id == active?.id),
               ListTile(
-                leading: const Icon(Icons.add, color: SlayerColors.tally),
+                leading: const Icon(Icons.add, color: AppColors.tally),
                 title: const Text('Add playlist'),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddPlaylistScreen())),
               ),
@@ -167,14 +167,14 @@ class SettingsScreen extends ConsumerWidget {
               heading('About'),
               ListTile(
                 leading: const Icon(Icons.info_outline),
-                title: const Text('Slayer IPTV'),
+                title: const Text('Tally'),
                 subtitle: const Text('Version $appVersion · Free and open source under GPL-3.0'),
                 onTap: () => showLicensePage(
                   context: context,
-                  applicationName: 'Slayer IPTV',
+                  applicationName: 'Tally',
                   applicationVersion: appVersion,
                   applicationLegalese:
-                      'Copyright (C) 2026 Slayer IPTV contributors.\n'
+                      'Copyright (C) 2026 Tally contributors.\n'
                       'Licensed under the GNU General Public License v3.0.',
                 ),
               ),
@@ -182,9 +182,9 @@ class SettingsScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Text(
-                  'Slayer IPTV is a player only. It does not include, sell or promote any channels or content. '
+                  'Tally is a player only. It does not include, sell or promote any channels or content. '
                   'Use it with playlists you are allowed to watch.',
-                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                  style: t.bodySmall!.copyWith(color: AppColors.muted),
                 ),
               ),
             ],
@@ -216,7 +216,7 @@ Future<void> _backup(BuildContext context, WidgetRef ref) async {
     final json = await exportBackup(ref.read(databaseProvider), ref.read(prefsProvider));
     final d = DateTime.now();
     final name =
-        'slayer-iptv-backup-${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}.json';
+        'tally-backup-${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}.json';
     final saved = await FilePicker.saveFile(
       fileName: name,
       bytes: Uint8List.fromList(utf8.encode(json)),
@@ -333,7 +333,7 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: SlayerColors.live),
+            style: TextButton.styleFrom(foregroundColor: AppColors.live),
             child: const Text('Remove'),
           ),
         ],
@@ -350,7 +350,7 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
     return ListTile(
       leading: Icon(
         p.isXtream ? Icons.dns_outlined : Icons.playlist_play,
-        color: widget.active ? SlayerColors.tally : SlayerColors.muted,
+        color: widget.active ? AppColors.tally : AppColors.muted,
       ),
       title: Text(p.name),
       subtitle: Text(widget.active ? 'In use · $updated' : updated),

@@ -24,12 +24,12 @@ class ChannelLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = Center(
-      child: Text(initials(name), style: Theme.of(context).textTheme.labelLarge!.copyWith(color: SlayerColors.tally)),
+      child: Text(initials(name), style: Theme.of(context).textTheme.labelLarge!.copyWith(color: AppColors.tally)),
     );
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(color: SlayerColors.raised, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: AppColors.raised, borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.all(5),
       child: url == null
@@ -58,7 +58,7 @@ class Poster extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = Container(
-      color: SlayerColors.raised,
+      color: AppColors.raised,
       padding: const EdgeInsets.all(10),
       alignment: Alignment.bottomLeft,
       child: Text(
@@ -102,8 +102,8 @@ class TallyBar extends StatelessWidget {
         child: LinearProgressIndicator(
           value: value.clamp(0.0, 1.0),
           minHeight: height,
-          backgroundColor: SlayerColors.border,
-          color: SlayerColors.tally,
+          backgroundColor: AppColors.border,
+          color: AppColors.tally,
         ),
       ),
     );
@@ -116,7 +116,7 @@ class LiveBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(color: SlayerColors.live, borderRadius: BorderRadius.circular(99)),
+      decoration: BoxDecoration(color: AppColors.live, borderRadius: BorderRadius.circular(99)),
       child: Text('Live', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, height: 1.2)),
     );
   }
@@ -151,7 +151,7 @@ class ScreenHeader extends StatelessWidget {
                       subtitle!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                      style: t.bodySmall!.copyWith(color: AppColors.muted),
                     ),
                   ),
               ],
@@ -184,7 +184,7 @@ class SearchBarField extends StatelessWidget {
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: hint,
-                prefixIcon: const Icon(Icons.search, color: SlayerColors.muted),
+                prefixIcon: const Icon(Icons.search, color: AppColors.muted),
                 isDense: true,
               ),
             ),
@@ -214,14 +214,14 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 40, color: SlayerColors.muted),
+              Icon(icon, size: 40, color: AppColors.muted),
               const SizedBox(height: 14),
               Text(title, style: t.titleLarge, textAlign: TextAlign.center),
               if (message != null) ...[
                 const SizedBox(height: 6),
                 Text(
                   message!,
-                  style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                  style: t.bodyMedium!.copyWith(color: AppColors.muted),
                   textAlign: TextAlign.center,
                 ),
               ],

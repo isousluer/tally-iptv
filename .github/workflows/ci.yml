@@ -34,7 +34,7 @@ jobs:
       - run: flutter build apk --release --split-per-abi
       - uses: actions/upload-artifact@v4
         with:
-          name: slayer-iptv-android
+          name: tally-android
           path: build/app/outputs/flutter-apk/*.apk
 
   linux:
@@ -52,7 +52,7 @@ jobs:
       - run: flutter build linux --release
       - uses: actions/upload-artifact@v4
         with:
-          name: slayer-iptv-linux
+          name: tally-linux
           path: build/linux/x64/release/bundle
 
   windows:
@@ -67,5 +67,5 @@ jobs:
       - run: flutter build windows --release
       - uses: actions/upload-artifact@v4
         with:
-          name: slayer-iptv-windows
+          name: tally-windows
           path: build/windows/x64/runner/Release

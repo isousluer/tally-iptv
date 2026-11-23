@@ -79,7 +79,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 220,
-                backgroundColor: SlayerColors.canvas,
+                backgroundColor: AppColors.canvas,
                 actions: [
                   IconButton(
                     tooltip: _favorite ? 'Remove from favorites' : 'Add to favorites',
@@ -87,10 +87,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                       await ref.read(favoritesControllerProvider).toggle(s.copyWith(favorite: _favorite));
                       setState(() => _favorite = !_favorite);
                     },
-                    icon: Icon(
-                      _favorite ? Icons.star : Icons.star_border,
-                      color: _favorite ? SlayerColors.tally : null,
-                    ),
+                    icon: Icon(_favorite ? Icons.star : Icons.star_border, color: _favorite ? AppColors.tally : null),
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -126,7 +123,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                             children: [
                               Text(s.name, style: t.headlineMedium),
                               const SizedBox(height: 4),
-                              Text(meta, style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+                              Text(meta, style: t.bodySmall!.copyWith(color: AppColors.muted)),
                             ],
                           ),
                         ),
@@ -140,7 +137,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                           plot,
                           maxLines: _plotExpanded ? null : 3,
                           overflow: _plotExpanded ? null : TextOverflow.ellipsis,
-                          style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                          style: t.bodyMedium!.copyWith(color: AppColors.muted),
                         ),
                       ),
                     ],
@@ -170,9 +167,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                                 label: Text('Season ${seasons[i]}'),
                                 selected: active,
                                 onSelected: (_) => setState(() => _season = seasons[i]),
-                                labelStyle: t.labelMedium!.copyWith(
-                                  color: active ? SlayerColors.onTally : SlayerColors.text,
-                                ),
+                                labelStyle: t.labelMedium!.copyWith(color: active ? AppColors.onTally : AppColors.text),
                               ),
                             );
                           },
@@ -219,7 +214,7 @@ class _EpisodeRow extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     final started = progress != null && progress!.positionMs > 0;
     return Material(
-      color: SlayerColors.surface,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(8),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -255,13 +250,13 @@ class _EpisodeRow extends StatelessWidget {
                             '${episode.number}. ${episode.title}',
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: t.titleSmall!.copyWith(color: started ? SlayerColors.tally : null),
+                            style: t.titleSmall!.copyWith(color: started ? AppColors.tally : null),
                           ),
                         ),
                         if (episode.duration != null)
                           Text(
                             episode.duration!,
-                            style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                            style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                           ),
                       ],
                     ),
@@ -271,7 +266,7 @@ class _EpisodeRow extends StatelessWidget {
                         episode.plot!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                        style: t.bodySmall!.copyWith(color: AppColors.muted),
                       ),
                     ],
                   ],

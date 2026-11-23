@@ -2,7 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 /// "Broadcast control room" palette: petrol-teal surfaces with a single
 /// amber tally accent. Red is reserved for the live badge.
-abstract final class SlayerColors {
+abstract final class AppColors {
   static const canvas = Color(0xFF0F1E22);
   static const surface = Color(0xFF16292E);
   static const raised = Color(0xFF1F363C);
@@ -28,21 +28,21 @@ const tabular = [FontFeature.tabularFigures()];
 
 ThemeData buildTheme() {
   const scheme = ColorScheme.dark(
-    primary: SlayerColors.tally,
-    onPrimary: SlayerColors.onTally,
-    secondary: SlayerColors.tally,
-    onSecondary: SlayerColors.onTally,
-    error: SlayerColors.live,
-    surface: SlayerColors.canvas,
-    onSurface: SlayerColors.text,
-    onSurfaceVariant: SlayerColors.muted,
-    surfaceContainerLowest: SlayerColors.canvas,
-    surfaceContainerLow: SlayerColors.surface,
-    surfaceContainer: SlayerColors.surface,
-    surfaceContainerHigh: SlayerColors.raised,
-    surfaceContainerHighest: SlayerColors.raised,
-    outline: SlayerColors.border,
-    outlineVariant: SlayerColors.border,
+    primary: AppColors.tally,
+    onPrimary: AppColors.onTally,
+    secondary: AppColors.tally,
+    onSecondary: AppColors.onTally,
+    error: AppColors.live,
+    surface: AppColors.canvas,
+    onSurface: AppColors.text,
+    onSurfaceVariant: AppColors.muted,
+    surfaceContainerLowest: AppColors.canvas,
+    surfaceContainerLow: AppColors.surface,
+    surfaceContainer: AppColors.surface,
+    surfaceContainerHigh: AppColors.raised,
+    surfaceContainerHighest: AppColors.raised,
+    outline: AppColors.border,
+    outlineVariant: AppColors.border,
   );
 
   final text = TextTheme(
@@ -58,23 +58,23 @@ ThemeData buildTheme() {
     labelLarge: _font('Figtree', 14, FontWeight.w600),
     labelMedium: _font('Figtree', 13, FontWeight.w500),
     labelSmall: _font('Figtree', 11.5, FontWeight.w500),
-  ).apply(bodyColor: SlayerColors.text, displayColor: SlayerColors.text);
+  ).apply(bodyColor: AppColors.text, displayColor: AppColors.text);
 
   final radius = BorderRadius.circular(8);
-  const side = BorderSide(color: SlayerColors.border);
+  const side = BorderSide(color: AppColors.border);
 
   return ThemeData(
     // Visible focus for keyboards and TV remotes.
-    focusColor: SlayerColors.tally.withAlpha(0x40),
+    focusColor: AppColors.tally.withAlpha(0x40),
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: scheme,
-    scaffoldBackgroundColor: SlayerColors.canvas,
+    scaffoldBackgroundColor: AppColors.canvas,
     fontFamily: 'Figtree',
     textTheme: text,
     splashFactory: InkSparkle.splashFactory,
     appBarTheme: AppBarTheme(
-      backgroundColor: SlayerColors.canvas,
+      backgroundColor: AppColors.canvas,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -82,58 +82,56 @@ ThemeData buildTheme() {
       titleTextStyle: text.headlineSmall,
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: SlayerColors.surface,
+      backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: SlayerColors.tally.withValues(alpha: 0.16),
+      indicatorColor: AppColors.tally.withValues(alpha: 0.16),
       height: 68,
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (s) => text.labelSmall!.copyWith(
-          color: s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.muted,
-        ),
+        (s) => text.labelSmall!.copyWith(color: s.contains(WidgetState.selected) ? AppColors.tally : AppColors.muted),
       ),
       iconTheme: WidgetStateProperty.resolveWith(
-        (s) => IconThemeData(color: s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.muted),
+        (s) => IconThemeData(color: s.contains(WidgetState.selected) ? AppColors.tally : AppColors.muted),
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: SlayerColors.surface,
-      indicatorColor: SlayerColors.tally.withValues(alpha: 0.16),
-      selectedIconTheme: const IconThemeData(color: SlayerColors.tally),
-      unselectedIconTheme: const IconThemeData(color: SlayerColors.muted),
-      selectedLabelTextStyle: text.labelSmall!.copyWith(color: SlayerColors.tally),
-      unselectedLabelTextStyle: text.labelSmall!.copyWith(color: SlayerColors.muted),
+      backgroundColor: AppColors.surface,
+      indicatorColor: AppColors.tally.withValues(alpha: 0.16),
+      selectedIconTheme: const IconThemeData(color: AppColors.tally),
+      unselectedIconTheme: const IconThemeData(color: AppColors.muted),
+      selectedLabelTextStyle: text.labelSmall!.copyWith(color: AppColors.tally),
+      unselectedLabelTextStyle: text.labelSmall!.copyWith(color: AppColors.muted),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: SlayerColors.surface,
-      selectedColor: SlayerColors.tally,
+      backgroundColor: AppColors.surface,
+      selectedColor: AppColors.tally,
       side: side,
       shape: const StadiumBorder(side: side),
-      labelStyle: text.labelMedium!.copyWith(color: SlayerColors.text),
-      secondaryLabelStyle: text.labelMedium!.copyWith(color: SlayerColors.onTally),
+      labelStyle: text.labelMedium!.copyWith(color: AppColors.text),
+      secondaryLabelStyle: text.labelMedium!.copyWith(color: AppColors.onTally),
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: SlayerColors.surface,
-      hintStyle: text.bodyMedium!.copyWith(color: SlayerColors.muted),
-      labelStyle: text.bodyMedium!.copyWith(color: SlayerColors.muted),
+      fillColor: AppColors.surface,
+      hintStyle: text.bodyMedium!.copyWith(color: AppColors.muted),
+      labelStyle: text.bodyMedium!.copyWith(color: AppColors.muted),
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       border: OutlineInputBorder(borderRadius: radius, borderSide: side),
       enabledBorder: OutlineInputBorder(borderRadius: radius, borderSide: side),
       focusedBorder: OutlineInputBorder(
         borderRadius: radius,
-        borderSide: const BorderSide(color: SlayerColors.tally, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.tally, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: radius,
-        borderSide: const BorderSide(color: SlayerColors.live),
+        borderSide: const BorderSide(color: AppColors.live),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: SlayerColors.tally,
-        foregroundColor: SlayerColors.onTally,
+        backgroundColor: AppColors.tally,
+        foregroundColor: AppColors.onTally,
         minimumSize: const Size(64, 50),
         shape: RoundedRectangleBorder(borderRadius: radius),
         textStyle: text.labelLarge,
@@ -141,8 +139,8 @@ ThemeData buildTheme() {
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: SlayerColors.text,
-        backgroundColor: SlayerColors.raised,
+        foregroundColor: AppColors.text,
+        backgroundColor: AppColors.raised,
         side: side,
         minimumSize: const Size(64, 50),
         shape: RoundedRectangleBorder(borderRadius: radius),
@@ -150,56 +148,56 @@ ThemeData buildTheme() {
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: SlayerColors.tally, textStyle: text.labelLarge),
+      style: TextButton.styleFrom(foregroundColor: AppColors.tally, textStyle: text.labelLarge),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: SegmentedButton.styleFrom(
-        backgroundColor: SlayerColors.surface,
-        foregroundColor: SlayerColors.muted,
-        selectedBackgroundColor: SlayerColors.raised,
-        selectedForegroundColor: SlayerColors.tally,
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.muted,
+        selectedBackgroundColor: AppColors.raised,
+        selectedForegroundColor: AppColors.tally,
         side: side,
         textStyle: text.labelMedium,
       ),
     ),
     cardTheme: CardThemeData(
-      color: SlayerColors.surface,
+      color: AppColors.surface,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: radius, side: side),
     ),
-    dividerTheme: const DividerThemeData(color: SlayerColors.border, thickness: 1, space: 1),
+    dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1, space: 1),
     listTileTheme: ListTileThemeData(
-      iconColor: SlayerColors.muted,
+      iconColor: AppColors.muted,
       titleTextStyle: text.titleSmall,
-      subtitleTextStyle: text.bodySmall!.copyWith(color: SlayerColors.muted),
+      subtitleTextStyle: text.bodySmall!.copyWith(color: AppColors.muted),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: SlayerColors.surface,
+      backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: SlayerColors.surface,
+      backgroundColor: AppColors.surface,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: side),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: SlayerColors.raised,
+      backgroundColor: AppColors.raised,
       contentTextStyle: text.bodyMedium,
       shape: RoundedRectangleBorder(borderRadius: radius, side: side),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: SlayerColors.tally,
-      linearTrackColor: SlayerColors.border,
+      color: AppColors.tally,
+      linearTrackColor: AppColors.border,
     ),
     switchTheme: SwitchThemeData(
       thumbColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? SlayerColors.onTally : SlayerColors.muted,
+        (s) => s.contains(WidgetState.selected) ? AppColors.onTally : AppColors.muted,
       ),
       trackColor: WidgetStateProperty.resolveWith(
-        (s) => s.contains(WidgetState.selected) ? SlayerColors.tally : SlayerColors.raised,
+        (s) => s.contains(WidgetState.selected) ? AppColors.tally : AppColors.raised,
       ),
     ),
   );

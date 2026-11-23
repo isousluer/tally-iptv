@@ -1,19 +1,21 @@
 <div align="center">
 
-# Slayer IPTV
+<img src="assets/icon/tally-icon.png" alt="" width="112">
+
+# Tally
 
 **A fast, simple and open-source IPTV player.**
 
 Bring your own M3U playlist or Xtream Codes account and watch live TV, movies and series,
 with a TV guide, favorites and playback that picks up where you left off.
 
-[![Latest release](https://img.shields.io/github/v/release/isousluer/slayer-iptv?color=f2b544&label=release)](https://github.com/isousluer/slayer-iptv/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/isousluer/tally-iptv?color=f2b544&label=release)](https://github.com/isousluer/tally-iptv/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-1f363c.svg)](LICENSE)
-[![CI](https://github.com/isousluer/slayer-iptv/actions/workflows/ci.yml/badge.svg)](https://github.com/isousluer/slayer-iptv/actions/workflows/ci.yml)
+[![CI](https://github.com/isousluer/tally-iptv/actions/workflows/ci.yml/badge.svg)](https://github.com/isousluer/tally-iptv/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Flutter-3.50-0f1e22.svg)
 
-[**Download for Android**](https://github.com/isousluer/slayer-iptv/releases/latest) ·
-[Report a bug](https://github.com/isousluer/slayer-iptv/issues) ·
+[**Download for Android**](https://github.com/isousluer/tally-iptv/releases/latest) ·
+[Report a bug](https://github.com/isousluer/tally-iptv/issues) ·
 [Build from source](#building-from-source)
 
 </div>
@@ -21,7 +23,7 @@ with a TV guide, favorites and playback that picks up where you left off.
 ---
 
 > [!IMPORTANT]
-> Slayer IPTV is a **player only**. It does not include, sell or promote any channels, playlists or content.
+> Tally is a **player only**. It does not include, sell or promote any channels, playlists or content.
 > You need a playlist from your TV provider. Only watch content you have the right to watch.
 
 ## Screenshots
@@ -65,7 +67,7 @@ with a TV guide, favorites and playback that picks up where you left off.
 
 ## Download
 
-Get the latest APK from the [Releases page](https://github.com/isousluer/slayer-iptv/releases/latest).
+Get the latest APK from the [Releases page](https://github.com/isousluer/tally-iptv/releases/latest).
 Android may ask you to allow installs from your browser or file manager the first time.
 
 | Platform | Status |
@@ -87,8 +89,8 @@ Android may ask you to allow installs from your browser or file manager the firs
 ### Run
 
 ```bash
-git clone https://github.com/isousluer/slayer-iptv.git
-cd slayer-iptv
+git clone https://github.com/isousluer/tally-iptv.git
+cd tally-iptv
 flutter pub get
 flutter run            # pick a connected device
 ```
@@ -130,7 +132,8 @@ lib/
 ## Design
 
 The interface follows a "broadcast control room" idea: calm petrol-teal surfaces with one amber accent, like the
-tally light on a studio camera. Red is used only for the live badge. All text uses the sans-serif
+tally light on a studio camera that tells everyone you're on air. That light gives the app its name, and the icon
+is the same amber lamp over the progress line you see on every channel. Red is used only for the live badge. All text uses the sans-serif
 [Figtree](https://fonts.google.com/specimen/Figtree), bundled with the app (SIL Open Font License).
 The mockups were made with [Stitch](https://stitch.withgoogle.com) and live in [`design/stitch`](design/stitch).
 
@@ -147,12 +150,12 @@ The mockups were made with [Stitch](https://stitch.withgoogle.com) and live in [
 ## Contributing
 
 Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
-Bug reports and feature requests go to the [issue tracker](https://github.com/isousluer/slayer-iptv/issues).
+Bug reports and feature requests go to the [issue tracker](https://github.com/isousluer/tally-iptv/issues).
 Never post your playlist link or login in an issue.
 
 ## License
 
-Slayer IPTV is free software: you can redistribute it and/or modify it under the terms of the
+Tally is free software: you can redistribute it and/or modify it under the terms of the
 [GNU General Public License v3.0](LICENSE) or (at your option) any later version.
 
 Bundled fonts are licensed under the [SIL Open Font License 1.1](assets/fonts).

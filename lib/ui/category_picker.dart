@@ -71,8 +71,8 @@ class CategoryBar extends ConsumerWidget {
         selected: active,
         showCheckmark: false,
         onSelected: (_) => onSelected(value),
-        labelStyle: t.labelMedium!.copyWith(color: active ? SlayerColors.onTally : SlayerColors.text),
-        side: BorderSide(color: active ? SlayerColors.tally : SlayerColors.border),
+        labelStyle: t.labelMedium!.copyWith(color: active ? AppColors.onTally : AppColors.text),
+        side: BorderSide(color: active ? AppColors.tally : AppColors.border),
       );
     }
 
@@ -88,8 +88,8 @@ class CategoryBar extends ConsumerWidget {
             child: OutlinedButton(
               onPressed: () => showCategorySheet(context, kind: kind, selected: selected, onSelected: onSelected),
               style: OutlinedButton.styleFrom(
-                foregroundColor: inCategory ? SlayerColors.tally : SlayerColors.text,
-                side: BorderSide(color: inCategory ? SlayerColors.tally : SlayerColors.border),
+                foregroundColor: inCategory ? AppColors.tally : AppColors.text,
+                side: BorderSide(color: inCategory ? AppColors.tally : AppColors.border),
                 shape: const StadiumBorder(),
                 padding: const EdgeInsets.fromLTRB(14, 0, 8, 0),
                 minimumSize: const Size(0, 34),
@@ -101,13 +101,13 @@ class CategoryBar extends ConsumerWidget {
                       inCategory ? _label(selected) : 'Categories',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: t.labelMedium!.copyWith(color: inCategory ? SlayerColors.tally : SlayerColors.text),
+                      style: t.labelMedium!.copyWith(color: inCategory ? AppColors.tally : AppColors.text),
                     ),
                   ),
                   if (!inCategory && visible.isNotEmpty)
                     Text(
                       '${visible.length}',
-                      style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                      style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                     ),
                   const Icon(Icons.keyboard_arrow_down, size: 20),
                 ],
@@ -174,7 +174,7 @@ class CategoryPanel extends ConsumerWidget {
     return Container(
       width: 280,
       decoration: const BoxDecoration(
-        border: Border(right: BorderSide(color: SlayerColors.border)),
+        border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: CategoryList(kind: kind, selected: selected, showShortcuts: true, onSelected: onSelected),
     );
@@ -217,16 +217,16 @@ class _CategoryListState extends ConsumerState<CategoryList> {
       // painted on the nearest Material outside the list, so it would show
       // behind the search box once the row scrolls under it.
       return Material(
-        color: active ? SlayerColors.tally.withAlpha(0x1F) : Colors.transparent,
+        color: active ? AppColors.tally.withAlpha(0x1F) : Colors.transparent,
         child: ListTile(
           dense: true,
           selected: active,
-          leading: icon == null ? null : Icon(icon, size: 20, color: active ? SlayerColors.tally : SlayerColors.muted),
+          leading: icon == null ? null : Icon(icon, size: 20, color: active ? AppColors.tally : AppColors.muted),
           title: Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: t.bodyLarge!.copyWith(color: active ? SlayerColors.tally : (locked ? SlayerColors.muted : null)),
+            style: t.bodyLarge!.copyWith(color: active ? AppColors.tally : (locked ? AppColors.muted : null)),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -234,13 +234,13 @@ class _CategoryListState extends ConsumerState<CategoryList> {
               if (count != null)
                 Text(
                   compactCount(count),
-                  style: t.labelMedium!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                  style: t.labelMedium!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                 ),
               if (locked) ...[
                 const SizedBox(width: 8),
-                const Icon(Icons.lock_outline, size: 18, color: SlayerColors.muted),
+                const Icon(Icons.lock_outline, size: 18, color: AppColors.muted),
               ],
-              if (active) ...[const SizedBox(width: 8), const Icon(Icons.check, size: 18, color: SlayerColors.tally)],
+              if (active) ...[const SizedBox(width: 8), const Icon(Icons.check, size: 18, color: AppColors.tally)],
             ],
           ),
           onTap: () =>
@@ -251,8 +251,8 @@ class _CategoryListState extends ConsumerState<CategoryList> {
 
     final manage = ListTile(
       dense: true,
-      leading: const Icon(Icons.tune, size: 20, color: SlayerColors.muted),
-      title: Text('Manage categories', style: t.bodyMedium!.copyWith(color: SlayerColors.muted)),
+      leading: const Icon(Icons.tune, size: 20, color: AppColors.muted),
+      title: Text('Manage categories', style: t.bodyMedium!.copyWith(color: AppColors.muted)),
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
     );
 
@@ -270,7 +270,7 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                 child: Row(
                   children: [
                     Expanded(child: Text('Categories', style: t.titleMedium)),
-                    Text('${visible.length}', style: t.labelMedium!.copyWith(color: SlayerColors.muted)),
+                    Text('${visible.length}', style: t.labelMedium!.copyWith(color: AppColors.muted)),
                   ],
                 ),
               ),
@@ -281,7 +281,7 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                 textInputAction: TextInputAction.search,
                 decoration: const InputDecoration(
                   hintText: 'Find a category',
-                  prefixIcon: Icon(Icons.search, color: SlayerColors.muted),
+                  prefixIcon: Icon(Icons.search, color: AppColors.muted),
                   isDense: true,
                 ),
               ),
@@ -304,7 +304,7 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                             child: Text(
                               'No category matches "$_query"',
                               textAlign: TextAlign.center,
-                              style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                              style: t.bodyMedium!.copyWith(color: AppColors.muted),
                             ),
                           ),
                         if (short) ...[const Divider(height: 12), manage],

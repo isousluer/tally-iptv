@@ -80,7 +80,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       textInputAction: TextInputAction.search,
                       decoration: const InputDecoration(
                         hintText: 'Search channels, movies and series',
-                        prefixIcon: Icon(Icons.search, color: SlayerColors.muted),
+                        prefixIcon: Icon(Icons.search, color: AppColors.muted),
                         isDense: true,
                       ),
                     ),

@@ -19,7 +19,7 @@ class PlaylistSwitcherButton extends ConsumerWidget {
         message: 'Switch playlist',
         child: ActionChip(
           onPressed: () => showPlaylistSwitcher(context, ref),
-          avatar: const Icon(Icons.playlist_play, size: 18, color: SlayerColors.tally),
+          avatar: const Icon(Icons.playlist_play, size: 18, color: AppColors.tally),
           label: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 96),
             child: Row(
@@ -30,7 +30,7 @@ class PlaylistSwitcherButton extends ConsumerWidget {
               ],
             ),
           ),
-          side: const BorderSide(color: SlayerColors.border),
+          side: const BorderSide(color: AppColors.border),
           visualDensity: VisualDensity.compact,
         ),
       ),
@@ -59,18 +59,18 @@ Future<void> showPlaylistSwitcher(BuildContext context, WidgetRef ref) {
                 ListTile(
                   leading: Icon(
                     p.isXtream ? Icons.dns_outlined : Icons.playlist_play,
-                    color: p.id == active?.id ? SlayerColors.tally : SlayerColors.muted,
+                    color: p.id == active?.id ? AppColors.tally : AppColors.muted,
                   ),
                   title: Text(p.name),
                   subtitle: Text(_describe(p)),
-                  trailing: p.id == active?.id ? const Icon(Icons.check, color: SlayerColors.tally) : null,
+                  trailing: p.id == active?.id ? const Icon(Icons.check, color: AppColors.tally) : null,
                   onTap: () {
                     ref.read(activePlaylistIdProvider.notifier).select(p.id);
                     Navigator.pop(ctx);
                   },
                 ),
               ListTile(
-                leading: const Icon(Icons.add, color: SlayerColors.tally),
+                leading: const Icon(Icons.add, color: AppColors.tally),
                 title: const Text('Add playlist'),
                 onTap: () {
                   Navigator.pop(ctx);

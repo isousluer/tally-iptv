@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:slayer_iptv/data/epg_parser.dart';
-import 'package:slayer_iptv/data/m3u_parser.dart';
-import 'package:slayer_iptv/data/models.dart';
-import 'package:slayer_iptv/data/repository.dart';
+import 'package:tally/data/epg_parser.dart';
+import 'package:tally/data/m3u_parser.dart';
+import 'package:tally/data/models.dart';
+import 'package:tally/data/repository.dart';
 
 void main() {
   group('parseM3u', () {

@@ -148,10 +148,10 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                         Container(
                           width: 10,
                           height: 10,
-                          decoration: const BoxDecoration(color: SlayerColors.tally, shape: BoxShape.circle),
+                          decoration: const BoxDecoration(color: AppColors.tally, shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 8),
-                        Text('Slayer IPTV', style: t.titleMedium!.copyWith(fontWeight: FontWeight.w700)),
+                        Text('Tally', style: t.titleMedium!.copyWith(fontWeight: FontWeight.w700)),
                       ],
                     ),
                     const SizedBox(height: 28),
@@ -159,9 +159,9 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                     const SizedBox(height: 8),
                   ],
                   Text(
-                    'Your playlist stays on this device. Slayer IPTV doesn\'t provide any channels. '
+                    'Your playlist stays on this device. Tally doesn\'t provide any channels. '
                     'Use a playlist from your TV provider.',
-                    style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                    style: t.bodyMedium!.copyWith(color: AppColors.muted),
                   ),
                   const SizedBox(height: 22),
                   SegmentedButton<SourceType>(
@@ -195,10 +195,10 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: Row(
                         children: [
-                          const Icon(Icons.tune, size: 20, color: SlayerColors.muted),
+                          const Icon(Icons.tune, size: 20, color: AppColors.muted),
                           const SizedBox(width: 10),
                           Expanded(child: Text('Advanced', style: t.titleSmall)),
-                          Icon(_showAdvanced ? Icons.expand_less : Icons.expand_more, color: SlayerColors.muted),
+                          Icon(_showAdvanced ? Icons.expand_less : Icons.expand_more, color: AppColors.muted),
                         ],
                       ),
                     ),
@@ -220,9 +220,9 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: SlayerColors.live.withValues(alpha: 0.12),
+                        color: AppColors.live.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: SlayerColors.live.withValues(alpha: 0.5)),
+                        border: Border.all(color: AppColors.live.withValues(alpha: 0.5)),
                       ),
                       child: Text(_error!, style: t.bodyMedium),
                     ),
@@ -234,7 +234,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2.4, color: SlayerColors.onTally),
+                            child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.onTally),
                           )
                         : const Text('Add playlist'),
                   ),
@@ -243,7 +243,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                     Text(
                       'Loading channels. Large playlists can take a minute.',
                       textAlign: TextAlign.center,
-                      style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                      style: t.bodySmall!.copyWith(color: AppColors.muted),
                     ),
                   ],
                 ],
@@ -344,7 +344,7 @@ class _Field extends StatelessWidget {
           child,
           if (help != null) ...[
             const SizedBox(height: 6),
-            Text(help!, style: t.bodySmall!.copyWith(color: SlayerColors.muted)),
+            Text(help!, style: t.bodySmall!.copyWith(color: AppColors.muted)),
           ],
         ],
       ),

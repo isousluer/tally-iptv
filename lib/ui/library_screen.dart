@@ -126,7 +126,7 @@ class LibraryScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       'Tip: tap the star on any channel, movie or series to add it to favorites.',
-                      style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                      style: t.bodySmall!.copyWith(color: AppColors.muted),
                     ),
                   )
                 : const SizedBox.shrink(),

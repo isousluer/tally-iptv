@@ -1,10 +1,10 @@
-# Contributing to Slayer IPTV
+# Contributing to Tally
 
-Thanks for helping make Slayer IPTV better! This guide explains how to get your change merged.
+Thanks for helping make Tally better! This guide explains how to get your change merged.
 
 ## Ground rules
 
-- Slayer IPTV is a **player**. Pull requests that add playlists, channel lists, links to content, or anything that helps bypass paid services will be closed.
+- Tally is a **player**. Pull requests that add playlists, channel lists, links to content, or anything that helps bypass paid services will be closed.
 - Be kind. Assume good intent.
 
 ## Reporting bugs
@@ -33,7 +33,7 @@ flutter test
 
 - `lib/data` — parsing, network and storage. Keep it free of Flutter UI imports so it can run in isolates and be unit tested.
 - `lib/state` — Riverpod providers that connect data to the UI.
-- `lib/ui` — screens and widgets. Use the colors in `ui/theme.dart` (`SlayerColors`) instead of hard-coded values.
+- `lib/ui` — screens and widgets. Use the colors in `ui/theme.dart` (`AppColors`) instead of hard-coded values.
 
 ## UI writing style
 

@@ -15,7 +15,7 @@ const _settingKeys = ['video_fit', 'audio_lang', 'subtitle_lang', 'auto_next', '
 Future<String> exportBackup(AppDatabase adb, SharedPreferences prefs) async {
   final db = adb.db;
   return const JsonEncoder.withIndent('  ').convert({
-    'app': 'slayer-iptv',
+    'app': 'tally',
     'format': 1,
     'exported': DateTime.now().toIso8601String(),
     'playlists': await db.query('playlists'),
@@ -45,7 +45,7 @@ class RestoreResult {
 
 class BackupFormatException implements Exception {
   @override
-  String toString() => 'This file is not a Slayer IPTV backup.';
+  String toString() => 'This file is not a Tally backup.';
 }
 
 /// Merges a backup into the database. Playlists that already exist (same
@@ -57,7 +57,8 @@ Future<RestoreResult> importBackup(AppDatabase adb, SharedPreferences prefs, Str
   } on FormatException {
     throw BackupFormatException();
   }
-  if (data is! Map || data['app'] != 'slayer-iptv') throw BackupFormatException();
+  // Backups made before the app was renamed say 'slayer-iptv'.
+  if (data is! Map || !const {'tally', 'slayer-iptv'}.contains(data['app'])) throw BackupFormatException();
 
   List<Map<String, Object?>> rows(String key) => [
     for (final r in (data as Map)[key] as List? ?? const []) Map<String, Object?>.from(r as Map),

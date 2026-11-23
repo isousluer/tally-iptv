@@ -1,4 +1,4 @@
-package io.github.slayeriptv.slayer_iptv
+package io.github.isousluer.tally
 
 import android.app.PictureInPictureParams
 import android.app.UiModeManager
@@ -27,7 +27,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        val ch = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "slayer/device")
+        val ch = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "tally/device")
         channel = ch
         ch.setMethodCallHandler { call, result ->
             when (call.method) {

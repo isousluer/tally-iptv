@@ -142,7 +142,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                   padding: EdgeInsets.fromLTRB(16 + inset, 8, 16 + inset, 4),
                   child: Text(
                     'Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.',
-                    style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                    style: t.bodySmall!.copyWith(color: AppColors.muted),
                   ),
                 ),
                 Expanded(
@@ -162,7 +162,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                               key: ValueKey(g.name),
                               title: Text(
                                 g.name.isEmpty ? 'Uncategorized' : g.name,
-                                style: TextStyle(color: g.hidden ? SlayerColors.muted : null),
+                                style: TextStyle(color: g.hidden ? AppColors.muted : null),
                               ),
                               subtitle: Text(compactCount(g.count)),
                               trailing: Row(
@@ -173,7 +173,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                     onPressed: () => _toggleLocked(g),
                                     icon: Icon(
                                       g.locked ? Icons.lock : Icons.lock_open_outlined,
-                                      color: g.locked ? SlayerColors.tally : SlayerColors.muted,
+                                      color: g.locked ? AppColors.tally : AppColors.muted,
                                     ),
                                   ),
                                   IconButton(
@@ -181,14 +181,14 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                     onPressed: () => _toggleHidden(g),
                                     icon: Icon(
                                       g.hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                      color: g.hidden ? SlayerColors.muted : SlayerColors.text,
+                                      color: g.hidden ? AppColors.muted : AppColors.text,
                                     ),
                                   ),
                                   ReorderableDragStartListener(
                                     index: i,
                                     child: const Padding(
                                       padding: EdgeInsets.fromLTRB(4, 8, 8, 8),
-                                      child: Icon(Icons.drag_handle, color: SlayerColors.muted),
+                                      child: Icon(Icons.drag_handle, color: AppColors.muted),
                                     ),
                                   ),
                                 ],

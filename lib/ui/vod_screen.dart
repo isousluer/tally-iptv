@@ -155,7 +155,7 @@ class PosterTile extends StatelessWidget {
               children: [
                 Poster(title: title, url: item.logo, aspectRatio: null),
                 if (item.favorite)
-                  const Positioned(top: 6, right: 6, child: Icon(Icons.star, size: 18, color: SlayerColors.tally)),
+                  const Positioned(top: 6, right: 6, child: Icon(Icons.star, size: 18, color: AppColors.tally)),
               ],
             ),
           ),
@@ -171,7 +171,7 @@ class PosterTile extends StatelessWidget {
                     meta,
                     maxLines: 1,
                     overflow: TextOverflow.clip,
-                    style: t.labelSmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                    style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                   ),
               ],
             ),

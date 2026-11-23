@@ -51,7 +51,7 @@ class LoadingPlaylistView extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     'Large playlists can take a minute. Keep the app open.',
-                    style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                    style: t.bodyMedium!.copyWith(color: AppColors.muted),
                   ),
                   const SizedBox(height: 28),
                   for (final s in stages)
@@ -88,13 +88,13 @@ class _StageRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final icon = switch (state) {
-      _State.done => const Icon(Icons.check_circle, color: SlayerColors.tally, size: 22),
+      _State.done => const Icon(Icons.check_circle, color: AppColors.tally, size: 22),
       _State.active => const SizedBox(
         width: 22,
         height: 22,
         child: Padding(padding: EdgeInsets.all(2), child: CircularProgressIndicator(strokeWidth: 2.4)),
       ),
-      _State.waiting => const Icon(Icons.radio_button_unchecked, color: SlayerColors.border, size: 22),
+      _State.waiting => const Icon(Icons.radio_button_unchecked, color: AppColors.border, size: 22),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -105,13 +105,13 @@ class _StageRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: t.titleSmall!.copyWith(color: state == _State.waiting ? SlayerColors.muted : SlayerColors.text),
+              style: t.titleSmall!.copyWith(color: state == _State.waiting ? AppColors.muted : AppColors.text),
             ),
           ),
           if (count != null)
             Text(
               count!,
-              style: t.bodySmall!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+              style: t.bodySmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
             ),
         ],
       ),

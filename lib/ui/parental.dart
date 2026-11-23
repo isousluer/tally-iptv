@@ -106,7 +106,7 @@ class _PinDialogState extends State<_PinDialog> {
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
         TextButton(
           onPressed: _submit,
-          style: TextButton.styleFrom(foregroundColor: SlayerColors.tally),
+          style: TextButton.styleFrom(foregroundColor: AppColors.tally),
           child: const Text('OK'),
         ),
       ],
