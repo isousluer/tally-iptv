@@ -134,7 +134,10 @@ class ScreenHeader extends StatelessWidget {
     final t = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 10),
+      // Top-aligned so the title sits in the same place on every tab,
+      // with or without a subtitle.
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Column(
