@@ -55,7 +55,15 @@ class _PinDialog extends StatefulWidget {
 
 class _PinDialogState extends State<_PinDialog> {
   final _c = TextEditingController();
+  final _focus = FocusNode();
   String? _error;
+
+  @override
+  void dispose() {
+    _c.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
 
   void _submit() {
     final v = _c.text.trim();
@@ -68,6 +76,8 @@ class _PinDialogState extends State<_PinDialog> {
         _error = widget.returnValue ? 'The PINs don\'t match.' : 'Wrong PIN.';
         _c.clear();
       });
+      // Keep the keyboard up so the viewer can try again right away.
+      _focus.requestFocus();
       return;
     }
     Navigator.pop(context, widget.returnValue ? v : true);
@@ -79,7 +89,10 @@ class _PinDialogState extends State<_PinDialog> {
       title: Text(widget.title),
       content: TextField(
         controller: _c,
+        focusNode: _focus,
         autofocus: true,
+        // Submitting shouldn't close the keyboard; a wrong PIN needs a retry.
+        onEditingComplete: () {},
         obscureText: true,
         maxLength: 4,
         keyboardType: TextInputType.number,

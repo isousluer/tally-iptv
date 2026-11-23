@@ -118,83 +118,88 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: SegmentedButton<ContentKind>(
-                segments: const [
-                  ButtonSegment(value: ContentKind.live, label: Text('Live TV')),
-                  ButtonSegment(value: ContentKind.movie, label: Text('Movies')),
-                  ButtonSegment(value: ContentKind.series, label: Text('Series')),
-                ],
-                selected: {_kind},
-                onSelectionChanged: (s) => setState(() {
-                  _kind = s.first;
-                  _order = null;
-                }),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                'Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.',
-                style: t.bodySmall!.copyWith(color: SlayerColors.muted),
-              ),
-            ),
-            Expanded(
-              child: groups == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : groups.isEmpty
-                  ? const EmptyState(icon: Icons.category_outlined, title: 'No categories here')
-                  : ReorderableListView.builder(
-                      padding: const EdgeInsets.only(bottom: 24),
-                      itemCount: groups.length,
-                      buildDefaultDragHandles: false,
-                      onReorderItem: (a, b) => _reorder(groups, a, b),
-                      itemBuilder: (_, i) {
-                        final g = groups[i];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.only(left: 16, right: 4),
-                          key: ValueKey(g.name),
-                          title: Text(
-                            g.name.isEmpty ? 'Uncategorized' : g.name,
-                            style: TextStyle(color: g.hidden ? SlayerColors.muted : null),
-                          ),
-                          subtitle: Text(compactCount(g.count)),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                tooltip: g.locked ? 'Unlock' : 'Lock with PIN',
-                                onPressed: () => _toggleLocked(g),
-                                icon: Icon(
-                                  g.locked ? Icons.lock : Icons.lock_open_outlined,
-                                  color: g.locked ? SlayerColors.tally : SlayerColors.muted,
-                                ),
+        body: LayoutBuilder(
+          builder: (context, box) {
+            final inset = readableInset(box.maxWidth);
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16 + inset, 8, 16 + inset, 4),
+                  child: SegmentedButton<ContentKind>(
+                    segments: const [
+                      ButtonSegment(value: ContentKind.live, label: Text('Live TV')),
+                      ButtonSegment(value: ContentKind.movie, label: Text('Movies')),
+                      ButtonSegment(value: ContentKind.series, label: Text('Series')),
+                    ],
+                    selected: {_kind},
+                    onSelectionChanged: (s) => setState(() {
+                      _kind = s.first;
+                      _order = null;
+                    }),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16 + inset, 8, 16 + inset, 4),
+                  child: Text(
+                    'Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.',
+                    style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                  ),
+                ),
+                Expanded(
+                  child: groups == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : groups.isEmpty
+                      ? const EmptyState(icon: Icons.category_outlined, title: 'No categories here')
+                      : ReorderableListView.builder(
+                          padding: EdgeInsets.fromLTRB(inset, 0, inset, 24),
+                          itemCount: groups.length,
+                          buildDefaultDragHandles: false,
+                          onReorderItem: (a, b) => _reorder(groups, a, b),
+                          itemBuilder: (_, i) {
+                            final g = groups[i];
+                            return ListTile(
+                              contentPadding: const EdgeInsets.only(left: 16, right: 4),
+                              key: ValueKey(g.name),
+                              title: Text(
+                                g.name.isEmpty ? 'Uncategorized' : g.name,
+                                style: TextStyle(color: g.hidden ? SlayerColors.muted : null),
                               ),
-                              IconButton(
-                                tooltip: g.hidden ? 'Show' : 'Hide',
-                                onPressed: () => _toggleHidden(g),
-                                icon: Icon(
-                                  g.hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  color: g.hidden ? SlayerColors.muted : SlayerColors.text,
-                                ),
+                              subtitle: Text(compactCount(g.count)),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    tooltip: g.locked ? 'Unlock' : 'Lock with PIN',
+                                    onPressed: () => _toggleLocked(g),
+                                    icon: Icon(
+                                      g.locked ? Icons.lock : Icons.lock_open_outlined,
+                                      color: g.locked ? SlayerColors.tally : SlayerColors.muted,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: g.hidden ? 'Show' : 'Hide',
+                                    onPressed: () => _toggleHidden(g),
+                                    icon: Icon(
+                                      g.hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                      color: g.hidden ? SlayerColors.muted : SlayerColors.text,
+                                    ),
+                                  ),
+                                  ReorderableDragStartListener(
+                                    index: i,
+                                    child: const Padding(
+                                      padding: EdgeInsets.fromLTRB(4, 8, 8, 8),
+                                      child: Icon(Icons.drag_handle, color: SlayerColors.muted),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              ReorderableDragStartListener(
-                                index: i,
-                                child: const Padding(
-                                  padding: EdgeInsets.fromLTRB(4, 8, 8, 8),
-                                  child: Icon(Icons.drag_handle, color: SlayerColors.muted),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
+                            );
+                          },
+                        ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

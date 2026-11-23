@@ -30,10 +30,14 @@ Future<String> exportBackup(AppDatabase adb, SharedPreferences prefs) async {
 }
 
 class RestoreResult {
-  RestoreResult(this.playlists, this.skipped);
+  RestoreResult(this.playlists, this.skipped, this.alreadyThere);
 
   /// Playlists whose channels need to be downloaded.
   final List<Playlist> playlists;
+
+  /// Playlists in the backup that the app already had. Their favorites,
+  /// history and category settings are still merged.
+  final int alreadyThere;
 
   /// Names of local-file playlists whose file isn't on this device.
   final List<String> skipped;
@@ -64,6 +68,7 @@ Future<RestoreResult> importBackup(AppDatabase adb, SharedPreferences prefs, Str
   final idMap = <int, int>{};
   final toLoad = <Playlist>[];
   final skipped = <String>[];
+  var alreadyThere = 0;
 
   await db.transaction((txn) async {
     for (final row in rows('playlists')) {
@@ -78,6 +83,7 @@ Future<RestoreResult> importBackup(AppDatabase adb, SharedPreferences prefs, Str
       );
       if (same.isNotEmpty) {
         idMap[oldId] = same.first.id;
+        alreadyThere++;
         continue;
       }
       final fresh = Playlist.fromRow({...row, 'last_updated': null});
@@ -103,5 +109,5 @@ Future<RestoreResult> importBackup(AppDatabase adb, SharedPreferences prefs, Str
       if (value is String) await prefs.setString(key as String, value);
     }
   }
-  return RestoreResult(toLoad, skipped);
+  return RestoreResult(toLoad, skipped, alreadyThere);
 }

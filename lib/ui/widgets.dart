@@ -273,3 +273,7 @@ String compactCount(int n) {
 }
 
 bool isWide(BuildContext context) => MediaQuery.sizeOf(context).width >= 840;
+
+/// Side margin that keeps settings-style lists at a readable width on wide
+/// screens. Used as list padding, so the margins still scroll the list.
+double readableInset(double width, [double maxWidth = 640]) => width > maxWidth ? (width - maxWidth) / 2 : 0;

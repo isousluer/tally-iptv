@@ -38,152 +38,158 @@ class SettingsScreen extends ConsumerWidget {
 
     return SafeArea(
       bottom: false,
-      child: ListView(
-        padding: const EdgeInsets.only(bottom: 32),
-        children: [
-          const ScreenHeader(title: 'Settings'),
-          heading('Playlists'),
-          for (final p in playlists) _PlaylistTile(playlist: p, active: p.id == active?.id),
-          ListTile(
-            leading: const Icon(Icons.add, color: SlayerColors.tally),
-            title: const Text('Add playlist'),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddPlaylistScreen())),
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.sync),
-            title: const Text('Update playlists automatically'),
-            subtitle: const Text('When the app opens, lists older than a day are refreshed.'),
-            value: settings.autoRefresh,
-            onChanged: (v) => ref.read(settingsProvider.notifier).setAutoRefresh(v),
-          ),
-          ListTile(
-            leading: const Icon(Icons.category_outlined),
-            title: const Text('Categories'),
-            subtitle: const Text('Hide, lock or reorder categories'),
-            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
-          ),
-          heading('Playback'),
-          SwitchListTile(
-            secondary: const Icon(Icons.skip_next_outlined),
-            title: const Text('Play next episode automatically'),
-            value: settings.autoNext,
-            onChanged: (v) => ref.read(settingsProvider.notifier).setAutoNext(v),
-          ),
-          ListTile(
-            leading: const Icon(Icons.audiotrack_outlined),
-            title: const Text('Audio language'),
-            subtitle: Text(
-              settings.audioLanguage == null
-                  ? 'Stream default. Pick a language in the player and it\'s used from then on.'
-                  : '${languageName(settings.audioLanguage!)} · tap to go back to the stream default',
-            ),
-            onTap: settings.audioLanguage == null
-                ? null
-                : () => ref.read(settingsProvider.notifier).setAudioLanguage(null),
-          ),
-          ListTile(
-            leading: const Icon(Icons.closed_caption_outlined),
-            title: const Text('Subtitles'),
-            subtitle: Text(switch (settings.subtitleLanguage) {
-              null => 'Stream default. Pick subtitles in the player and they\'re used from then on.',
-              'off' => 'Off · tap to go back to the stream default',
-              final l => '${languageName(l)} · tap to go back to the stream default',
-            }),
-            onTap: settings.subtitleLanguage == null
-                ? null
-                : () => ref.read(settingsProvider.notifier).setSubtitleLanguage(null),
-          ),
-          heading('Parental control'),
-          ListTile(
-            leading: const Icon(Icons.pin_outlined),
-            title: Text(pin == null ? 'Set a PIN' : 'Change PIN'),
-            subtitle: Text(
-              pin == null
-                  ? 'Lock categories so they need a PIN to open.'
-                  : unlocked
-                  ? 'Locked categories are open until the app restarts.'
-                  : 'Locked categories are hidden.',
-            ),
-            onTap: () async {
-              if (pin != null && !await unlockWithPin(context, ref)) return;
-              if (!context.mounted) return;
-              final next = await choosePin(context);
-              if (next != null) await ref.read(parentalPinProvider.notifier).set(next);
-            },
-          ),
-          if (pin != null && unlocked)
-            ListTile(
-              leading: const Icon(Icons.lock_outline),
-              title: const Text('Lock now'),
-              onTap: () => ref.read(parentalUnlockedProvider.notifier).set(false),
-            ),
-          if (pin != null)
-            ListTile(
-              leading: const Icon(Icons.no_encryption_outlined),
-              title: const Text('Remove PIN'),
-              subtitle: const Text('Locked categories open without a PIN.'),
-              onTap: () async {
-                if (!await unlockWithPin(context, ref)) return;
-                await ref.read(parentalPinProvider.notifier).set(null);
-              },
-            ),
-          heading('Backup'),
-          ListTile(
-            leading: const Icon(Icons.save_alt),
-            title: const Text('Back up to a file'),
-            subtitle: const Text('Playlists, logins, favorites, watch history and categories'),
-            onTap: () => _backup(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings_backup_restore),
-            title: const Text('Restore from a file'),
-            subtitle: const Text('Adds the playlists from a backup and downloads their channels'),
-            onTap: () => _restore(context, ref),
-          ),
-          heading('TV guide'),
-          ListTile(
-            leading: const Icon(Icons.event_note_outlined),
-            title: const Text('Update TV guide now'),
-            subtitle: Text(switch (epgStatus) {
-              EpgStatus.loading => 'Downloading guide…',
-              EpgStatus.failed => 'Update failed: ${ref.read(epgStatusProvider.notifier).message ?? 'unknown error'}',
-              EpgStatus.idle =>
-                active?.epgUrl == null
-                    ? 'No guide link for this playlist. Add one from the playlist menu.'
-                    : ref.read(epgStatusProvider.notifier).message ??
-                          'Updates automatically when a playlist is refreshed.',
-            }),
-            trailing: epgStatus == EpgStatus.loading
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : null,
-            onTap: active == null || epgStatus == EpgStatus.loading
-                ? null
-                : () => ref.read(playlistsProvider.notifier).refreshEpg(active),
-          ),
-          heading('About'),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('Slayer IPTV'),
-            subtitle: const Text('Version $appVersion · Free and open source under GPL-3.0'),
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: 'Slayer IPTV',
-              applicationVersion: appVersion,
-              applicationLegalese:
-                  'Copyright (C) 2026 Slayer IPTV contributors.\n'
-                  'Licensed under the GNU General Public License v3.0.',
-            ),
-          ),
-          const ListTile(leading: Icon(Icons.code), title: Text('Source code'), subtitle: SelectableText(repoUrl)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Text(
-              'Slayer IPTV is a player only. It does not include, sell or promote any channels or content. '
-              'Use it with playlists you are allowed to watch.',
-              style: t.bodySmall!.copyWith(color: SlayerColors.muted),
-            ),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final inset = readableInset(box.maxWidth);
+          return ListView(
+            padding: EdgeInsets.fromLTRB(inset, 0, inset, 32),
+            children: [
+              const ScreenHeader(title: 'Settings'),
+              heading('Playlists'),
+              for (final p in playlists) _PlaylistTile(playlist: p, active: p.id == active?.id),
+              ListTile(
+                leading: const Icon(Icons.add, color: SlayerColors.tally),
+                title: const Text('Add playlist'),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddPlaylistScreen())),
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.sync),
+                title: const Text('Update playlists automatically'),
+                subtitle: const Text('When the app opens, lists older than a day are refreshed.'),
+                value: settings.autoRefresh,
+                onChanged: (v) => ref.read(settingsProvider.notifier).setAutoRefresh(v),
+              ),
+              ListTile(
+                leading: const Icon(Icons.category_outlined),
+                title: const Text('Categories'),
+                subtitle: const Text('Hide, lock or reorder categories'),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+              ),
+              heading('Playback'),
+              SwitchListTile(
+                secondary: const Icon(Icons.skip_next_outlined),
+                title: const Text('Play next episode automatically'),
+                value: settings.autoNext,
+                onChanged: (v) => ref.read(settingsProvider.notifier).setAutoNext(v),
+              ),
+              ListTile(
+                leading: const Icon(Icons.audiotrack_outlined),
+                title: const Text('Audio language'),
+                subtitle: Text(
+                  settings.audioLanguage == null
+                      ? 'Stream default. Pick a language in the player and it\'s used from then on.'
+                      : '${languageName(settings.audioLanguage!)} · tap to go back to the stream default',
+                ),
+                onTap: settings.audioLanguage == null
+                    ? null
+                    : () => ref.read(settingsProvider.notifier).setAudioLanguage(null),
+              ),
+              ListTile(
+                leading: const Icon(Icons.closed_caption_outlined),
+                title: const Text('Subtitles'),
+                subtitle: Text(switch (settings.subtitleLanguage) {
+                  null => 'Stream default. Pick subtitles in the player and they\'re used from then on.',
+                  'off' => 'Off · tap to go back to the stream default',
+                  final l => '${languageName(l)} · tap to go back to the stream default',
+                }),
+                onTap: settings.subtitleLanguage == null
+                    ? null
+                    : () => ref.read(settingsProvider.notifier).setSubtitleLanguage(null),
+              ),
+              heading('Parental control'),
+              ListTile(
+                leading: const Icon(Icons.pin_outlined),
+                title: Text(pin == null ? 'Set a PIN' : 'Change PIN'),
+                subtitle: Text(
+                  pin == null
+                      ? 'Lock categories so they need a PIN to open.'
+                      : unlocked
+                      ? 'Locked categories are open until the app restarts.'
+                      : 'Locked categories need the PIN to open.',
+                ),
+                onTap: () async {
+                  if (pin != null && !await unlockWithPin(context, ref)) return;
+                  if (!context.mounted) return;
+                  final next = await choosePin(context);
+                  if (next != null) await ref.read(parentalPinProvider.notifier).set(next);
+                },
+              ),
+              if (pin != null && unlocked)
+                ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: const Text('Lock now'),
+                  onTap: () => ref.read(parentalUnlockedProvider.notifier).set(false),
+                ),
+              if (pin != null)
+                ListTile(
+                  leading: const Icon(Icons.no_encryption_outlined),
+                  title: const Text('Remove PIN'),
+                  subtitle: const Text('Locked categories open without a PIN.'),
+                  onTap: () async {
+                    if (!await unlockWithPin(context, ref)) return;
+                    await ref.read(parentalPinProvider.notifier).set(null);
+                  },
+                ),
+              heading('Backup'),
+              ListTile(
+                leading: const Icon(Icons.save_alt),
+                title: const Text('Back up to a file'),
+                subtitle: const Text('Playlists, logins, favorites, watch history and categories'),
+                onTap: () => _backup(context, ref),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_backup_restore),
+                title: const Text('Restore from a file'),
+                subtitle: const Text('Adds the playlists from a backup and downloads their channels'),
+                onTap: () => _restore(context, ref),
+              ),
+              heading('TV guide'),
+              ListTile(
+                leading: const Icon(Icons.event_note_outlined),
+                title: const Text('Update TV guide now'),
+                subtitle: Text(switch (epgStatus) {
+                  EpgStatus.loading => 'Downloading guide…',
+                  EpgStatus.failed =>
+                    'Update failed: ${ref.read(epgStatusProvider.notifier).message ?? 'unknown error'}',
+                  EpgStatus.idle =>
+                    active?.epgUrl == null
+                        ? 'No guide link for this playlist. Add one from the playlist menu.'
+                        : ref.read(epgStatusProvider.notifier).message ??
+                              'Updates automatically when a playlist is refreshed.',
+                }),
+                trailing: epgStatus == EpgStatus.loading
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : null,
+                onTap: active == null || epgStatus == EpgStatus.loading
+                    ? null
+                    : () => ref.read(playlistsProvider.notifier).refreshEpg(active),
+              ),
+              heading('About'),
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: const Text('Slayer IPTV'),
+                subtitle: const Text('Version $appVersion · Free and open source under GPL-3.0'),
+                onTap: () => showLicensePage(
+                  context: context,
+                  applicationName: 'Slayer IPTV',
+                  applicationVersion: appVersion,
+                  applicationLegalese:
+                      'Copyright (C) 2026 Slayer IPTV contributors.\n'
+                      'Licensed under the GNU General Public License v3.0.',
+                ),
+              ),
+              const ListTile(leading: Icon(Icons.code), title: Text('Source code'), subtitle: SelectableText(repoUrl)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Text(
+                  'Slayer IPTV is a player only. It does not include, sell or promote any channels or content. '
+                  'Use it with playlists you are allowed to watch.',
+                  style: t.bodySmall!.copyWith(color: SlayerColors.muted),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -249,14 +255,19 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
   try {
     final json = utf8.decode(await file.readAsBytes(), allowMalformed: true);
     final r = await ref.read(playlistsProvider.notifier).restore(json, onLoading: (n) => status.value = 'Loading $n…');
+    String count(int n) => '$n playlist${n == 1 ? '' : 's'}';
+    final parts = [
+      if (r.playlists.isNotEmpty) 'Added ${count(r.playlists.length)}',
+      if (r.alreadyThere > 0)
+        r.playlists.isEmpty
+            ? '${count(r.alreadyThere)} already in the app, so only favorites, history and categories were merged'
+            : '${r.alreadyThere} already in the app',
+      if (r.skipped.isNotEmpty) 'Skipped local files: ${r.skipped.join(', ')}',
+    ];
     messenger.showSnackBar(
       SnackBar(
-        content: Text(
-          [
-            'Restored ${r.playlists.length} playlist${r.playlists.length == 1 ? '' : 's'}',
-            if (r.skipped.isNotEmpty) 'skipped local files: ${r.skipped.join(', ')}',
-          ].join(' · '),
-        ),
+        content: Text(parts.isEmpty ? 'The backup has no playlists.' : parts.join(' · ')),
+        duration: const Duration(seconds: 6),
       ),
     );
   } catch (e) {

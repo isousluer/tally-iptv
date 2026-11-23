@@ -1159,12 +1159,56 @@ class _TracksButtons extends StatelessWidget {
 
   static bool _real(String id) => id != 'auto' && id != 'no';
 
-  static String _label(String? title, String? lang, int i) {
+  static String _label(String? rawTitle, String? lang, int i) {
+    final name = lang == null || lang.isEmpty ? null : _languageName(lang);
+    // Files often shout their track titles ("FORCED"); show them as "Forced".
+    // Only plain words, so names like "DTS-HD MA 5.1" stay as they are.
+    final title = rawTitle != null && RegExp(r'^[A-Z]{4,}$').hasMatch(rawTitle)
+        ? rawTitle[0] + rawTitle.substring(1).toLowerCase()
+        : rawTitle;
     final parts = [
-      if (title != null && title.isNotEmpty) title,
-      if (lang != null && lang.isNotEmpty) _languageName(lang),
+      ?name,
+      // Skip a title that only repeats the language ("English").
+      if (title != null && title.isNotEmpty && (name == null || title.toLowerCase() != name.toLowerCase())) title,
     ];
     return parts.isEmpty ? 'Track ${i + 1}' : parts.join(' · ');
+  }
+
+  static String _channels(int? count) => switch (count) {
+    null || 0 => '',
+    1 => 'Mono',
+    2 => 'Stereo',
+    6 => '5.1',
+    8 => '7.1',
+    _ => '$count ch',
+  };
+
+  /// Audio label with the format, so two English tracks can be told apart.
+  static String _audioLabel(AudioTrack a, int i) {
+    final details = [
+      if (a.codec != null && a.codec!.isNotEmpty) a.codec!.toUpperCase(),
+      _channels(a.channelscount),
+    ].where((s) => s.isNotEmpty).join(' ');
+    final base = _label(a.title, a.language, i);
+    return details.isEmpty ? base : '$base · $details';
+  }
+
+  /// Gives identical labels a track number so every row is distinct.
+  static List<String> _distinct(List<String> labels) {
+    return [for (final (i, l) in labels.indexed) labels.where((o) => o == l).length > 1 ? '$l · Track ${i + 1}' : l];
+  }
+
+  /// The track actually playing. Before the viewer picks one the player
+  /// reports "auto", so ask mpv which track it chose.
+  Future<String> _current(String reported, String property) async {
+    if (reported != 'auto') return reported;
+    final native = player.platform;
+    if (native is NativePlayer) {
+      try {
+        return await native.getProperty(property);
+      } catch (_) {}
+    }
+    return reported;
   }
 
   @override
@@ -1186,8 +1230,11 @@ class _TracksButtons extends StatelessWidget {
                 onPressed: () => _pick<AudioTrack>(
                   context,
                   title: 'Audio',
-                  options: [for (final (i, a) in audio.indexed) (a, _label(a.title, a.language, i))],
-                  selectedId: player.state.track.audio.id,
+                  options: [
+                    for (final (i, label) in _distinct([for (final (i, a) in audio.indexed) _audioLabel(a, i)]).indexed)
+                      (audio[i], label),
+                  ],
+                  selectedId: _current(player.state.track.audio.id, 'aid'),
                   id: (a) => a.id,
                   onSelect: onAudio,
                 ),
@@ -1201,9 +1248,12 @@ class _TracksButtons extends StatelessWidget {
                   title: 'Subtitles',
                   options: [
                     (SubtitleTrack.no(), 'Off'),
-                    for (final (i, s) in subs.indexed) (s, _label(s.title, s.language, i)),
+                    for (final (i, label) in _distinct([
+                      for (final (i, s) in subs.indexed) _label(s.title, s.language, i),
+                    ]).indexed)
+                      (subs[i], label),
                   ],
-                  selectedId: player.state.track.subtitle.id,
+                  selectedId: _current(player.state.track.subtitle.id, 'sid'),
                   id: (s) => s.id,
                   onSelect: onSubtitle,
                 ),
@@ -1214,16 +1264,18 @@ class _TracksButtons extends StatelessWidget {
     );
   }
 
-  void _pick<T>(
+  Future<void> _pick<T>(
     BuildContext context, {
     required String title,
     required List<(T, String)> options,
-    required String selectedId,
+    required Future<String> selectedId,
     required String Function(T) id,
     required void Function(T) onSelect,
-  }) {
+  }) async {
     onInteract();
-    showModalBottomSheet<void>(
+    final selected = await selectedId;
+    if (!context.mounted) return;
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => SafeArea(
@@ -1239,7 +1291,7 @@ class _TracksButtons extends StatelessWidget {
               for (final (track, label) in options)
                 ListTile(
                   title: Text(label),
-                  trailing: id(track) == selectedId ? const Icon(Icons.check, color: SlayerColors.tally) : null,
+                  trailing: id(track) == selected ? const Icon(Icons.check, color: SlayerColors.tally) : null,
                   onTap: () {
                     onSelect(track);
                     Navigator.pop(ctx);

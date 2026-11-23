@@ -213,92 +213,108 @@ class _CategoryListState extends ConsumerState<CategoryList> {
 
     Widget row(String value, String label, {int? count, bool locked = false, IconData? icon}) {
       final active = widget.selected == value;
-      return ListTile(
-        dense: true,
-        selected: active,
-        selectedTileColor: SlayerColors.tally.withAlpha(0x1F),
-        leading: icon == null ? null : Icon(icon, size: 20, color: active ? SlayerColors.tally : SlayerColors.muted),
-        title: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: t.bodyLarge!.copyWith(color: active ? SlayerColors.tally : (locked ? SlayerColors.muted : null)),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (count != null)
-              Text(
-                compactCount(count),
-                style: t.labelMedium!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
-              ),
-            if (locked) ...[
-              const SizedBox(width: 8),
-              const Icon(Icons.lock_outline, size: 18, color: SlayerColors.muted),
+      // The highlight sits in its own Material: a ListTile's tile color is
+      // painted on the nearest Material outside the list, so it would show
+      // behind the search box once the row scrolls under it.
+      return Material(
+        color: active ? SlayerColors.tally.withAlpha(0x1F) : Colors.transparent,
+        child: ListTile(
+          dense: true,
+          selected: active,
+          leading: icon == null ? null : Icon(icon, size: 20, color: active ? SlayerColors.tally : SlayerColors.muted),
+          title: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: t.bodyLarge!.copyWith(color: active ? SlayerColors.tally : (locked ? SlayerColors.muted : null)),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (count != null)
+                Text(
+                  compactCount(count),
+                  style: t.labelMedium!.copyWith(color: SlayerColors.muted, fontFeatures: tabular),
+                ),
+              if (locked) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.lock_outline, size: 18, color: SlayerColors.muted),
+              ],
+              if (active) ...[const SizedBox(width: 8), const Icon(Icons.check, size: 18, color: SlayerColors.tally)],
             ],
-            if (active) ...[const SizedBox(width: 8), const Icon(Icons.check, size: 18, color: SlayerColors.tally)],
-          ],
+          ),
+          onTap: () =>
+              _choose(context, ref, visible.where((g) => g.name == value).firstOrNull, value, widget.onSelected),
         ),
-        onTap: () => _choose(context, ref, visible.where((g) => g.name == value).firstOrNull, value, widget.onSelected),
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(16, widget.showShortcuts ? 12 : 0, 16, 4),
-          child: Row(
-            children: [
-              Expanded(child: Text('Categories', style: t.titleMedium)),
-              Text('${visible.length}', style: t.labelMedium!.copyWith(color: SlayerColors.muted)),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-          child: TextField(
-            onChanged: (v) => setState(() => _query = v),
-            textInputAction: TextInputAction.search,
-            decoration: const InputDecoration(
-              hintText: 'Find a category',
-              prefixIcon: Icon(Icons.search, color: SlayerColors.muted),
-              isDense: true,
-            ),
-          ),
-        ),
-        Expanded(
-          child: groups == null
-              ? const Center(child: CircularProgressIndicator())
-              : ListView(
-                  padding: const EdgeInsets.only(bottom: 8),
+    final manage = ListTile(
+      dense: true,
+      leading: const Icon(Icons.tune, size: 20, color: SlayerColors.muted),
+      title: Text('Manage categories', style: t.bodyMedium!.copyWith(color: SlayerColors.muted)),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+    );
+
+    return LayoutBuilder(
+      builder: (context, box) {
+        // A phone on its side leaves little height for the panel, so drop the
+        // title and move Manage categories to the end of the list.
+        final short = widget.showShortcuts && box.maxHeight < 560;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!short)
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, widget.showShortcuts ? 12 : 0, 16, 4),
+                child: Row(
                   children: [
-                    if (widget.showShortcuts && q.isEmpty) ...[
-                      row(groupAll, 'All', icon: Icons.apps),
-                      row(groupFavorites, 'Favorites', icon: Icons.star_border),
-                      const Divider(height: 12),
-                    ],
-                    for (final g in shown) row(g.name, _label(g.name), count: g.count, locked: g.locked && !open),
-                    if (shown.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          'No category matches "$_query"',
-                          textAlign: TextAlign.center,
-                          style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
-                        ),
-                      ),
+                    Expanded(child: Text('Categories', style: t.titleMedium)),
+                    Text('${visible.length}', style: t.labelMedium!.copyWith(color: SlayerColors.muted)),
                   ],
                 ),
-        ),
-        const Divider(height: 1),
-        ListTile(
-          dense: true,
-          leading: const Icon(Icons.tune, size: 20, color: SlayerColors.muted),
-          title: Text('Manage categories', style: t.bodyMedium!.copyWith(color: SlayerColors.muted)),
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
-        ),
-      ],
+              ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, short ? 12 : 6, 16, 6),
+              child: TextField(
+                onChanged: (v) => setState(() => _query = v),
+                textInputAction: TextInputAction.search,
+                decoration: const InputDecoration(
+                  hintText: 'Find a category',
+                  prefixIcon: Icon(Icons.search, color: SlayerColors.muted),
+                  isDense: true,
+                ),
+              ),
+            ),
+            Expanded(
+              child: groups == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      children: [
+                        if (widget.showShortcuts && q.isEmpty) ...[
+                          row(groupAll, 'All', icon: Icons.apps),
+                          row(groupFavorites, 'Favorites', icon: Icons.star_border),
+                          const Divider(height: 12),
+                        ],
+                        for (final g in shown) row(g.name, _label(g.name), count: g.count, locked: g.locked && !open),
+                        if (shown.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              'No category matches "$_query"',
+                              textAlign: TextAlign.center,
+                              style: t.bodyMedium!.copyWith(color: SlayerColors.muted),
+                            ),
+                          ),
+                        if (short) ...[const Divider(height: 12), manage],
+                      ],
+                    ),
+            ),
+            if (!short) ...[const Divider(height: 1), manage],
+          ],
+        );
+      },
     );
   }
 }

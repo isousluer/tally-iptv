@@ -241,12 +241,27 @@ class XtreamClient {
       plot: _str(info['plot']) ?? _str(info['description']),
       genre: _str(info['genre']),
       cast: _str(info['cast']) ?? _str(info['actors']),
-      director: _str(info['director']),
+      director: _directors(_str(info['director'])),
       duration: secs != null && secs > 0 ? Duration(seconds: secs) : null,
       year: _yearFrom(_str(info['releasedate']) ?? _str(info['releaseDate']) ?? _str(info['year'])),
       rating: _rating(info['rating']),
       backdrop: _backdrop(info['backdrop_path']),
     );
+  }
+
+  /// Some providers put the whole crew in the director field, repeating
+  /// names ("Christopher Nolan / Christopher Nolan / Emma Thomas / ...").
+  /// Drops repeats, and when the list is that long keeps only the first
+  /// name, which is the director.
+  static String? _directors(String? raw) {
+    if (raw == null) return null;
+    final names = <String>[];
+    for (final n in raw.split(RegExp(r'\s*[/,]\s*'))) {
+      final name = n.trim();
+      if (name.isNotEmpty && !names.contains(name)) names.add(name);
+    }
+    if (names.isEmpty) return null;
+    return (names.length > 4 ? names.take(1) : names).join(', ');
   }
 
   static String? _backdrop(dynamic v) {
