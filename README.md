@@ -2,13 +2,19 @@
 
 # Slayer IPTV
 
-**A fast, simple and open-source IPTV player for Android, Windows and Linux.**
+**A fast, simple and open-source IPTV player.**
 
-Load your own M3U playlist or Xtream Codes account and watch live TV, movies and series — with a TV guide, favorites and resume playback.
+Bring your own M3U playlist or Xtream Codes account and watch live TV, movies and series,
+with a TV guide, favorites and playback that picks up where you left off.
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-f2b544.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/isousluer/slayer-iptv?color=f2b544&label=release)](https://github.com/isousluer/slayer-iptv/releases/latest)
+[![License: GPL v3](https://img.shields.io/badge/license-GPLv3-1f363c.svg)](LICENSE)
+[![CI](https://github.com/isousluer/slayer-iptv/actions/workflows/ci.yml/badge.svg)](https://github.com/isousluer/slayer-iptv/actions/workflows/ci.yml)
 ![Flutter](https://img.shields.io/badge/Flutter-3.50-0f1e22.svg)
-![Platforms](https://img.shields.io/badge/platforms-Android%20%7C%20Windows%20%7C%20Linux-1f363c.svg)
+
+[**Download for Android**](https://github.com/isousluer/slayer-iptv/releases/latest) ·
+[Report a bug](https://github.com/isousluer/slayer-iptv/issues) ·
+[Build from source](#building-from-source)
 
 </div>
 
@@ -16,7 +22,7 @@ Load your own M3U playlist or Xtream Codes account and watch live TV, movies and
 
 > [!IMPORTANT]
 > Slayer IPTV is a **player only**. It does not include, sell or promote any channels, playlists or content.
-> You need a playlist from your TV provider. Only use content you have the right to watch.
+> You need a playlist from your TV provider. Only watch content you have the right to watch.
 
 ## Screenshots
 
@@ -24,30 +30,49 @@ Load your own M3U playlist or Xtream Codes account and watch live TV, movies and
 | :---: | :---: | :---: | :---: | :---: |
 | <img src="design/stitch/live-tv.png" width="160"> | <img src="design/stitch/player.png" width="160"> | <img src="design/stitch/movies.png" width="160"> | <img src="design/stitch/series-detail.png" width="160"> | <img src="design/stitch/add-playlist.png" width="160"> |
 
-<sub>Design mockups. Screenshots of the running app will replace them before the first release.</sub>
+<sub>Design mockups of the main screens.</sub>
 
 ## Features
 
-- **Three ways to add a playlist** — M3U / M3U8 link, local M3U file, or Xtream Codes login
-- **Live TV** with categories, search, channel numbers and quick channel switching
-- **TV guide (EPG)** — see what's on now and next, with a progress bar for every channel. Supports XMLTV (plain or `.gz`), picked up automatically from the playlist or your Xtream server
-- **Movies and series** with posters, ratings, seasons and episodes (Xtream Codes)
-- **Continue watching** — movies and episodes resume where you stopped
-- **Favorites and history** for channels, movies and series
-- **Multiple playlists** — switch between them in one tap
-- **Powerful playback** via [libmpv](https://mpv.io/) (through [media_kit](https://github.com/media-kit/media-kit)): HLS, MPEG-TS, MKV, MP4, multiple audio tracks and subtitles
-- **Keyboard shortcuts** on desktop: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek
-- **Private by design** — no accounts, no analytics, no tracking. Your playlists stay on your device.
+### Playlists
+- Add an **M3U / M3U8 link**, a **local M3U file** or an **Xtream Codes** login, and switch between several playlists in one tap
+- Lists with 100,000+ entries open instantly: they are read once and stored on your device
+- Update playlists by hand or automatically
+- Hide, reorder and search categories, and sort channels and titles the way you like
+
+### Live TV
+- **TV guide (EPG)** with what's on now and next and a progress bar on every channel. XMLTV (plain or `.gz`) is picked up from the playlist or your Xtream server
+- **Change channels without leaving the player**: previous and next buttons, a channel list next to the video, or a remote's Channel +/− and number keys
+- Only the channel you stop on is loaded, so flicking through channels stays quick
+
+### Movies and series
+- Posters, ratings, plot, director and cast
+- **Continue watching**: movies and episodes resume where you stopped
+- The next episode starts on its own, with a countdown you can cancel
+- Switch episodes or pick another movie from the same category right under the player
+
+### Player
+- Plays almost anything thanks to [libmpv](https://mpv.io/) (through [media_kit](https://github.com/media-kit/media-kit)): HLS, MPEG-TS, MKV, MP4 and more
+- Choose audio and subtitle tracks; your language choice is remembered
+- Swipe up and down for brightness (left) and volume (right), double-tap for full screen
+- Picture-in-picture on Android, sleep timer and playback speed
+- Keyboard and remote keys: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek, number keys jump to a channel
+
+### Your data
+- **Parental lock**: lock categories behind a PIN
+- **Back up and restore** playlists, favorites, history and category settings to a file
+- **Private by design**: no accounts, no analytics, no tracking. Your playlists stay on your device.
 
 ## Download
 
-Releases are published on the [Releases page](../../releases).
+Get the latest APK from the [Releases page](https://github.com/isousluer/slayer-iptv/releases/latest).
+Android may ask you to allow installs from your browser or file manager the first time.
 
 | Platform | Status |
 | --- | --- |
-| Android (phone and tablet) | ✅ First target |
-| Windows | 🛠️ In progress |
-| Linux | 🛠️ In progress |
+| Android (phone and tablet) | ✅ Available |
+| Android TV | 🧪 Works with a remote, still being polished |
+| Windows, Linux | 🛠️ In progress |
 | macOS, iOS | 📅 Planned |
 
 ## Building from source
@@ -56,13 +81,13 @@ Releases are published on the [Releases page](../../releases).
 
 - [Flutter](https://docs.flutter.dev/get-started/install) **3.50 or newer** (stable channel)
 - **Android:** Android SDK and JDK 17+
-- **Windows:** Visual Studio 2022 with the *Desktop development with C++* workload. On Windows you also need **Developer Mode** turned on (Flutter plugins use symlinks).
+- **Windows:** Visual Studio 2022 with the *Desktop development with C++* workload, and **Developer Mode** turned on (Flutter plugins use symlinks)
 - **Linux:** `sudo apt install clang cmake ninja-build pkg-config libgtk-3-dev libmpv-dev mpv`
 
 ### Run
 
 ```bash
-git clone https://github.com/slayer-iptv/slayer-iptv.git
+git clone https://github.com/isousluer/slayer-iptv.git
 cd slayer-iptv
 flutter pub get
 flutter run            # pick a connected device
@@ -98,20 +123,22 @@ lib/
 └── ui/              # Screens and widgets
 ```
 
-- Playlists are parsed once and stored in SQLite, so even lists with 100,000+ entries open instantly.
+- Playlists are parsed once and stored in SQLite, so even huge lists open instantly.
 - The TV guide is streamed and filtered to the channels in your playlist, so large guides don't fill up your device.
 - Favorites and watch history are keyed by stable IDs, so they survive playlist updates.
 
 ## Design
 
-The interface follows a "broadcast control room" idea: calm petrol-teal surfaces with one amber accent, like the tally light on a studio camera. Red is used only for the live badge. All text uses the clean sans-serif [Figtree](https://fonts.google.com/specimen/Figtree), bundled with the app (SIL Open Font License). The mockups were made with [Stitch](https://stitch.withgoogle.com) and live in [`design/stitch`](design/stitch).
+The interface follows a "broadcast control room" idea: calm petrol-teal surfaces with one amber accent, like the
+tally light on a studio camera. Red is used only for the live badge. All text uses the sans-serif
+[Figtree](https://fonts.google.com/specimen/Figtree), bundled with the app (SIL Open Font License).
+The mockups were made with [Stitch](https://stitch.withgoogle.com) and live in [`design/stitch`](design/stitch).
 
 ## Roadmap
 
 - [ ] Windows and Linux releases
 - [ ] Full-screen TV guide grid
-- [ ] Android TV (D-pad navigation)
-- [ ] Picture-in-picture on Android
+- [ ] Polished Android TV layout
 - [ ] Custom user agent and headers per playlist
 - [ ] Translations
 - [ ] Stalker / MAC portal support
@@ -119,8 +146,9 @@ The interface follows a "broadcast control room" idea: calm petrol-teal surfaces
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
-Bug reports and feature requests go to the [issue tracker](../../issues).
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Bug reports and feature requests go to the [issue tracker](https://github.com/isousluer/slayer-iptv/issues).
+Never post your playlist link or login in an issue.
 
 ## License
 

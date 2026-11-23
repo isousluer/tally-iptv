@@ -16,7 +16,7 @@ import 'theme.dart';
 import 'widgets.dart';
 
 const appVersion = '0.1.0';
-const repoUrl = 'https://github.com/slayer-iptv/slayer-iptv';
+const repoUrl = 'https://github.com/isousluer/slayer-iptv';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
