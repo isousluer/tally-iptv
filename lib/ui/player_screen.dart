@@ -2071,7 +2071,6 @@ class _EpisodesState extends ConsumerState<_Episodes> {
             episode: e,
             playing: e.key == widget.playingKey,
             progress: progress[e.key],
-            fallbackImage: widget.series.logo,
             onTap: () => widget.onPlay(episodeRequest(widget.series, e, all)),
           ),
       ],
@@ -2080,17 +2079,10 @@ class _EpisodesState extends ConsumerState<_Episodes> {
 }
 
 class _EpisodeTile extends StatelessWidget {
-  const _EpisodeTile({
-    required this.episode,
-    required this.playing,
-    required this.progress,
-    required this.fallbackImage,
-    required this.onTap,
-  });
+  const _EpisodeTile({required this.episode, required this.playing, required this.progress, required this.onTap});
   final Episode episode;
   final bool playing;
   final WatchEntry? progress;
-  final String? fallbackImage;
   final VoidCallback onTap;
 
   @override
@@ -2114,7 +2106,7 @@ class _EpisodeTile extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.bottomCenter,
                     children: [
-                      Poster(title: episode.title, url: episode.image ?? fallbackImage, aspectRatio: 16 / 9),
+                      EpisodeThumb(number: episode.number, url: episode.image),
                       if (started && !playing)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(6, 0, 6, 5),

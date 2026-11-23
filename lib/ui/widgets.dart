@@ -87,6 +87,45 @@ class Poster extends StatelessWidget {
   }
 }
 
+/// 16:9 episode still. Without a usable image it shows the episode number,
+/// so the title isn't repeated next to itself.
+class EpisodeThumb extends StatelessWidget {
+  const EpisodeThumb({super.key, required this.number, this.url});
+  final int number;
+  final String? url;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Container(
+      color: AppColors.raised,
+      alignment: Alignment.center,
+      child: Text(
+        '$number',
+        style: Theme.of(context).textTheme.headlineMedium!
+            .copyWith(color: AppColors.muted, fontWeight: FontWeight.w700, fontFeatures: tabular),
+      ),
+    );
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: url == null
+            ? fallback
+            : CachedNetworkImage(
+                imageUrl: url!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                memCacheWidth: 360,
+                fadeInDuration: const Duration(milliseconds: 120),
+                placeholder: (_, _) => fallback,
+                errorWidget: (_, _, _) => fallback,
+              ),
+      ),
+    );
+  }
+}
+
 /// Thin amber progress line, the visual signature of the app.
 class TallyBar extends StatelessWidget {
   const TallyBar({super.key, required this.value, this.height = 2});

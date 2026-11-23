@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -37,6 +39,13 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
   int? _season;
   bool _plotExpanded = false;
   late bool _favorite = widget.series.favorite;
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   MediaItem get s => widget.series;
 
@@ -74,74 +83,59 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
             if (s.rating != null) '★ ${s.rating}',
           ].whereType<String>().join('  ·  ');
 
-          return CustomScrollView(
+          final poster = s.logo ?? d.cover;
+          final top = MediaQuery.paddingOf(context).top + kToolbarHeight;
+
+          final list = CustomScrollView(
+            controller: _scroll,
             slivers: [
-              SliverAppBar(
-                pinned: true,
-                expandedHeight: 220,
-                backgroundColor: AppColors.canvas,
-                actions: [
-                  IconButton(
-                    tooltip: _favorite ? 'Remove from favorites' : 'Add to favorites',
-                    onPressed: () async {
-                      await ref.read(favoritesControllerProvider).toggle(s.copyWith(favorite: _favorite));
-                      setState(() => _favorite = !_favorite);
-                    },
-                    icon: Icon(_favorite ? Icons.star : Icons.star_border, color: _favorite ? AppColors.tally : null),
-                  ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if ((d.cover ?? s.logo) != null)
-                        CachedNetworkImage(
-                          imageUrl: (d.cover ?? s.logo)!,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, _, _) => const SizedBox.shrink(),
-                        ),
-                      const ColoredBox(color: Color(0xB30F1E22)),
-                    ],
-                  ),
+              SliverToBoxAdapter(
+                child: Stack(
+                  children: [
+                    if (poster != null) Positioned.fill(child: _BlurredBackdrop(url: poster)),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16, top + 4, 16, 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 104,
+                            child: Poster(title: s.name, url: poster),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(s.name, style: t.titleLarge),
+                                const SizedBox(height: 4),
+                                Text(meta, style: t.bodySmall!.copyWith(color: AppColors.muted)),
+                                if (plot != null) ...[
+                                  const SizedBox(height: 10),
+                                  // Tap to read the whole plot.
+                                  GestureDetector(
+                                    onTap: () => setState(() => _plotExpanded = !_plotExpanded),
+                                    child: Text(
+                                      plot,
+                                      maxLines: _plotExpanded ? null : 4,
+                                      overflow: _plotExpanded ? null : TextOverflow.ellipsis,
+                                      style: t.bodySmall!.copyWith(color: AppColors.muted, height: 1.4),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                 sliver: SliverList.list(
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        SizedBox(
-                          width: 96,
-                          child: Poster(title: s.name, url: s.logo),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(s.name, style: t.headlineMedium),
-                              const SizedBox(height: 4),
-                              Text(meta, style: t.bodySmall!.copyWith(color: AppColors.muted)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (plot != null) ...[
-                      const SizedBox(height: 14),
-                      GestureDetector(
-                        onTap: () => setState(() => _plotExpanded = !_plotExpanded),
-                        child: Text(
-                          plot,
-                          maxLines: _plotExpanded ? null : 3,
-                          overflow: _plotExpanded ? null : TextOverflow.ellipsis,
-                          style: t.bodyMedium!.copyWith(color: AppColors.muted),
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
                     if (allEpisodes.isNotEmpty)
                       FilledButton.icon(
                         onPressed: () => _playEpisode(resumeEp ?? allEpisodes.first, allEpisodes),
@@ -189,9 +183,58 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                   itemBuilder: (_, i) => _EpisodeRow(
                     episode: episodes[i],
                     progress: progress[episodes[i].key],
-                    fallbackImage: s.logo,
                     onTap: () => _playEpisode(episodes[i], allEpisodes),
                   ),
+                ),
+              ),
+            ],
+          );
+
+          return Stack(
+            children: [
+              list,
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: ListenableBuilder(
+                  listenable: _scroll,
+                  builder: (context, _) {
+                    // The bar turns solid once the header scrolls under it.
+                    final solid = _scroll.hasClients && _scroll.offset > 24;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      color: solid ? AppColors.canvas : AppColors.canvas.withAlpha(0),
+                      padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
+                      child: SizedBox(
+                        height: kToolbarHeight,
+                        child: Row(
+                          children: [
+                            const BackButton(),
+                            Expanded(
+                              child: AnimatedOpacity(
+                                opacity: solid ? 1 : 0,
+                                duration: const Duration(milliseconds: 150),
+                                child: Text(s.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleMedium),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: _favorite ? 'Remove from favorites' : 'Add to favorites',
+                              onPressed: () async {
+                                await ref.read(favoritesControllerProvider).toggle(s.copyWith(favorite: _favorite));
+                                setState(() => _favorite = !_favorite);
+                              },
+                              icon: Icon(
+                                _favorite ? Icons.star : Icons.star_border,
+                                color: _favorite ? AppColors.tally : null,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -202,11 +245,47 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
   }
 }
 
+/// The poster, heavily blurred and darkened, fading into the page: a soft
+/// colour wash behind the header that works with portrait-only artwork.
+class _BlurredBackdrop extends StatelessWidget {
+  const _BlurredBackdrop({required this.url});
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 28, sigmaY: 28, tileMode: TileMode.clamp),
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              memCacheWidth: 160,
+              errorWidget: (_, _, _) => const SizedBox.shrink(),
+            ),
+          ),
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x990F1E22), Color(0xCC0F1E22), AppColors.canvas],
+                stops: [0, 0.6, 1],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EpisodeRow extends StatelessWidget {
-  const _EpisodeRow({required this.episode, required this.progress, required this.fallbackImage, required this.onTap});
+  const _EpisodeRow({required this.episode, required this.progress, required this.onTap});
   final Episode episode;
   final WatchEntry? progress;
-  final String? fallbackImage;
   final VoidCallback onTap;
 
   @override
@@ -229,7 +308,7 @@ class _EpisodeRow extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
-                    Poster(title: episode.title, url: episode.image ?? fallbackImage, aspectRatio: 16 / 9),
+                    EpisodeThumb(number: episode.number, url: episode.image),
                     if (started)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(6, 0, 6, 5),
