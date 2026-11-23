@@ -15,7 +15,7 @@ import 'player_screen.dart' show languageName;
 import 'theme.dart';
 import 'widgets.dart';
 
-const appVersion = '0.1.0';
+const appVersion = '0.1.1';
 const repoUrl = 'https://github.com/isousluer/tally-iptv';
 
 class SettingsScreen extends ConsumerWidget {

@@ -1,0 +1,20 @@
+# Changelog
+
+All notable changes to Tally are listed here. Downloads are on the
+[Releases page](https://github.com/isousluer/tally-iptv/releases).
+
+## 0.1.1 (2026-11-24)
+
+### Changed
+- The series page has a cleaner header: the poster sits on the left with the title, year, seasons, rating and plot
+  beside it, over a soft blurred copy of the poster. The large cover image is gone, because providers often only
+  have a portrait poster and it showed up as an odd, stretched crop.
+- The play button, seasons and first episodes now fit on the first screen.
+- The top bar fills in and shows the series name when you scroll down.
+- Episodes without a picture show their number instead of repeating their title, on the series page and under the
+  player.
+
+## 0.1.0 (2026-11-23)
+
+First release for Android: M3U and Xtream Codes playlists, live TV with a TV guide, movies and series with
+continue watching, a libmpv-based player, parental lock and backups.
