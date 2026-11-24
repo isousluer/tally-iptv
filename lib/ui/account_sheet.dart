@@ -11,6 +11,7 @@ import 'theme.dart';
 /// connections.
 Future<void> showAccountSheet(BuildContext context, Playlist playlist) => showModalBottomSheet<void>(
   context: context,
+  isScrollControlled: true,
   builder: (_) => _AccountSheet(playlist: playlist),
 );
 
@@ -62,7 +63,7 @@ class _AccountSheet extends ConsumerWidget {
     final date = intl.DateFormat.yMMMMd(Localizations.localeOf(context).toLanguageTag());
 
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,

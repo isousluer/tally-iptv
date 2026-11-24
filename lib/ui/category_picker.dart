@@ -75,9 +75,10 @@ class CategoryBar extends ConsumerWidget {
     _keepSelectionValid(lists, groups, visible, open, selected, onSelected);
     final inCategory = selected != groupAll && selected != groupFavorites && listIdOf(selected) == null;
 
-    Widget chip(String value, String label) {
+    Widget chip(String value, String label, {IconData? icon}) {
       final active = selected == value;
       return ChoiceChip(
+        avatar: icon == null ? null : Icon(icon, size: 18, color: active ? AppColors.onTally : AppColors.muted),
         label: Text(label),
         selected: active,
         showCheckmark: false,
@@ -116,42 +117,35 @@ class CategoryBar extends ConsumerWidget {
       ),
     );
 
-    final shortcuts = [
-      chip(groupAll, context.l10n.all),
-      const SizedBox(width: 8),
-      chip(groupFavorites, context.l10n.favorites),
-      for (final list in lists ?? const <ChannelList>[]) ...[
-        const SizedBox(width: 8),
-        chip(listGroup(list.id), list.name),
-      ],
-    ];
+    final main = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          chip(groupAll, context.l10n.all),
+          const SizedBox(width: 8),
+          chip(groupFavorites, context.l10n.favorites),
+          const SizedBox(width: 8),
+          Expanded(child: categories),
+        ],
+      ),
+    );
+    if (lists == null || lists.isEmpty) return main;
 
-    // With lists of their own the chips scroll sideways and the category
-    // button keeps a fixed width on the right.
-    if (lists == null || lists.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            ...shortcuts,
-            const SizedBox(width: 8),
-            Expanded(child: categories),
-          ],
-        ),
-      );
-    }
-    return Row(
+    // The viewer's own lists get a row of their own that scrolls sideways.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: SingleChildScrollView(
+        main,
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 36,
+          child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: 16, right: 8),
-            child: Row(children: shortcuts),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: lists.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (_, i) => chip(listGroup(lists[i].id), lists[i].name, icon: Icons.playlist_play),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(right: 16),
-          child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150), child: categories),
         ),
       ],
     );
