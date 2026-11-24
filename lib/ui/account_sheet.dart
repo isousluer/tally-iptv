@@ -60,6 +60,7 @@ class _AccountSheet extends ConsumerWidget {
     final t = Theme.of(context).textTheme;
     final l = context.l10n;
     final account = ref.watch(accountProvider(playlist.id));
+    final counts = ref.watch(playlistCountsProvider(playlist.id));
     final date = intl.DateFormat.yMMMMd(Localizations.localeOf(context).toLanguageTag());
 
     return SafeArea(
@@ -93,6 +94,14 @@ class _AccountSheet extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator()),
               ),
             },
+            // From this device's copy of the playlist, so it shows even
+            // when the server can't be reached.
+            if (counts case AsyncData(value: (:final live, :final movies, :final series)))
+              ListTile(
+                leading: const Icon(Icons.video_library_outlined),
+                title: Text(l.accountContent),
+                subtitle: Text([l.channelCount(live), l.movieCount(movies), l.seriesCount(series)].join(' · ')),
+              ),
           ],
         ),
       ),

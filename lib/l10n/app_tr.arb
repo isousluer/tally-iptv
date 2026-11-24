@@ -115,6 +115,7 @@
   "openInOtherApp": "Başka uygulamada aç",
   "openInOtherAppHint": "VLC, MX Player veya başka bir video oynatıcı",
   "noAppToOpen": "Bu cihazda bu yayını açabilecek bir uygulama yok.",
+  "accountContent": "İçerik",
   "parentalControl": "Ebeveyn denetimi",
   "setPin": "PIN belirle",
   "changePin": "PIN'i değiştir",

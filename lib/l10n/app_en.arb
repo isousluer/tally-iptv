@@ -281,6 +281,7 @@
   "openInOtherApp": "Open in another app",
   "openInOtherAppHint": "VLC, MX Player or another video player",
   "noAppToOpen": "No app on this device can play this stream.",
+  "accountContent": "Content",
   "parentalControl": "Parental control",
   "setPin": "Set a PIN",
   "changePin": "Change PIN",

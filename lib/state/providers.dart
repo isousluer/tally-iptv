@@ -387,6 +387,20 @@ final accountProvider = FutureProvider.autoDispose.family<XtreamAccount, int>((r
   return ref.watch(repositoryProvider).xtreamFor(p).account();
 });
 
+/// How many channels, movies and series a playlist has on this device.
+final playlistCountsProvider = FutureProvider.autoDispose.family<({int live, int movies, int series}), int>((
+  ref,
+  playlistId,
+) async {
+  ref.watch(contentVersionProvider);
+  final db = ref.watch(databaseProvider);
+  return (
+    live: await db.count(playlistId, ContentKind.live),
+    movies: await db.count(playlistId, ContentKind.movie),
+    series: await db.count(playlistId, ContentKind.series),
+  );
+});
+
 final scheduleProvider = FutureProvider.autoDispose.family<List<EpgProgram>, MediaItem>((ref, channel) async {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(epgVersionProvider);

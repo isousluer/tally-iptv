@@ -424,6 +424,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noAppToOpen => 'Bu cihazda bu yayını açabilecek bir uygulama yok.';
 
   @override
+  String get accountContent => 'İçerik';
+
+  @override
   String get parentalControl => 'Ebeveyn denetimi';
 
   @override

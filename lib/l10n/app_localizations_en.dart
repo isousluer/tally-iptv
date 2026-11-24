@@ -434,6 +434,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAppToOpen => 'No app on this device can play this stream.';
 
   @override
+  String get accountContent => 'Content';
+
+  @override
   String get parentalControl => 'Parental control';
 
   @override

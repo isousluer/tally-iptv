@@ -782,6 +782,12 @@ abstract class AppLocalizations {
   /// **'No app on this device can play this stream.'**
   String get noAppToOpen;
 
+  /// No description provided for @accountContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get accountContent;
+
   /// No description provided for @parentalControl.
   ///
   /// In en, this message translates to:
