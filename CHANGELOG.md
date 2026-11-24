@@ -3,7 +3,7 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
-## Unreleased
+## 0.1.6 (2026-11-24)
 
 ### Added
 - On a tablet held sideways, the player tells you once that a double tap on the video goes full screen and back.
