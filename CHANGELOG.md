@@ -3,7 +3,7 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
-## Unreleased
+## 0.1.5 (2026-11-24)
 
 ### Changed
 - Menus, such as sorting and the playlist and list options, open the way Android's own menus do: below their
