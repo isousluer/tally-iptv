@@ -185,6 +185,7 @@ ThemeData buildTheme() {
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: AppColors.raised,
+      actionTextColor: AppColors.tally,
       contentTextStyle: text.bodyMedium,
       shape: RoundedRectangleBorder(borderRadius: radius, side: side),
     ),

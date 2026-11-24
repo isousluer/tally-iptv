@@ -3,6 +3,12 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## Unreleased
+
+### Fixed
+- The Download button on the new version notice, and other buttons on pop-up messages, were dark on a dark
+  background. They are yellow now.
+
 ## 0.1.2 (2026-11-24)
 
 ### Added
