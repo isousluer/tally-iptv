@@ -834,8 +834,25 @@ class _GestureLayerState extends State<_GestureLayer> {
     }
   }
 
+  /// Swipes that start this close to the top or bottom of the screen open
+  /// the notification shade or go home, so they don't change brightness or
+  /// volume. Android reports its own gesture areas; the minimum covers
+  /// full screen, where it reports none.
+  static const _edge = 48.0;
+
+  bool _nearScreenEdge(Offset global) {
+    final media = MediaQuery.of(context);
+    final top = max(media.systemGestureInsets.top, media.viewPadding.top) + _edge;
+    final bottom = max(media.systemGestureInsets.bottom, media.viewPadding.bottom) + _edge;
+    return global.dy < top || global.dy > media.size.height - bottom;
+  }
+
   void _start(DragStartDetails d, double width) {
     _hide?.cancel();
+    if (_nearScreenEdge(d.globalPosition)) {
+      setState(() => _adjusting = null);
+      return;
+    }
     final left = d.localPosition.dx < width / 2;
     final kind = left && _android ? _Adjust.brightness : _Adjust.volume;
     setState(() {
@@ -869,6 +886,7 @@ class _GestureLayerState extends State<_GestureLayer> {
   }
 
   void _end() {
+    if (_adjusting == null) return;
     _hide = Timer(const Duration(milliseconds: 700), () {
       if (mounted) setState(() => _adjusting = null);
     });

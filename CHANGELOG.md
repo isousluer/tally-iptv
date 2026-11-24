@@ -15,6 +15,8 @@ All notable changes to Tally are listed here. Downloads are on the
 - Clearing the watch history asks first.
 
 ### Fixed
+- Pulling down the notification shade or swiping up to go home in the player no longer changes brightness or
+  volume.
 - A movie now shows up in watch history as soon as you leave it, instead of after the next refresh.
 
 ## 0.1.1 (2026-11-24)
