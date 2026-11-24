@@ -3,7 +3,7 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
-## Unreleased
+## 0.1.3 (2026-11-24)
 
 ### Fixed
 - The universal APK of 0.1.2 wouldn't install over an earlier per-device APK ("package appears to be invalid").
