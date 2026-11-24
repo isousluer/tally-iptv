@@ -93,25 +93,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String channelCount(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$countString channels', one: '1 channel');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString channels',
+      one: '1 channel',
+    );
     return '$_temp0';
   }
 
   @override
   String movieCount(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$countString movies', one: '1 movie');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString movies',
+      one: '1 movie',
+    );
     return '$_temp0';
   }
 
   @override
   String seriesCount(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString series';
@@ -119,7 +132,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String playlistCount(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     String _temp0 = intl.Intl.pluralLogic(
@@ -133,10 +147,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String seasonCount(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '$countString seasons', one: '1 season');
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString seasons',
+      one: '1 season',
+    );
     return '$_temp0';
   }
 
@@ -180,7 +200,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get autoRefreshTitle => 'Update playlists automatically';
 
   @override
-  String get autoRefreshSubtitle => 'When the app opens, lists older than a day are refreshed.';
+  String get autoRefreshSubtitle =>
+      'When the app opens, lists older than a day are refreshed.';
 
   @override
   String get categoriesSubtitle => 'Hide, lock or reorder categories';
@@ -201,13 +222,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get audioLanguage => 'Audio language';
 
   @override
-  String get audioLanguageDefault => 'Stream default. Pick a language in the player and it\'s used from then on.';
+  String get audioLanguageDefault =>
+      'Stream default. Pick a language in the player and it\'s used from then on.';
 
   @override
   String get subtitles => 'Subtitles';
 
   @override
-  String get subtitlesDefault => 'Stream default. Pick subtitles in the player and they\'re used from then on.';
+  String get subtitlesDefault =>
+      'Stream default. Pick subtitles in the player and they\'re used from then on.';
 
   @override
   String tapForStreamDefault(String choice) {
@@ -227,7 +250,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pinNotSet => 'Lock categories so they need a PIN to open.';
 
   @override
-  String get pinUnlocked => 'Locked categories are open until the app restarts.';
+  String get pinUnlocked =>
+      'Locked categories are open until the app restarts.';
 
   @override
   String get pinLocked => 'Locked categories need the PIN to open.';
@@ -248,13 +272,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backupToFile => 'Back up to a file';
 
   @override
-  String get backupToFileSubtitle => 'Playlists, logins, favorites, watch history and categories';
+  String get backupToFileSubtitle =>
+      'Playlists, logins, favorites, watch history and categories';
 
   @override
   String get restoreFromFile => 'Restore from a file';
 
   @override
-  String get restoreFromFileSubtitle => 'Adds the playlists from a backup and downloads their channels';
+  String get restoreFromFileSubtitle =>
+      'Adds the playlists from a backup and downloads their channels';
 
   @override
   String get tvGuide => 'TV guide';
@@ -271,14 +297,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get guideNoLink => 'No guide link for this playlist. Add one from the playlist menu.';
+  String get guideNoLink =>
+      'No guide link for this playlist. Add one from the playlist menu.';
 
   @override
-  String get guideUpdatesAutomatically => 'Updates automatically when a playlist is refreshed.';
+  String get guideUpdatesAutomatically =>
+      'Updates automatically when a playlist is refreshed.';
 
   @override
   String guideProgramsLoaded(int count) {
-    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString programs loaded';
@@ -367,7 +396,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get removePlaylistBody => 'Its channels, favorites and watch history are removed from this device.';
+  String get removePlaylistBody =>
+      'Its channels, favorites and watch history are removed from this device.';
 
   @override
   String get neverUpdated => 'Never updated';
@@ -435,13 +465,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guideLinkField => 'TV guide (XMLTV) link';
 
   @override
-  String get guideHelpXtream => 'Leave empty to use the guide from your Xtream server.';
+  String get guideHelpXtream =>
+      'Leave empty to use the guide from your Xtream server.';
 
   @override
-  String get guideHelpM3u => 'Leave empty to use the guide named in the playlist, if any.';
+  String get guideHelpM3u =>
+      'Leave empty to use the guide named in the playlist, if any.';
 
   @override
-  String get loadingChannelsHint => 'Loading channels. Large playlists can take a minute.';
+  String get loadingChannelsHint =>
+      'Loading channels. Large playlists can take a minute.';
 
   @override
   String get playlistLink => 'Playlist link';
@@ -485,7 +518,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get keepAppOpen => 'Large playlists can take a minute. Keep the app open.';
+  String get keepAppOpen =>
+      'Large playlists can take a minute. Keep the app open.';
 
   @override
   String get watchHistory => 'History';
@@ -494,13 +528,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyEmptyTitle => 'Nothing watched yet';
 
   @override
-  String get historyEmptyMessage => 'Channels you watch and movies or series you start show up here.';
+  String get historyEmptyMessage =>
+      'Channels you watch and movies or series you start show up here.';
 
   @override
   String get favoritesEmptyTitle => 'No favorites yet';
 
   @override
-  String get favoritesEmptyMessage => 'Tap the star on any channel, movie or series to add it here.';
+  String get favoritesEmptyMessage =>
+      'Tap the star on any channel, movie or series to add it here.';
 
   @override
   String get favoriteChannels => 'Favorite channels';
@@ -518,7 +554,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearHistoryTitle => 'Clear watch history?';
 
   @override
-  String get clearHistoryBody => 'Recently watched channels and continue watching are cleared for this playlist.';
+  String get clearHistoryBody =>
+      'Recently watched channels and continue watching are cleared for this playlist.';
 
   @override
   String get clear => 'Clear';
@@ -533,7 +570,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchEverything => 'Search everything';
 
   @override
-  String get searchMinLetters => 'Type at least two letters of a channel, movie or series name.';
+  String get searchMinLetters =>
+      'Type at least two letters of a channel, movie or series name.';
 
   @override
   String nothingMatches(String query) {
@@ -553,10 +591,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noSeriesInPlaylist => 'No series in this playlist';
 
   @override
-  String get playlistHasNoMovies => 'Your playlist doesn\'t include movies. Xtream Codes accounts usually do.';
+  String get playlistHasNoMovies =>
+      'Your playlist doesn\'t include movies. Xtream Codes accounts usually do.';
 
   @override
-  String get playlistHasNoSeries => 'Your playlist doesn\'t include series. Xtream Codes accounts usually do.';
+  String get playlistHasNoSeries =>
+      'Your playlist doesn\'t include series. Xtream Codes accounts usually do.';
 
   @override
   String noChannelsMatch(String query) {
@@ -570,7 +610,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noChannelsHere => 'No channels here';
 
   @override
-  String get favoriteChannelsHint => 'Tap the star next to a channel to keep it here.';
+  String get favoriteChannelsHint =>
+      'Tap the star next to a channel to keep it here.';
 
   @override
   String get addToFavorites => 'Add to favorites';
@@ -754,9 +795,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'You see the difference in full screen. The small player keeps the original shape, so most videos look the same here.';
 
   @override
-  String get fitBest => 'Best fit';
-
-  @override
   String get fitFit => 'Fit';
 
   @override
@@ -780,7 +818,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pictureInPicture => 'Picture in picture';
 
   @override
-  String get pictureInPictureHint => 'Keep watching in a small window. Pressing Home does this too.';
+  String get pictureInPictureHint =>
+      'Keep watching in a small window. Pressing Home does this too.';
 
   @override
   String get playerOptions => 'Player options';
@@ -854,10 +893,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your provider doesn\'t offer a TV guide. You can add a guide (XMLTV) link from the playlist menu.';
 
   @override
-  String get errGuideLinkNotFound => 'The guide link was not found. Check the link in the playlist menu.';
+  String get errGuideLinkNotFound =>
+      'The guide link was not found. Check the link in the playlist menu.';
 
   @override
-  String get errGuideUnreachable => 'Could not reach the guide server. Check your connection.';
+  String get errGuideUnreachable =>
+      'Could not reach the guide server. Check your connection.';
 
   @override
   String errGuideDownload(String detail) {
@@ -865,10 +906,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get errServerUnreachable => 'Could not reach the server. Check the address and your internet connection.';
+  String get errServerUnreachable =>
+      'Could not reach the server. Check the address and your internet connection.';
 
   @override
-  String get errSecureConnection => 'Secure connection failed. Try the address with http:// instead of https://.';
+  String get errSecureConnection =>
+      'Secure connection failed. Try the address with http:// instead of https://.';
 
   @override
   String errConnectionFailed(String error) {
@@ -876,10 +919,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get errTimeout => 'The server took too long to answer. Try again in a moment.';
+  String get errTimeout =>
+      'The server took too long to answer. Try again in a moment.';
 
   @override
-  String get errFullLink => 'Enter a full playlist link starting with http:// or https://.';
+  String get errFullLink =>
+      'Enter a full playlist link starting with http:// or https://.';
 
   @override
   String errAccessRefused(int code) {
@@ -895,7 +940,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errInvalidXtream => 'The server did not return valid Xtream data.';
 
   @override
-  String get errLoginRejected => 'Username or password was rejected by the server.';
+  String get errLoginRejected =>
+      'Username or password was rejected by the server.';
 
   @override
   String errAccountStatus(String status) {

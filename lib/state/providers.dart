@@ -356,13 +356,12 @@ final adultGroupPattern = RegExp(r'adult|xxx|porn|erotic|\+18|18\+|\bfor adults\
 
 // ----------------------------------------------------------------- settings
 
-/// How the picture fills the player. [best] fills the screen when that cuts
-/// off only a thin strip of the picture, and fits it otherwise.
-enum VideoFit { best, fit, fill, stretch }
+/// How the picture fills the player: whole picture, cropped to fill, or stretched.
+enum VideoFit { fit, fill, stretch }
 
 class AppSettings {
   const AppSettings({
-    this.videoFit = VideoFit.best,
+    this.videoFit = VideoFit.fit,
     this.audioLanguage,
     this.subtitleLanguage,
     this.autoNext = true,
@@ -393,7 +392,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
   AppSettings build() {
     final p = ref.watch(prefsProvider);
     return AppSettings(
-      videoFit: VideoFit.values.firstWhere((f) => f.name == p.getString('video_fit'), orElse: () => VideoFit.best),
+      videoFit: VideoFit.values.firstWhere((f) => f.name == p.getString('video_fit'), orElse: () => VideoFit.fit),
       audioLanguage: p.getString('audio_lang'),
       subtitleLanguage: p.getString('subtitle_lang'),
       autoNext: p.getBool('auto_next') ?? true,

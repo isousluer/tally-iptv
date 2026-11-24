@@ -568,7 +568,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_pip) {
       return Scaffold(
         backgroundColor: Colors.black,
-        body: _FittedVideo(controller: _video, player: _player, mode: fit),
+        body: _FittedVideo(controller: _video, mode: fit),
       );
     }
 
@@ -721,7 +721,7 @@ class _VideoSurface extends StatelessWidget {
     final stack = Stack(
       fit: StackFit.expand,
       children: [
-        _FittedVideo(controller: video, player: player, mode: fit),
+        _FittedVideo(controller: video, mode: fit),
         StreamBuilder<bool>(
           stream: player.stream.buffering,
           builder: (_, s) => (s.data ?? false) && error == null
@@ -1202,7 +1202,6 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
               VideoFit.values,
               fit,
               (f) => switch (f) {
-                VideoFit.best => l.fitBest,
                 VideoFit.fit => l.fitFit,
                 VideoFit.fill => l.fitFill,
                 VideoFit.stretch => l.fitStretch,
@@ -1700,42 +1699,21 @@ class _TracksButtons extends StatelessWidget {
 
 /// The video, sized by the viewer's picture size setting.
 class _FittedVideo extends StatelessWidget {
-  const _FittedVideo({required this.controller, required this.player, required this.mode});
+  const _FittedVideo({required this.controller, required this.mode});
   final VideoController controller;
-  final Player player;
   final VideoFit mode;
 
-  /// "Best fit" fills the screen when at most this share of the picture is
-  /// cut off. 16:9 video on a 20:9 phone loses about a fifth and fills;
-  /// 4:3 video on a 16:9 screen would lose a quarter and is fitted instead.
-  static const _maxCrop = 0.23;
-
-  static BoxFit bestFit(Size video, Size view) {
-    if (video.isEmpty || view.isEmpty) return BoxFit.contain;
-    final a = video.aspectRatio, b = view.aspectRatio;
-    final crop = 1 - min(a, b) / max(a, b);
-    return crop <= _maxCrop ? BoxFit.cover : BoxFit.contain;
-  }
-
-  Widget _video(BoxFit fit) => Video(controller: controller, controls: NoVideoControls, fill: Colors.black, fit: fit);
-
   @override
-  Widget build(BuildContext context) {
-    return switch (mode) {
-      VideoFit.fit => _video(BoxFit.contain),
-      VideoFit.fill => _video(BoxFit.cover),
-      VideoFit.stretch => _video(BoxFit.fill),
-      VideoFit.best => LayoutBuilder(
-        builder: (context, box) => StreamBuilder<int?>(
-          stream: player.stream.height,
-          builder: (context, _) {
-            final w = player.state.width ?? 0, h = player.state.height ?? 0;
-            return _video(bestFit(Size(w.toDouble(), h.toDouble()), box.biggest));
-          },
-        ),
-      ),
-    };
-  }
+  Widget build(BuildContext context) => Video(
+    controller: controller,
+    controls: NoVideoControls,
+    fill: Colors.black,
+    fit: switch (mode) {
+      VideoFit.fit => BoxFit.contain,
+      VideoFit.fill => BoxFit.cover,
+      VideoFit.stretch => BoxFit.fill,
+    },
+  );
 }
 
 /// Whether two language codes ("tr", "tur", "Turkish") mean the same language.
