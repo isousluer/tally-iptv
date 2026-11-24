@@ -398,6 +398,102 @@ abstract class AppLocalizations {
   /// **'{choice} · tap to go back to the stream default'**
   String tapForStreamDefault(String choice);
 
+  /// No description provided for @subtitleStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitle style'**
+  String get subtitleStyle;
+
+  /// No description provided for @subtitleStyleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Size, background and position'**
+  String get subtitleStyleSubtitle;
+
+  /// No description provided for @subtitleSample.
+  ///
+  /// In en, this message translates to:
+  /// **'This is how subtitles will look.'**
+  String get subtitleSample;
+
+  /// No description provided for @subtitleSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get subtitleSize;
+
+  /// No description provided for @sizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get sizeSmall;
+
+  /// No description provided for @sizeMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get sizeMedium;
+
+  /// No description provided for @sizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get sizeLarge;
+
+  /// No description provided for @sizeHuge.
+  ///
+  /// In en, this message translates to:
+  /// **'Very large'**
+  String get sizeHuge;
+
+  /// No description provided for @subtitleBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get subtitleBackground;
+
+  /// No description provided for @backgroundNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Outline only'**
+  String get backgroundNone;
+
+  /// No description provided for @backgroundBox.
+  ///
+  /// In en, this message translates to:
+  /// **'See-through box'**
+  String get backgroundBox;
+
+  /// No description provided for @backgroundSolid.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark box'**
+  String get backgroundSolid;
+
+  /// No description provided for @subtitlePosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Position'**
+  String get subtitlePosition;
+
+  /// No description provided for @positionLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom'**
+  String get positionLow;
+
+  /// No description provided for @positionMiddle.
+  ///
+  /// In en, this message translates to:
+  /// **'A little higher'**
+  String get positionMiddle;
+
+  /// No description provided for @positionHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher'**
+  String get positionHigh;
+
   /// No description provided for @parentalControl.
   ///
   /// In en, this message translates to:

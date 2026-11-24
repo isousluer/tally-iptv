@@ -215,6 +215,54 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get subtitleStyle => 'Subtitle style';
+
+  @override
+  String get subtitleStyleSubtitle => 'Size, background and position';
+
+  @override
+  String get subtitleSample => 'This is how subtitles will look.';
+
+  @override
+  String get subtitleSize => 'Size';
+
+  @override
+  String get sizeSmall => 'Small';
+
+  @override
+  String get sizeMedium => 'Medium';
+
+  @override
+  String get sizeLarge => 'Large';
+
+  @override
+  String get sizeHuge => 'Very large';
+
+  @override
+  String get subtitleBackground => 'Background';
+
+  @override
+  String get backgroundNone => 'Outline only';
+
+  @override
+  String get backgroundBox => 'See-through box';
+
+  @override
+  String get backgroundSolid => 'Dark box';
+
+  @override
+  String get subtitlePosition => 'Position';
+
+  @override
+  String get positionLow => 'Bottom';
+
+  @override
+  String get positionMiddle => 'A little higher';
+
+  @override
+  String get positionHigh => 'Higher';
+
+  @override
   String get parentalControl => 'Parental control';
 
   @override

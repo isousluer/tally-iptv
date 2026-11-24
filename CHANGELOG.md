@@ -15,6 +15,8 @@ All notable changes to Tally are listed here. Downloads are on the
   before, and pressing it again comes back.
 - Stream info in the player options (or `I` / a remote's Info key): resolution, frame rate, codecs, bitrate,
   buffer and whether the hardware decoder is in use.
+- Subtitle style: size, background (outline, see-through box or dark box) and position, with a live sample. In
+  Settings → Playback and in the player options.
 - Tally tells you when a new version is out on GitHub, once per version. You can turn this off or check by hand
   under Settings → About.
 

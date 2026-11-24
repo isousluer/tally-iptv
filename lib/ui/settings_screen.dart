@@ -14,6 +14,7 @@ import 'add_playlist_screen.dart';
 import 'categories_screen.dart';
 import 'parental.dart';
 import 'player_screen.dart' show languageName;
+import 'subtitle_style.dart';
 import 'theme.dart';
 import 'updates.dart';
 import 'widgets.dart';
@@ -102,6 +103,12 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: settings.subtitleLanguage == null
                     ? null
                     : () => ref.read(settingsProvider.notifier).setSubtitleLanguage(null),
+              ),
+              ListTile(
+                leading: const Icon(Icons.format_size),
+                title: Text(l.subtitleStyle),
+                subtitle: Text(l.subtitleStyleSubtitle),
+                onTap: () => showSubtitleStyle(context),
               ),
               heading(l.parentalControl),
               ListTile(

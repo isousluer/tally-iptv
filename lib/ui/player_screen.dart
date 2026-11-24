@@ -16,6 +16,7 @@ import '../platform/device.dart';
 import '../state/providers.dart';
 import 'theme.dart';
 import 'series_screen.dart' show episodeRequest;
+import 'subtitle_style.dart';
 import 'vod_details_sheet.dart' show VodInfoText;
 import 'widgets.dart';
 
@@ -1297,6 +1298,11 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
                 setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.closed_caption_outlined),
+              title: Text(l.subtitleStyle),
+              onTap: () => showSubtitleStyle(context),
+            ),
             SwitchListTile(
               secondary: const Icon(Icons.info_outline),
               title: Text(l.streamInfo),
@@ -1782,23 +1788,33 @@ class _TracksButtons extends StatelessWidget {
   }
 }
 
-/// The video, sized by the viewer's picture size setting.
-class _FittedVideo extends StatelessWidget {
+/// The video, sized by the viewer's picture size setting, with subtitles in
+/// their chosen style.
+class _FittedVideo extends ConsumerWidget {
   const _FittedVideo({required this.controller, required this.mode});
   final VideoController controller;
   final VideoFit mode;
 
   @override
-  Widget build(BuildContext context) => Video(
-    controller: controller,
-    controls: NoVideoControls,
-    fill: Colors.black,
-    fit: switch (mode) {
-      VideoFit.fit => BoxFit.contain,
-      VideoFit.fill => BoxFit.cover,
-      VideoFit.stretch => BoxFit.fill,
-    },
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+    return LayoutBuilder(
+      builder: (context, box) => Video(
+        // The subtitle view only reads its padding once, so a new position
+        // needs a fresh view.
+        key: ValueKey(settings.subtitlePosition),
+        controller: controller,
+        controls: NoVideoControls,
+        fill: Colors.black,
+        subtitleViewConfiguration: subtitleConfig(settings, box.maxHeight),
+        fit: switch (mode) {
+          VideoFit.fit => BoxFit.contain,
+          VideoFit.fill => BoxFit.cover,
+          VideoFit.stretch => BoxFit.fill,
+        },
+      ),
+    );
+  }
 }
 
 /// Technical details of what is playing, read from mpv once a second.

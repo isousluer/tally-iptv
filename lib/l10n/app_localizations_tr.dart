@@ -206,6 +206,54 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get subtitleStyle => 'Altyazı görünümü';
+
+  @override
+  String get subtitleStyleSubtitle => 'Boyut, arka plan ve konum';
+
+  @override
+  String get subtitleSample => 'Altyazılar böyle görünecek.';
+
+  @override
+  String get subtitleSize => 'Boyut';
+
+  @override
+  String get sizeSmall => 'Küçük';
+
+  @override
+  String get sizeMedium => 'Orta';
+
+  @override
+  String get sizeLarge => 'Büyük';
+
+  @override
+  String get sizeHuge => 'Çok büyük';
+
+  @override
+  String get subtitleBackground => 'Arka plan';
+
+  @override
+  String get backgroundNone => 'Sadece kenarlık';
+
+  @override
+  String get backgroundBox => 'Yarı saydam kutu';
+
+  @override
+  String get backgroundSolid => 'Koyu kutu';
+
+  @override
+  String get subtitlePosition => 'Konum';
+
+  @override
+  String get positionLow => 'En altta';
+
+  @override
+  String get positionMiddle => 'Biraz yukarıda';
+
+  @override
+  String get positionHigh => 'Daha yukarıda';
+
+  @override
   String get parentalControl => 'Ebeveyn denetimi';
 
   @override

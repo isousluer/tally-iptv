@@ -366,6 +366,17 @@ final adultGroupPattern = RegExp(r'adult|xxx|porn|erotic|\+18|18\+|\bfor adults\
 /// How the picture fills the player: whole picture, cropped to fill, or stretched.
 enum VideoFit { fit, fill, stretch }
 
+enum SubtitleSize { small, medium, large, huge }
+
+/// Behind subtitle text: an outline only, a see-through box or a dark box.
+enum SubtitleBackground { none, box, solid }
+
+/// How far above the bottom of the picture subtitles sit.
+enum SubtitlePosition { low, middle, high }
+
+T _enumPref<T extends Enum>(List<T> values, String? saved, T fallback) =>
+    values.firstWhere((v) => v.name == saved, orElse: () => fallback);
+
 class AppSettings {
   const AppSettings({
     this.videoFit = VideoFit.fit,
@@ -375,6 +386,9 @@ class AppSettings {
     this.autoRefresh = true,
     this.language,
     this.checkUpdates = true,
+    this.subtitleSize = SubtitleSize.medium,
+    this.subtitleBackground = SubtitleBackground.box,
+    this.subtitlePosition = SubtitlePosition.low,
   });
 
   final VideoFit videoFit;
@@ -394,6 +408,10 @@ class AppSettings {
 
   /// Look for a new release on GitHub when the app opens.
   final bool checkUpdates;
+
+  final SubtitleSize subtitleSize;
+  final SubtitleBackground subtitleBackground;
+  final SubtitlePosition subtitlePosition;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -410,6 +428,13 @@ class SettingsNotifier extends Notifier<AppSettings> {
       autoRefresh: p.getBool('auto_refresh') ?? true,
       language: p.getString('app_language'),
       checkUpdates: p.getBool('check_updates') ?? true,
+      subtitleSize: _enumPref(SubtitleSize.values, p.getString('subtitle_size'), SubtitleSize.medium),
+      subtitleBackground: _enumPref(
+        SubtitleBackground.values,
+        p.getString('subtitle_background'),
+        SubtitleBackground.box,
+      ),
+      subtitlePosition: _enumPref(SubtitlePosition.values, p.getString('subtitle_position'), SubtitlePosition.low),
     );
   }
 
@@ -437,6 +462,21 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setAutoRefresh(bool v) async {
     await _p.setBool('auto_refresh', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setSubtitleSize(SubtitleSize v) async {
+    await _p.setString('subtitle_size', v.name);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setSubtitleBackground(SubtitleBackground v) async {
+    await _p.setString('subtitle_background', v.name);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setSubtitlePosition(SubtitlePosition v) async {
+    await _p.setString('subtitle_position', v.name);
     ref.invalidateSelf();
   }
 
