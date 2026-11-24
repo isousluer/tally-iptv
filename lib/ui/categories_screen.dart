@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import 'menu.dart';
 import 'parental.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -106,7 +107,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         appBar: AppBar(
           title: Text(context.l10n.categories),
           actions: [
-            PopupMenuButton<String>(
+            MenuButton<String>(
               tooltip: context.l10n.more,
               onSelected: (v) {
                 if (v == 'adult') _lockAdult(groups ?? const []);

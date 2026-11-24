@@ -14,6 +14,7 @@ import 'account_sheet.dart';
 import 'add_playlist_screen.dart';
 import 'categories_screen.dart';
 import 'channel_lists.dart';
+import 'menu.dart';
 import 'parental.dart';
 import 'player_screen.dart' show languageName;
 import 'subtitle_style.dart';
@@ -417,7 +418,7 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
       onTap: widget.active ? null : () => ref.read(activePlaylistIdProvider.notifier).select(p.id),
       trailing: _busy
           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-          : PopupMenuButton<String>(
+          : MenuButton<String>(
               tooltip: l.playlistOptions,
               onSelected: (v) async {
                 switch (v) {

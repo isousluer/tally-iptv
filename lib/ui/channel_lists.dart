@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import 'menu.dart';
 import 'playback.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -176,7 +177,7 @@ class ChannelListsScreen extends ConsumerWidget {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  PopupMenuButton<String>(
+                  MenuButton<String>(
                     tooltip: l.listOptions,
                     onSelected: (v) async {
                       if (v == 'rename') {

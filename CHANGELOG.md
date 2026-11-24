@@ -6,7 +6,8 @@ All notable changes to Tally are listed here. Downloads are on the
 ## Unreleased
 
 ### Changed
-- Menus, such as sorting and the playlist and list options, open below their button instead of covering it.
+- Menus, such as sorting and the playlist and list options, open the way Android's own menus do: below their
+  button, growing out of it as they fade in, instead of unrolling from the top over the button.
 
 ## 0.1.4 (2026-11-24)
 

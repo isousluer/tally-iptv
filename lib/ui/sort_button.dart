@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import 'menu.dart';
 import 'theme.dart';
 
 String sortLabel(AppLocalizations l, ItemSort s) => switch (s) {
@@ -23,9 +24,8 @@ class SortButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(sortProvider(kind));
-    return PopupMenuButton<ItemSort>(
+    return MenuButton<ItemSort>(
       tooltip: context.l10n.sort,
-      initialValue: current,
       onSelected: (s) => ref.read(sortProvider(kind).notifier).set(s),
       icon: Icon(Icons.sort, color: current == ItemSort.playlist ? null : AppColors.tally),
       itemBuilder: (_) => [
