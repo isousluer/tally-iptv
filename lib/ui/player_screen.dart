@@ -67,6 +67,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   /// Technical details shown over the video.
   bool _streamInfo = false;
 
+  /// Seconds the sound and the subtitles are moved later (or earlier, when
+  /// negative) to match the picture. Reset for each new stream.
+  double _audioDelay = 0;
+  double _subDelay = 0;
+
   /// Live TV: the channel watched before this one, for jumping back and forth.
   MediaItem? _previous;
 
@@ -159,9 +164,22 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _error = null;
       _nextIn = null;
     });
+    // mpv keeps delays between files; each stream needs its own.
+    if (_audioDelay != 0) await _setDelay('audio-delay', 0);
+    if (_subDelay != 0) await _setDelay('sub-delay', 0);
     await _player.open(Media(url, start: start > Duration.zero ? start : null));
     if (_rate != 1 && !_isLive) await _player.setRate(_rate);
     if (_isLive) unawaited(_recordLive());
+  }
+
+  Future<void> _setDelay(String property, double seconds) async {
+    setState(() => property == 'audio-delay' ? _audioDelay = seconds : _subDelay = seconds);
+    final native = _player.platform;
+    if (native is NativePlayer) {
+      try {
+        await native.setProperty(property, seconds.toStringAsFixed(2));
+      } catch (_) {}
+    }
   }
 
   Future<void> _recordLive() => _db.saveProgress(
@@ -453,6 +471,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         onPip: Device.enterPip,
         streamInfo: _streamInfo,
         onStreamInfo: (v) => setState(() => _streamInfo = v),
+        audioDelay: _audioDelay,
+        subDelay: _subDelay,
+        onAudioDelay: (v) => _setDelay('audio-delay', v),
+        onSubDelay: (v) => _setDelay('sub-delay', v),
       ),
     ).then((_) => _takeKeys());
   }
@@ -1182,8 +1204,16 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     required this.onPip,
     required this.streamInfo,
     required this.onStreamInfo,
+    required this.audioDelay,
+    required this.subDelay,
+    required this.onAudioDelay,
+    required this.onSubDelay,
   });
   final bool isLive;
+  final double audioDelay;
+  final double subDelay;
+  final ValueChanged<double> onAudioDelay;
+  final ValueChanged<double> onSubDelay;
   final bool streamInfo;
   final ValueChanged<bool> onStreamInfo;
 
@@ -1205,6 +1235,8 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
   late double _rate = widget.rate;
   late DateTime? _sleepAt = widget.sleepAt;
   late bool _streamInfo = widget.streamInfo;
+  late double _audioDelay = widget.audioDelay;
+  late double _subDelay = widget.subDelay;
 
   static const _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   static const _sleeps = [15, 30, 45, 60, 90, 120];
@@ -1298,6 +1330,28 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
                 setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
               },
             ),
+            heading(l.sync),
+            _DelayRow(
+              icon: Icons.graphic_eq,
+              label: l.audioDelay,
+              hint: l.audioDelayHint,
+              value: _audioDelay,
+              onChanged: (v) {
+                setState(() => _audioDelay = v);
+                widget.onAudioDelay(v);
+              },
+            ),
+            _DelayRow(
+              icon: Icons.subtitles_outlined,
+              label: l.subtitleDelay,
+              hint: l.subtitleDelayHint,
+              value: _subDelay,
+              onChanged: (v) {
+                setState(() => _subDelay = v);
+                widget.onSubDelay(v);
+              },
+            ),
+            const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.closed_caption_outlined),
               title: Text(l.subtitleStyle),
@@ -1330,6 +1384,73 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
     );
   }
 }
+
+/// Moves sound or subtitles in tenth-of-a-second steps; tapping the value
+/// sets it back to zero.
+class _DelayRow extends StatelessWidget {
+  const _DelayRow({
+    required this.icon,
+    required this.label,
+    required this.hint,
+    required this.value,
+    required this.onChanged,
+  });
+  final IconData icon;
+  final String label;
+  final String hint;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  static const _step = 0.1;
+  static const _limit = 10.0;
+
+  void _move(int steps) {
+    final next = ((value + steps * _step) * 10).round() / 10;
+    onChanged(next.clamp(-_limit, _limit));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context).textTheme;
+    final l = context.l10n;
+    final text = value == 0 ? l.delayNone : l.delaySeconds('${value > 0 ? '+' : '−'}${formatDelay(value.abs())}');
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 8, 2),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.muted),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: t.bodyLarge),
+                Text(hint, style: t.bodySmall!.copyWith(color: AppColors.muted)),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: l.earlier,
+            onPressed: value <= -_limit ? null : () => _move(-1),
+            icon: const Icon(Icons.remove),
+          ),
+          SizedBox(
+            width: 64,
+            child: TextButton(
+              onPressed: value == 0 ? null : () => onChanged(0),
+              style: TextButton.styleFrom(padding: EdgeInsets.zero),
+              child: Text(text, style: t.labelLarge!.copyWith(color: value == 0 ? AppColors.muted : AppColors.tally)),
+            ),
+          ),
+          IconButton(tooltip: l.later, onPressed: value >= _limit ? null : () => _move(1), icon: const Icon(Icons.add)),
+        ],
+      ),
+    );
+  }
+}
+
+/// "0.3" or "0,3", by the app's language.
+String formatDelay(double seconds) => intl.NumberFormat('0.0#', intl.Intl.defaultLocale).format(seconds);
 
 class _Controls extends StatelessWidget {
   const _Controls({

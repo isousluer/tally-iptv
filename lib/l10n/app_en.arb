@@ -239,6 +239,22 @@
       }
     }
   },
+  "sync": "Sync",
+  "audioDelay": "Sound",
+  "audioDelayHint": "Sound ahead of the picture? Press +",
+  "subtitleDelay": "Subtitles",
+  "subtitleDelayHint": "Subtitles too early? Press +",
+  "delayNone": "0 s",
+  "delaySeconds": "{value} s",
+  "@delaySeconds": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "earlier": "Earlier",
+  "later": "Later",
   "parentalControl": "Parental control",
   "setPin": "Set a PIN",
   "changePin": "Change PIN",

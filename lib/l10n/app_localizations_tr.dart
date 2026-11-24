@@ -336,6 +336,35 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get sync => 'Senkronizasyon';
+
+  @override
+  String get audioDelay => 'Ses';
+
+  @override
+  String get audioDelayHint => 'Ses görüntüden önce mi geliyor? + bas';
+
+  @override
+  String get subtitleDelay => 'Altyazı';
+
+  @override
+  String get subtitleDelayHint => 'Altyazı erken mi çıkıyor? + bas';
+
+  @override
+  String get delayNone => '0 sn';
+
+  @override
+  String delaySeconds(String value) {
+    return '$value sn';
+  }
+
+  @override
+  String get earlier => 'Daha erken';
+
+  @override
+  String get later => 'Daha geç';
+
+  @override
   String get parentalControl => 'Ebeveyn denetimi';
 
   @override

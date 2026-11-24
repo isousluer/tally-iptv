@@ -9,6 +9,8 @@ All notable changes to Tally are listed here. Downloads are on the
 - Xtream account info: open a playlist's menu in Settings and choose Account info to see whether the subscription
   is active, when it ends, and how many of its connections are in use. Tally also warns you, once a day, when it
   ends within a week.
+- Sound and subtitle sync in the player options: move the sound or the subtitles earlier or later in steps of a
+  tenth of a second when they don't match the picture. Each stream starts in sync again.
 
 ## 0.1.3 (2026-11-24)
 

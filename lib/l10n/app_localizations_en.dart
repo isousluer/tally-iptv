@@ -346,6 +346,35 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get sync => 'Sync';
+
+  @override
+  String get audioDelay => 'Sound';
+
+  @override
+  String get audioDelayHint => 'Sound ahead of the picture? Press +';
+
+  @override
+  String get subtitleDelay => 'Subtitles';
+
+  @override
+  String get subtitleDelayHint => 'Subtitles too early? Press +';
+
+  @override
+  String get delayNone => '0 s';
+
+  @override
+  String delaySeconds(String value) {
+    return '$value s';
+  }
+
+  @override
+  String get earlier => 'Earlier';
+
+  @override
+  String get later => 'Later';
+
+  @override
   String get parentalControl => 'Parental control';
 
   @override

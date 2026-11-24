@@ -614,6 +614,60 @@ abstract class AppLocalizations {
   /// **'{days, plural, =1{The subscription for {name} ends tomorrow.} other{The subscription for {name} ends in {days} days.}}'**
   String accountEndsInDays(String name, int days);
 
+  /// No description provided for @sync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get sync;
+
+  /// No description provided for @audioDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get audioDelay;
+
+  /// No description provided for @audioDelayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound ahead of the picture? Press +'**
+  String get audioDelayHint;
+
+  /// No description provided for @subtitleDelay.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles'**
+  String get subtitleDelay;
+
+  /// No description provided for @subtitleDelayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtitles too early? Press +'**
+  String get subtitleDelayHint;
+
+  /// No description provided for @delayNone.
+  ///
+  /// In en, this message translates to:
+  /// **'0 s'**
+  String get delayNone;
+
+  /// No description provided for @delaySeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} s'**
+  String delaySeconds(String value);
+
+  /// No description provided for @earlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get earlier;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
   /// No description provided for @parentalControl.
   ///
   /// In en, this message translates to:
