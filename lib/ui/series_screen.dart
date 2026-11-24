@@ -86,6 +86,10 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
 
           final poster = s.logo ?? d.cover;
           final top = MediaQuery.paddingOf(context).top + kToolbarHeight;
+          // On tablets the page keeps a readable width; the backdrop still
+          // spans the screen.
+          final inset = readableInset(MediaQuery.sizeOf(context).width, 880);
+          final big = !isPhone(context);
 
           final list = CustomScrollView(
             controller: _scroll,
@@ -95,12 +99,12 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                   children: [
                     if (poster != null) Positioned.fill(child: _BlurredBackdrop(url: poster)),
                     Padding(
-                      padding: EdgeInsets.fromLTRB(16, top + 4, 16, 16),
+                      padding: EdgeInsets.fromLTRB(16 + inset, top + 4, 16 + inset, 16),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            width: 104,
+                            width: big ? 150 : 104,
                             child: Poster(title: s.name, url: poster),
                           ),
                           const SizedBox(width: 14),
@@ -134,7 +138,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                padding: EdgeInsets.fromLTRB(16 + inset, 0, 16 + inset, 0),
                 sliver: SliverList.list(
                   children: [
                     if (allEpisodes.isNotEmpty)
@@ -181,7 +185,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                 ),
               ),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+                padding: EdgeInsets.fromLTRB(16 + inset, 4, 16 + inset, 32 + MediaQuery.paddingOf(context).bottom),
                 sliver: SliverList.separated(
                   itemCount: episodes.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 8),

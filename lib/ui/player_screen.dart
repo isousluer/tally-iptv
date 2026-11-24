@@ -434,6 +434,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     });
   }
 
+  /// Only the video shows in full screen, and when a phone is turned
+  /// sideways. A tablet held sideways keeps the panel next to the video.
+  bool _videoOnly(BuildContext context) =>
+      _fullscreen || (_isMobile && isPhone(context) && MediaQuery.orientationOf(context) == Orientation.landscape);
+
   bool? _barsHidden;
 
   /// Hides the status and navigation bars whenever only the video shows,
@@ -468,7 +473,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       isScrollControlled: true,
       builder: (_) => _OptionsSheet(
         isLive: _isLive,
-        smallPlayer: !(_fullscreen || (_isMobile && MediaQuery.orientationOf(context) == Orientation.landscape)),
+        smallPlayer: !_videoOnly(context),
         rate: _rate,
         sleepAt: _sleepAt,
         pipSupported: _pipSupported,
@@ -633,9 +638,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       );
     }
 
-    final orientation = MediaQuery.orientationOf(context);
     final wide = isWide(context);
-    final videoOnly = _fullscreen || (_isMobile && orientation == Orientation.landscape);
+    final videoOnly = _videoOnly(context);
     _hideSystemBars(videoOnly);
     final next = _req.upNext.firstOrNull;
 
@@ -693,12 +697,16 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           Expanded(
             child: Container(
               color: Colors.black,
-              child: Center(child: surface),
+              child: SafeArea(right: false, child: Center(child: surface)),
             ),
           ),
           SizedBox(
             width: 380,
-            child: _InfoPanel(item: _item, request: _req, onPickChannel: _pickChannel, onPlay: _playOther),
+            // Clear of the status bar and the navigation buttons on tablets.
+            child: SafeArea(
+              left: false,
+              child: _InfoPanel(item: _item, request: _req, onPickChannel: _pickChannel, onPlay: _playOther),
+            ),
           ),
         ],
       );

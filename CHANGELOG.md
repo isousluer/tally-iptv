@@ -3,6 +3,15 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## Unreleased
+
+### Fixed
+- Tablets held sideways show the player with the channel list or details next to the video, instead of always
+  going full screen like a phone turned sideways. The full screen button still fills the screen.
+- On tablets, the player's side panel no longer sits under the status bar, and the ends of lists stay clear of
+  the navigation buttons.
+- Series pages keep a readable width on tablets, with a larger poster.
+
 ## 0.1.5 (2026-11-24)
 
 ### Changed

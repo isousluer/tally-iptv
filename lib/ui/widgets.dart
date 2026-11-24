@@ -314,6 +314,10 @@ String compactCount(int n) => intl.NumberFormat.decimalPattern(strings.localeNam
 
 bool isWide(BuildContext context) => MediaQuery.sizeOf(context).width >= 840;
 
+/// Phones, as opposed to tablets: the short side of the screen is under
+/// 600 dp, whichever way the device is held.
+bool isPhone(BuildContext context) => MediaQuery.sizeOf(context).shortestSide < 600;
+
 /// Side margin that keeps settings-style lists at a readable width on wide
 /// screens. Used as list padding, so the margins still scroll the list.
 double readableInset(double width, [double maxWidth = 640]) => width > maxWidth ? (width - maxWidth) / 2 : 0;

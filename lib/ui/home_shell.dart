@@ -89,7 +89,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   NavigationRailDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: Text(label)),
               ],
             ),
-            Expanded(child: body),
+            // Without a bottom bar, keep the ends of lists clear of the
+            // system navigation bar. The rail already handles the left side.
+            Expanded(child: SafeArea(left: false, top: false, child: body)),
           ],
         ),
       );
