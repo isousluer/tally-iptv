@@ -7,8 +7,8 @@ All notable changes to Tally are listed here. Downloads are on the
 
 ### Added
 - Xtream account info: open a playlist's menu in Settings and choose Account info to see whether the subscription
-  is active, when it ends, how many of its connections are in use, and how many channels, movies and series it has. Tally also warns you, once a day, when it
-  ends within a week.
+  is active, when it ends, how many of its connections are in use, and how many channels, movies and series it has.
+  Tally also warns you, once a day, when it ends within a week.
 - Sound and subtitle sync in the player options: move the sound or the subtitles earlier or later in steps of a
   tenth of a second when they don't match the picture. Each stream starts in sync again.
 - Channel lists of your own, such as Sports, News or Kids. Touch and hold a channel to add it to a list; your lists
