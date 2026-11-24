@@ -255,6 +255,29 @@
   },
   "earlier": "Earlier",
   "later": "Later",
+  "channelLists": "My channel lists",
+  "channelListsSubtitle": "Your own groups of channels, in your order",
+  "manageChannelLists": "Make and edit channel lists",
+  "newList": "New list",
+  "renameList": "Rename list",
+  "listNameHint": "For example Sports or News",
+  "addToList": "Add to a list",
+  "listOptions": "List options",
+  "deleteList": "Delete list",
+  "deleteListTitle": "Delete {name}?",
+  "@deleteListTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteListBody": "The channels stay in your playlist; only this list goes.",
+  "removeFromList": "Take out of this list",
+  "noListsTitle": "No channel lists yet",
+  "noListsMessage": "Make lists like Sports, News or Kids, then touch and hold a channel to add it.",
+  "listEmptyTitle": "This list is empty",
+  "listEmptyMessage": "Touch and hold a channel in Live TV to add it here.",
   "parentalControl": "Parental control",
   "setPin": "Set a PIN",
   "changePin": "Change PIN",

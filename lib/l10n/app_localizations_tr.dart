@@ -365,6 +365,56 @@ class AppLocalizationsTr extends AppLocalizations {
   String get later => 'Daha geç';
 
   @override
+  String get channelLists => 'Kanal listelerim';
+
+  @override
+  String get channelListsSubtitle => 'Kendi kanal grupların, istediğin sırayla';
+
+  @override
+  String get manageChannelLists => 'Kanal listesi oluştur ve düzenle';
+
+  @override
+  String get newList => 'Yeni liste';
+
+  @override
+  String get renameList => 'Listeyi yeniden adlandır';
+
+  @override
+  String get listNameHint => 'Örneğin Spor veya Haber';
+
+  @override
+  String get addToList => 'Listeye ekle';
+
+  @override
+  String get listOptions => 'Liste seçenekleri';
+
+  @override
+  String get deleteList => 'Listeyi sil';
+
+  @override
+  String deleteListTitle(String name) {
+    return '$name silinsin mi?';
+  }
+
+  @override
+  String get deleteListBody => 'Kanallar listende kalır; yalnızca bu liste silinir.';
+
+  @override
+  String get removeFromList => 'Listeden çıkar';
+
+  @override
+  String get noListsTitle => 'Henüz kanal listen yok';
+
+  @override
+  String get noListsMessage => 'Spor, Haber, Çocuk gibi listeler oluştur, sonra bir kanala basılı tutarak ekle.';
+
+  @override
+  String get listEmptyTitle => 'Bu liste boş';
+
+  @override
+  String get listEmptyMessage => 'Canlı TV\'de bir kanala basılı tutarak buraya ekleyebilirsin.';
+
+  @override
   String get parentalControl => 'Ebeveyn denetimi';
 
   @override

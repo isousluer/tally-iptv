@@ -208,6 +208,14 @@ class GroupInfo {
   final bool locked;
 }
 
+/// A list of channels the viewer put together, in their own order.
+class ChannelList {
+  const ChannelList({required this.id, required this.name, this.count = 0});
+  final int id;
+  final String name;
+  final int count;
+}
+
 class Episode {
   const Episode({
     required this.key,

@@ -375,6 +375,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get later => 'Later';
 
   @override
+  String get channelLists => 'My channel lists';
+
+  @override
+  String get channelListsSubtitle => 'Your own groups of channels, in your order';
+
+  @override
+  String get manageChannelLists => 'Make and edit channel lists';
+
+  @override
+  String get newList => 'New list';
+
+  @override
+  String get renameList => 'Rename list';
+
+  @override
+  String get listNameHint => 'For example Sports or News';
+
+  @override
+  String get addToList => 'Add to a list';
+
+  @override
+  String get listOptions => 'List options';
+
+  @override
+  String get deleteList => 'Delete list';
+
+  @override
+  String deleteListTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get deleteListBody => 'The channels stay in your playlist; only this list goes.';
+
+  @override
+  String get removeFromList => 'Take out of this list';
+
+  @override
+  String get noListsTitle => 'No channel lists yet';
+
+  @override
+  String get noListsMessage => 'Make lists like Sports, News or Kids, then touch and hold a channel to add it.';
+
+  @override
+  String get listEmptyTitle => 'This list is empty';
+
+  @override
+  String get listEmptyMessage => 'Touch and hold a channel in Live TV to add it here.';
+
+  @override
   String get parentalControl => 'Parental control';
 
   @override

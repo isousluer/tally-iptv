@@ -668,6 +668,102 @@ abstract class AppLocalizations {
   /// **'Later'**
   String get later;
 
+  /// No description provided for @channelLists.
+  ///
+  /// In en, this message translates to:
+  /// **'My channel lists'**
+  String get channelLists;
+
+  /// No description provided for @channelListsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own groups of channels, in your order'**
+  String get channelListsSubtitle;
+
+  /// No description provided for @manageChannelLists.
+  ///
+  /// In en, this message translates to:
+  /// **'Make and edit channel lists'**
+  String get manageChannelLists;
+
+  /// No description provided for @newList.
+  ///
+  /// In en, this message translates to:
+  /// **'New list'**
+  String get newList;
+
+  /// No description provided for @renameList.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename list'**
+  String get renameList;
+
+  /// No description provided for @listNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example Sports or News'**
+  String get listNameHint;
+
+  /// No description provided for @addToList.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to a list'**
+  String get addToList;
+
+  /// No description provided for @listOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'List options'**
+  String get listOptions;
+
+  /// No description provided for @deleteList.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete list'**
+  String get deleteList;
+
+  /// No description provided for @deleteListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String deleteListTitle(String name);
+
+  /// No description provided for @deleteListBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The channels stay in your playlist; only this list goes.'**
+  String get deleteListBody;
+
+  /// No description provided for @removeFromList.
+  ///
+  /// In en, this message translates to:
+  /// **'Take out of this list'**
+  String get removeFromList;
+
+  /// No description provided for @noListsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No channel lists yet'**
+  String get noListsTitle;
+
+  /// No description provided for @noListsMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Make lists like Sports, News or Kids, then touch and hold a channel to add it.'**
+  String get noListsMessage;
+
+  /// No description provided for @listEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This list is empty'**
+  String get listEmptyTitle;
+
+  /// No description provided for @listEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch and hold a channel in Live TV to add it here.'**
+  String get listEmptyMessage;
+
   /// No description provided for @parentalControl.
   ///
   /// In en, this message translates to:

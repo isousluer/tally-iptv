@@ -7,6 +7,7 @@ import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'categories_screen.dart';
+import 'channel_lists.dart';
 import 'parental.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -22,6 +23,7 @@ String _label(String group) => group.isEmpty ? strings.uncategorized : group;
 
 /// When the open category was just hidden or locked, falls back to All.
 void _keepSelectionValid(
+  List<ChannelList>? lists,
   List<GroupInfo>? groups,
   List<GroupInfo> visible,
   bool open,
@@ -29,6 +31,13 @@ void _keepSelectionValid(
   ValueChanged<String> onSelected,
 ) {
   if (groups == null || selected == groupAll || selected == groupFavorites) return;
+  final listId = listIdOf(selected);
+  if (listId != null) {
+    if (lists != null && !lists.any((x) => x.id == listId)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => onSelected(groupAll));
+    }
+    return;
+  }
   final current = visible.where((g) => g.name == selected).firstOrNull;
   if (current == null || (current.locked && !open)) {
     WidgetsBinding.instance.addPostFrameCallback((_) => onSelected(groupAll));
@@ -62,8 +71,9 @@ class CategoryBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context).textTheme;
     final (:groups, :visible, :open) = _watchGroups(ref, kind);
-    _keepSelectionValid(groups, visible, open, selected, onSelected);
-    final inCategory = selected != groupAll && selected != groupFavorites;
+    final lists = kind == ContentKind.live ? ref.watch(channelListsProvider).value : const <ChannelList>[];
+    _keepSelectionValid(lists, groups, visible, open, selected, onSelected);
+    final inCategory = selected != groupAll && selected != groupFavorites && listIdOf(selected) == null;
 
     Widget chip(String value, String label) {
       final active = selected == value;
@@ -77,46 +87,73 @@ class CategoryBar extends ConsumerWidget {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    final categories = OutlinedButton(
+      onPressed: () => showCategorySheet(context, kind: kind, selected: selected, onSelected: onSelected),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: inCategory ? AppColors.tally : AppColors.text,
+        side: BorderSide(color: inCategory ? AppColors.tally : AppColors.border),
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.fromLTRB(14, 0, 8, 0),
+        minimumSize: const Size(0, 34),
+      ),
       child: Row(
         children: [
-          chip(groupAll, context.l10n.all),
-          const SizedBox(width: 8),
-          chip(groupFavorites, context.l10n.favorites),
-          const SizedBox(width: 8),
           Expanded(
-            child: OutlinedButton(
-              onPressed: () => showCategorySheet(context, kind: kind, selected: selected, onSelected: onSelected),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: inCategory ? AppColors.tally : AppColors.text,
-                side: BorderSide(color: inCategory ? AppColors.tally : AppColors.border),
-                shape: const StadiumBorder(),
-                padding: const EdgeInsets.fromLTRB(14, 0, 8, 0),
-                minimumSize: const Size(0, 34),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      inCategory ? _label(selected) : context.l10n.categories,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: t.labelMedium!.copyWith(color: inCategory ? AppColors.tally : AppColors.text),
-                    ),
-                  ),
-                  if (!inCategory && visible.isNotEmpty)
-                    Text(
-                      '${visible.length}',
-                      style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
-                    ),
-                  const Icon(Icons.keyboard_arrow_down, size: 20),
-                ],
-              ),
+            child: Text(
+              inCategory ? _label(selected) : context.l10n.categories,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: t.labelMedium!.copyWith(color: inCategory ? AppColors.tally : AppColors.text),
             ),
           ),
+          if (!inCategory && visible.isNotEmpty)
+            Text(
+              '${visible.length}',
+              style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
+            ),
+          const Icon(Icons.keyboard_arrow_down, size: 20),
         ],
       ),
+    );
+
+    final shortcuts = [
+      chip(groupAll, context.l10n.all),
+      const SizedBox(width: 8),
+      chip(groupFavorites, context.l10n.favorites),
+      for (final list in lists ?? const <ChannelList>[]) ...[
+        const SizedBox(width: 8),
+        chip(listGroup(list.id), list.name),
+      ],
+    ];
+
+    // With lists of their own the chips scroll sideways and the category
+    // button keeps a fixed width on the right.
+    if (lists == null || lists.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            ...shortcuts,
+            const SizedBox(width: 8),
+            Expanded(child: categories),
+          ],
+        ),
+      );
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(left: 16, right: 8),
+            child: Row(children: shortcuts),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 150), child: categories),
+        ),
+      ],
     );
   }
 }
@@ -171,7 +208,8 @@ class CategoryPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final (:groups, :visible, :open) = _watchGroups(ref, kind);
-    _keepSelectionValid(groups, visible, open, selected, onSelected);
+    final lists = kind == ContentKind.live ? ref.watch(channelListsProvider).value : const <ChannelList>[];
+    _keepSelectionValid(lists, groups, visible, open, selected, onSelected);
     return Container(
       width: 280,
       decoration: const BoxDecoration(
@@ -209,6 +247,9 @@ class _CategoryListState extends ConsumerState<CategoryList> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     final (:groups, :visible, :open) = _watchGroups(ref, widget.kind);
+    final lists = widget.kind == ContentKind.live
+        ? ref.watch(channelListsProvider).value ?? const <ChannelList>[]
+        : const <ChannelList>[];
     final q = _query.trim().toLowerCase();
     final shown = q.isEmpty ? visible : visible.where((g) => _label(g.name).toLowerCase().contains(q)).toList();
 
@@ -296,6 +337,23 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                         if (widget.showShortcuts && q.isEmpty) ...[
                           row(groupAll, context.l10n.all, icon: Icons.apps),
                           row(groupFavorites, context.l10n.favorites, icon: Icons.star_border),
+                          for (final list in lists)
+                            row(listGroup(list.id), list.name, count: list.count, icon: Icons.playlist_play),
+                          const Divider(height: 12),
+                        ],
+                        if (widget.kind == ContentKind.live && q.isEmpty) ...[
+                          // The phone shows lists as chips; here they can be managed.
+                          ListTile(
+                            dense: true,
+                            leading: const Icon(Icons.playlist_add, size: 20, color: AppColors.muted),
+                            title: Text(
+                              context.l10n.manageChannelLists,
+                              style: t.bodyMedium!.copyWith(color: AppColors.muted),
+                            ),
+                            onTap: () =>
+                                Navigator.of(context)
+                                    .push(MaterialPageRoute(builder: (_) => const ChannelListsScreen())),
+                          ),
                           const Divider(height: 12),
                         ],
                         for (final g in shown) row(g.name, _label(g.name), count: g.count, locked: g.locked && !open),

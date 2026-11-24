@@ -11,7 +11,8 @@ import 'models.dart';
 /// Settings copied with a backup. The parental PIN is deliberately left out.
 const _settingKeys = ['video_fit', 'audio_lang', 'subtitle_lang', 'auto_next', 'auto_refresh'];
 
-/// Writes playlists, favorites, watch history and category choices to JSON.
+/// Writes playlists, favorites, watch history, category choices and the
+/// viewer's channel lists to JSON.
 /// Channel lists themselves aren't included; they're downloaded again.
 Future<String> exportBackup(AppDatabase adb, SharedPreferences prefs) async {
   final db = adb.db;
@@ -23,6 +24,8 @@ Future<String> exportBackup(AppDatabase adb, SharedPreferences prefs) async {
     'favorites': await db.query('favorites'),
     'history': await db.query('history'),
     'group_prefs': await db.query('group_prefs'),
+    'channel_lists': await db.query('channel_lists'),
+    'channel_list_items': await db.query('channel_list_items'),
     'settings': {
       for (final k in _settingKeys)
         if (prefs.get(k) != null) k: prefs.get(k),
@@ -100,6 +103,27 @@ Future<RestoreResult> importBackup(AppDatabase adb, SharedPreferences prefs, Str
         if (id == null) continue;
         await txn.insert(table, {...row, 'playlist_id': id}, conflictAlgorithm: ConflictAlgorithm.replace);
       }
+    }
+
+    // Lists get new ids. A list whose name the playlist already has is
+    // merged into it, so restoring twice doesn't make copies.
+    final listMap = <int, int>{};
+    for (final row in rows('channel_lists')) {
+      final id = idMap[row['playlist_id']];
+      if (id == null) continue;
+      final same = await txn.query(
+        'channel_lists',
+        where: 'playlist_id = ? AND name = ?',
+        whereArgs: [id, row['name']],
+      );
+      listMap[row['id'] as int] = same.isNotEmpty
+          ? same.first['id'] as int
+          : await txn.insert('channel_lists', {'playlist_id': id, 'name': row['name'], 'position': row['position']});
+    }
+    for (final row in rows('channel_list_items')) {
+      final id = listMap[row['list_id']];
+      if (id == null) continue;
+      await txn.insert('channel_list_items', {...row, 'list_id': id}, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
   });
 

@@ -13,6 +13,7 @@ import '../state/providers.dart';
 import 'account_sheet.dart';
 import 'add_playlist_screen.dart';
 import 'categories_screen.dart';
+import 'channel_lists.dart';
 import 'parental.dart';
 import 'player_screen.dart' show languageName;
 import 'subtitle_style.dart';
@@ -73,6 +74,12 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(l.categories),
                 subtitle: Text(l.categoriesSubtitle),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+              ),
+              ListTile(
+                leading: const Icon(Icons.playlist_add),
+                title: Text(l.channelLists),
+                subtitle: Text(l.channelListsSubtitle),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChannelListsScreen())),
               ),
               heading(l.playback),
               SwitchListTile(

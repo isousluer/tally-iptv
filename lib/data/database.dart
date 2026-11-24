@@ -11,7 +11,9 @@ class AppDatabase {
   AppDatabase._(this.db);
   final Database db;
 
-  static Future<AppDatabase> open() async {
+  /// Opens the app's database, or the one at [path] (tests pass
+  /// `inMemoryDatabasePath`).
+  static Future<AppDatabase> open({String? path}) async {
     final DatabaseFactory factory;
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       sqfliteFfiInit();
@@ -19,23 +21,27 @@ class AppDatabase {
     } else {
       factory = databaseFactory;
     }
-    final dir = await getApplicationSupportDirectory();
-    await dir.create(recursive: true);
-    final path = p.join(dir.path, 'tally.db');
+    if (path == null) {
+      final dir = await getApplicationSupportDirectory();
+      await dir.create(recursive: true);
+      path = p.join(dir.path, 'tally.db');
+    }
     final db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 3,
+        version: 4,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
         onCreate: (db, _) async {
           await _create(db);
           await _createGroupPrefs(db);
+          await _createChannelLists(db);
         },
         onUpgrade: (db, from, _) async {
           if (from < 2) await _createGroupPrefs(db);
           if (from < 3) await db.execute('ALTER TABLE items ADD COLUMN archive_days INTEGER');
+          if (from < 4) await _createChannelLists(db);
         },
       ),
     );
@@ -108,6 +114,25 @@ class AppDatabase {
         position INTEGER,
         PRIMARY KEY(playlist_id, kind, grp)
       )''');
+
+  /// The viewer's own channel lists. Items are kept by key, like favorites,
+  /// so they survive playlist updates.
+  static Future<void> _createChannelLists(Database db) async {
+    await db.execute('''
+      CREATE TABLE channel_lists(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        position INTEGER NOT NULL
+      )''');
+    await db.execute('''
+      CREATE TABLE channel_list_items(
+        list_id INTEGER NOT NULL REFERENCES channel_lists(id) ON DELETE CASCADE,
+        ukey TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        PRIMARY KEY(list_id, ukey)
+      )''');
+  }
 
   // ---------------------------------------------------------------- playlists
 
@@ -308,6 +333,92 @@ class AppDatabase {
     );
     return rows.map(MediaItem.fromRow).toList();
   }
+
+  // ------------------------------------------------------------ channel lists
+
+  /// Lists of a playlist in the viewer's order, with how many of their
+  /// channels the playlist still has.
+  Future<List<ChannelList>> channelLists(int playlistId) async {
+    final rows = await db.rawQuery(
+      'SELECT l.id, l.name, (SELECT COUNT(*) FROM channel_list_items c JOIN items i '
+      'ON i.playlist_id = l.playlist_id AND i.ukey = c.ukey WHERE c.list_id = l.id) AS n '
+      'FROM channel_lists l WHERE l.playlist_id = ? ORDER BY l.position, l.id',
+      [playlistId],
+    );
+    return [for (final r in rows) ChannelList(id: r['id'] as int, name: r['name'] as String, count: r['n'] as int)];
+  }
+
+  Future<int> createChannelList(int playlistId, String name) async {
+    final r = await db.rawQuery(
+      'SELECT COALESCE(MAX(position), -1) + 1 AS p FROM channel_lists WHERE playlist_id = ?',
+      [playlistId],
+    );
+    return db.insert('channel_lists', {'playlist_id': playlistId, 'name': name, 'position': r.first['p']});
+  }
+
+  Future<void> renameChannelList(int id, String name) =>
+      db.update('channel_lists', {'name': name}, where: 'id = ?', whereArgs: [id]);
+
+  Future<void> deleteChannelList(int id) => db.delete('channel_lists', where: 'id = ?', whereArgs: [id]);
+
+  Future<void> reorderChannelLists(List<int> ids) => db.transaction((txn) async {
+    for (final (i, id) in ids.indexed) {
+      await txn.update('channel_lists', {'position': i}, where: 'id = ?', whereArgs: [id]);
+    }
+  });
+
+  /// Channels of a list in its order, leaving out locked categories unless
+  /// they are open. Hidden categories still show: the viewer chose these.
+  Future<List<MediaItem>> channelListItems(int playlistId, int listId, {bool includeLocked = false}) async {
+    final locked = includeLocked
+        ? ''
+        : 'AND NOT EXISTS(SELECT 1 FROM group_prefs g WHERE g.playlist_id = i.playlist_id AND g.kind = i.kind '
+              'AND g.grp = i.grp AND g.locked = 1) ';
+    final rows = await db.rawQuery(
+      'SELECT i.*, $_favExpr FROM channel_list_items c JOIN items i ON i.playlist_id = ? AND i.ukey = c.ukey '
+      'WHERE c.list_id = ? ${locked}ORDER BY c.position',
+      [playlistId, listId],
+    );
+    return rows.map(MediaItem.fromRow).toList();
+  }
+
+  /// Ids of the lists of [playlistId] that hold the channel [key].
+  Future<Set<int>> listsWith(int playlistId, String key) async {
+    final rows = await db.rawQuery(
+      'SELECT c.list_id FROM channel_list_items c JOIN channel_lists l ON l.id = c.list_id '
+      'WHERE l.playlist_id = ? AND c.ukey = ?',
+      [playlistId, key],
+    );
+    return {for (final r in rows) r['list_id'] as int};
+  }
+
+  /// Adds the channel at the end of the list, or takes it out.
+  Future<void> setInChannelList(int listId, String key, bool value) async {
+    if (!value) {
+      await db.delete('channel_list_items', where: 'list_id = ? AND ukey = ?', whereArgs: [listId, key]);
+      return;
+    }
+    final r = await db.rawQuery(
+      'SELECT COALESCE(MAX(position), -1) + 1 AS p FROM channel_list_items WHERE list_id = ?',
+      [listId],
+    );
+    await db.insert('channel_list_items', {
+      'list_id': listId,
+      'ukey': key,
+      'position': r.first['p'],
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  }
+
+  Future<void> reorderChannelListItems(int listId, List<String> keys) => db.transaction((txn) async {
+    for (final (i, key) in keys.indexed) {
+      await txn.update(
+        'channel_list_items',
+        {'position': i},
+        where: 'list_id = ? AND ukey = ?',
+        whereArgs: [listId, key],
+      );
+    }
+  });
 
   // ------------------------------------------------------------------ history
 

@@ -5,6 +5,7 @@ import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'category_picker.dart';
+import 'channel_lists.dart';
 import 'playback.dart';
 import 'playlist_switcher.dart';
 import 'search_screen.dart';
@@ -37,6 +38,9 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => ErrorState(error: e, onRetry: () => ref.invalidate(itemsProvider(query))),
       data: (list) {
+        if (list.isEmpty && listIdOf(_group) != null) {
+          return EmptyState(icon: Icons.playlist_add, title: l.listEmptyTitle, message: l.listEmptyMessage);
+        }
         if (list.isEmpty) {
           return EmptyState(
             icon: _group == groupFavorites ? Icons.star_border : Icons.live_tv_outlined,
@@ -142,6 +146,7 @@ class ChannelRow extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
+        onLongPress: () => showAddToLists(context, channel),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 4, 0),
           child: Row(

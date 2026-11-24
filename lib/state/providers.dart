@@ -187,6 +187,14 @@ final countProvider = FutureProvider.family<int, ContentKind>((ref, kind) async 
 /// Special group values used by the category chips.
 const groupAll = '\u0000all';
 const groupFavorites = '\u0000fav';
+const _groupListPrefix = '\u0000list:';
+
+/// The group value that shows one of the viewer's channel lists.
+String listGroup(int id) => '$_groupListPrefix$id';
+
+/// The channel list a group value stands for, if it is one.
+int? listIdOf(String group) =>
+    group.startsWith(_groupListPrefix) ? int.tryParse(group.substring(_groupListPrefix.length)) : null;
 
 typedef ItemQuery = ({ContentKind kind, String group, String search});
 
@@ -196,6 +204,11 @@ final itemsProvider = FutureProvider.family<List<MediaItem>, ItemQuery>((ref, q)
   ref.watch(groupsVersionProvider);
   final open = ref.watch(lockedContentOpenProvider);
   if (p == null) return const [];
+  final listId = listIdOf(q.group);
+  if (listId != null) {
+    ref.watch(channelListsVersionProvider);
+    return ref.watch(databaseProvider).channelListItems(p.id, listId, includeLocked: open);
+  }
   return ref
       .watch(databaseProvider)
       .items(
@@ -265,6 +278,64 @@ class FavoritesController {
 }
 
 final favoritesControllerProvider = Provider(FavoritesController.new);
+
+// -------------------------------------------------------------- channel lists
+
+final channelListsVersionProvider = NotifierProvider<DataVersion, int>(DataVersion.new);
+
+/// The viewer's channel lists for the open playlist.
+final channelListsProvider = FutureProvider<List<ChannelList>>((ref) async {
+  final p = ref.watch(activePlaylistProvider);
+  ref.watch(contentVersionProvider);
+  ref.watch(channelListsVersionProvider);
+  if (p == null) return const [];
+  return ref.watch(databaseProvider).channelLists(p.id);
+});
+
+class ChannelListsController {
+  ChannelListsController(this.ref);
+  final Ref ref;
+
+  AppDatabase get _db => ref.read(databaseProvider);
+  void _changed() => ref.read(channelListsVersionProvider.notifier).bump();
+
+  Future<int?> create(String name) async {
+    final p = ref.read(activePlaylistProvider);
+    if (p == null) return null;
+    final id = await _db.createChannelList(p.id, name);
+    _changed();
+    return id;
+  }
+
+  Future<void> rename(ChannelList list, String name) async {
+    await _db.renameChannelList(list.id, name);
+    _changed();
+  }
+
+  Future<void> delete(ChannelList list) async {
+    await _db.deleteChannelList(list.id);
+    _changed();
+  }
+
+  Future<void> reorder(List<ChannelList> lists) async {
+    await _db.reorderChannelLists([for (final l in lists) l.id]);
+    _changed();
+  }
+
+  Future<Set<int>> listsWith(MediaItem channel) => _db.listsWith(channel.playlistId, channel.key);
+
+  Future<void> setIn(int listId, MediaItem channel, bool value) async {
+    await _db.setInChannelList(listId, channel.key, value);
+    _changed();
+  }
+
+  Future<void> reorderChannels(int listId, List<MediaItem> channels) async {
+    await _db.reorderChannelListItems(listId, [for (final c in channels) c.key]);
+    _changed();
+  }
+}
+
+final channelListsControllerProvider = Provider(ChannelListsController.new);
 
 // ------------------------------------------------------------------------ epg
 
