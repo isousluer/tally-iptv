@@ -592,6 +592,20 @@
   "noGuideData": "No guide data for this channel.",
   "now": "Now",
   "upNext": "Up next",
+  "pastPrograms": "Past programs",
+  "pastProgramsOf": "Past programs · {channel}",
+  "@pastProgramsOf": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "noPastPrograms": "No recordings are available for this channel right now.",
+  "backToLive": "Back to live",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "hasArchive": "Past programs available",
   "errNoContent": "This account has no channels, movies or series.",
   "errNoChannelsInM3u": "No channels were found in this playlist. Check that the link points to an M3U file.",
   "errProviderNoGuide": "Your provider doesn't offer a TV guide. You can add a guide (XMLTV) link from the playlist menu.",

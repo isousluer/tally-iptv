@@ -302,6 +302,13 @@ final nowPlayingProvider = FutureProvider<Map<String, EpgProgram>>((ref) async {
 
 /// Now and upcoming programs of a channel: from the stored guide, or straight
 /// from the Xtream server when the provider has no full guide file.
+/// Recorded past programs of a channel, newest first, with their addresses.
+final archiveProvider = FutureProvider.autoDispose.family<List<(EpgProgram, String)>, MediaItem>((ref, channel) async {
+  final p = ref.watch(activePlaylistProvider);
+  if (p == null || !p.isXtream || !channel.hasArchive) return const [];
+  return ref.watch(repositoryProvider).xtreamFor(p).archive(channel);
+});
+
 final scheduleProvider = FutureProvider.autoDispose.family<List<EpgProgram>, MediaItem>((ref, channel) async {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(epgVersionProvider);

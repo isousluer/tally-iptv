@@ -868,6 +868,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get upNext => 'Up next';
 
   @override
+  String get pastPrograms => 'Past programs';
+
+  @override
+  String pastProgramsOf(String channel) {
+    return 'Past programs · $channel';
+  }
+
+  @override
+  String get noPastPrograms => 'No recordings are available for this channel right now.';
+
+  @override
+  String get backToLive => 'Back to live';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get hasArchive => 'Past programs available';
+
+  @override
   String get errNoContent => 'This account has no channels, movies or series.';
 
   @override

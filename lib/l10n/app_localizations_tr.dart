@@ -852,6 +852,29 @@ class AppLocalizationsTr extends AppLocalizations {
   String get upNext => 'Sıradaki';
 
   @override
+  String get pastPrograms => 'Geçmiş yayınlar';
+
+  @override
+  String pastProgramsOf(String channel) {
+    return 'Geçmiş yayınlar · $channel';
+  }
+
+  @override
+  String get noPastPrograms => 'Bu kanalın şu an izlenebilecek kaydı yok.';
+
+  @override
+  String get backToLive => 'Canlıya dön';
+
+  @override
+  String get today => 'Bugün';
+
+  @override
+  String get yesterday => 'Dün';
+
+  @override
+  String get hasArchive => 'Geçmiş yayınlar izlenebilir';
+
+  @override
   String get errNoContent => 'Bu hesapta kanal, film veya dizi yok.';
 
   @override

@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:material_ui/material_ui.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
@@ -77,7 +78,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   final _subs = <StreamSubscription<Object?>>[];
 
-  bool get _isLive => _item.kind == ContentKind.live;
+  bool get _isLive => _item.kind == ContentKind.live && !_req.catchUp;
   bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
   @override
@@ -160,7 +161,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   );
 
   Future<void> _saveProgress() async {
-    if (_isLive) return;
+    if (_isLive || _req.catchUp) return;
     final pos = _player.state.position;
     final dur = _player.state.duration;
     if (dur <= Duration.zero || pos < const Duration(seconds: 5)) return;
@@ -280,6 +281,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   void _switchTo(MediaItem channel, {bool now = false}) {
     if (channel.url == null) return;
     setState(() {
+      // Leaving a recorded program goes back to live TV.
+      if (_req.catchUp) _req = PlayRequest(item: channel, url: channel.url!, siblings: _req.siblings);
       _item = channel;
       _url = channel.url!;
     });
@@ -291,7 +294,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   }
 
   void _pickChannel(MediaItem c) {
-    if (c.key != _item.key) _switchTo(c, now: true);
+    if (c.key != _item.key || _req.catchUp) _switchTo(c, now: true);
   }
 
   /// Lists the channels the viewer came from while the current one keeps
@@ -2032,6 +2035,12 @@ class _InfoPanel extends ConsumerWidget {
             ],
           ),
         ),
+        if (isLive && item.hasArchive)
+          IconButton(
+            tooltip: context.l10n.pastPrograms,
+            onPressed: () => _showArchive(context, request, onPlay),
+            icon: const Icon(Icons.history, color: AppColors.muted),
+          ),
         IconButton(
           tooltip: favorite ? context.l10n.removeFromFavorites : context.l10n.addToFavorites,
           onPressed: () async {
@@ -2043,6 +2052,15 @@ class _InfoPanel extends ConsumerWidget {
       ],
     );
 
+    final backToLive = Align(
+      alignment: Alignment.centerLeft,
+      child: OutlinedButton.icon(
+        onPressed: () => onPickChannel(item),
+        icon: const Icon(Icons.live_tv, size: 18),
+        label: Text(context.l10n.backToLive),
+      ),
+    );
+
     if (isLive && request.siblings.length > 1) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2050,7 +2068,7 @@ class _InfoPanel extends ConsumerWidget {
           Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), child: header),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: _Guide(item: item, compact: true),
+            child: request.catchUp ? backToLive : _Guide(item: item, compact: true),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
@@ -2070,7 +2088,7 @@ class _InfoPanel extends ConsumerWidget {
         header,
         const SizedBox(height: 16),
         switch (item.kind) {
-          ContentKind.live => _Guide(item: item),
+          ContentKind.live => request.catchUp ? backToLive : _Guide(item: item),
           ContentKind.series => VodInfoText(info: null, fallbackPlot: description),
           ContentKind.movie =>
             request.description != null
@@ -2088,6 +2106,97 @@ class _InfoPanel extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// Lists the recorded past programs of the channel in [request]; picking
+/// one plays it from the provider's archive.
+Future<void> _showArchive(BuildContext context, PlayRequest request, ValueChanged<PlayRequest> onPlay) {
+  final channel = request.item;
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (ctx) => SizedBox(
+      height: MediaQuery.sizeOf(ctx).height * 0.7,
+      child: Consumer(
+        builder: (ctx, ref, _) {
+          final t = Theme.of(ctx).textTheme;
+          final l = ctx.l10n;
+          final archive = ref.watch(archiveProvider(channel));
+          final now = DateTime.now();
+          String day(DateTime d) {
+            final days = DateTime(now.year, now.month, now.day).difference(DateTime(d.year, d.month, d.day)).inDays;
+            return days == 0
+                ? l.today
+                : days == 1
+                ? l.yesterday
+                : intl.DateFormat.MMMMEEEEd(l.localeName).format(d);
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(l.pastProgramsOf(channel.name), style: t.titleLarge),
+              ),
+              Expanded(
+                child: archive.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => ErrorState(error: e, onRetry: () => ref.invalidate(archiveProvider(channel))),
+                  data: (list) {
+                    if (list.isEmpty) return EmptyState(icon: Icons.history, title: l.noPastPrograms);
+                    final rows = <Widget>[];
+                    String? lastDay;
+                    for (final (p, url) in list) {
+                      final d = day(p.start);
+                      if (d != lastDay) {
+                        rows.add(
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                            child: Text(d, style: t.titleSmall!.copyWith(color: AppColors.muted)),
+                          ),
+                        );
+                        lastDay = d;
+                      }
+                      rows.add(
+                        ListTile(
+                          leading: Text(
+                            formatTime(p.start),
+                            style: t.labelLarge!.copyWith(color: AppColors.tally, fontFeatures: tabular),
+                          ),
+                          title: Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                          subtitle: p.description == null
+                              ? null
+                              : Text(p.description!, maxLines: 1, overflow: TextOverflow.ellipsis),
+                          trailing: const Icon(Icons.play_arrow, color: AppColors.muted),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            onPlay(
+                              PlayRequest(
+                                item: channel,
+                                url: url,
+                                title: p.title,
+                                subtitle: '${channel.name} · $d ${formatTime(p.start)}',
+                                description: p.description,
+                                historyKey: 'catchup:${channel.key}',
+                                siblings: request.siblings,
+                                catchUp: true,
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }
+                    return ListView(padding: const EdgeInsets.only(bottom: 24), children: rows);
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    ),
+  );
 }
 
 /// The episodes of the playing season, with watch progress. Other seasons

@@ -8,6 +8,9 @@ All notable changes to Tally are listed here. Downloads are on the
 ### Added
 - Turkish. The app follows your device's language, and you can pick English or Turkish yourself under
   Settings → Language.
+- Catch-up for Xtream Codes channels that keep recordings: a clock icon marks them, and the clock button under the
+  player lists past programs to watch, with a Back to live button. Channels show the icon after the playlist's
+  next update.
 - Tally tells you when a new version is out on GitHub, once per version. You can turn this off or check by hand
   under Settings → About.
 

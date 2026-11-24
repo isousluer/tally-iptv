@@ -165,6 +165,14 @@ class ChannelRow extends StatelessWidget {
                         Expanded(
                           child: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleSmall),
                         ),
+                        if (channel.hasArchive)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Tooltip(
+                              message: context.l10n.hasArchive,
+                              child: const Icon(Icons.history, size: 15, color: AppColors.muted),
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 3),

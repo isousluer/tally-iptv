@@ -88,6 +88,7 @@ class XtreamClient {
           url: '$server/live/$_u/$_p/$id.ts',
           tvgId: _str(s['epg_channel_id']),
           number: int.tryParse('${s['num']}'),
+          archiveDays: '${s['tv_archive']}' == '1' ? int.tryParse('${s['tv_archive_duration']}') : null,
         ),
       );
     }
@@ -191,6 +192,62 @@ class XtreamClient {
   Future<List<EpgProgram>> shortEpg(MediaItem channel, {int limit = 12}) async {
     final id = channel.key.split(':').last;
     final data = await _get({'action': 'get_short_epg', 'stream_id': id, 'limit': '$limit'});
+    return [for (final (program, _) in _listings(data, channel)) program];
+  }
+
+  /// Past programs of [channel] that the provider has recorded, newest
+  /// first, each with the address that plays it.
+  Future<List<(EpgProgram, String)>> archive(MediaItem channel, {DateTime? now}) async {
+    final id = channel.key.split(':').last;
+    final at = now ?? DateTime.now();
+    final oldest = at.subtract(Duration(days: channel.archiveDays ?? 0));
+    final data = await _get({'action': 'get_simple_data_table', 'stream_id': id});
+    final offset = await _serverOffset();
+    return [
+      for (final (program, archived) in _listings(data, channel).reversed)
+        if (archived != false && !program.stop.isAfter(at) && program.start.isAfter(oldest))
+          (program, timeshiftUrl(id, program, offset)),
+    ];
+  }
+
+  /// Address of a recorded program. Xtream servers expect the start in their
+  /// own time zone, so [serverOffset] is the server's offset from UTC.
+  String timeshiftUrl(String streamId, EpgProgram program, Duration serverOffset) {
+    final s = program.start.toUtc().add(serverOffset);
+    String two(int n) => n.toString().padLeft(2, '0');
+    final stamp = '${s.year}-${two(s.month)}-${two(s.day)}:${two(s.hour)}-${two(s.minute)}';
+    final minutes = (program.stop.difference(program.start).inSeconds / 60).ceil();
+    return '$server/timeshift/$_u/$_p/$minutes/$stamp/$streamId.ts';
+  }
+
+  static final _offsets = <String, Duration>{};
+
+  /// The server's offset from UTC, from the clock it reports at login.
+  /// Falls back to this device's offset.
+  Future<Duration> _serverOffset() async {
+    final cached = _offsets[server];
+    if (cached != null) return cached;
+    var offset = DateTime.now().timeZoneOffset;
+    try {
+      final data = await _get({});
+      final info = data is Map ? data['server_info'] : null;
+      if (info is Map) {
+        final wall = DateTime.tryParse('${'${info['time_now']}'.replaceFirst(' ', 'T')}Z');
+        final ts = int.tryParse('${info['timestamp_now']}');
+        if (wall != null && ts != null) {
+          final diff = wall.difference(DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true));
+          // Round to whole quarter hours; the two clocks are read a moment apart.
+          offset = Duration(minutes: (diff.inSeconds / 900).round() * 15);
+        }
+      }
+    } catch (_) {}
+    return _offsets[server] = offset;
+  }
+
+  /// Programs in an `epg_listings` answer, oldest first, with the server's
+  /// `has_archive` flag when it sends one.
+  List<(EpgProgram, bool?)> _listings(dynamic data, MediaItem channel) {
+    final id = channel.key.split(':').last;
     final list = data is Map && data['epg_listings'] is List ? data['epg_listings'] as List : const [];
     String? decode(dynamic v) {
       final s = _str(v);
@@ -209,13 +266,14 @@ class XtreamClient {
       return text == null ? null : DateTime.tryParse(text);
     }
 
-    final out = <EpgProgram>[];
+    final out = <(EpgProgram, bool?)>[];
     for (final m in list.whereType<Map>()) {
       final start = time(m, 'start_timestamp', 'start');
       final stop = time(m, 'stop_timestamp', 'end');
       final title = decode(m['title']);
       if (start == null || stop == null || title == null) continue;
-      out.add(
+      final flag = m['has_archive'];
+      out.add((
         EpgProgram(
           channelId: channel.tvgId ?? id,
           start: start,
@@ -223,9 +281,10 @@ class XtreamClient {
           title: title,
           description: decode(m['description']),
         ),
-      );
+        flag == null ? null : '$flag' == '1',
+      ));
     }
-    return out..sort((a, b) => a.start.compareTo(b.start));
+    return out..sort((a, b) => a.$1.start.compareTo(b.$1.start));
   }
 
   /// Full details of one movie. The movie list doesn't include plots.

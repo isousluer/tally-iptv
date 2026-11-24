@@ -25,7 +25,7 @@ class AppDatabase {
     final db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 2,
+        version: 3,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
@@ -35,6 +35,7 @@ class AppDatabase {
         },
         onUpgrade: (db, from, _) async {
           if (from < 2) await _createGroupPrefs(db);
+          if (from < 3) await db.execute('ALTER TABLE items ADD COLUMN archive_days INTEGER');
         },
       ),
     );
@@ -60,7 +61,8 @@ class AppDatabase {
         name TEXT NOT NULL,
         grp TEXT NOT NULL DEFAULT '',
         logo TEXT, url TEXT, tvg_id TEXT, num INTEGER,
-        rating TEXT, year TEXT, plot TEXT
+        rating TEXT, year TEXT, plot TEXT,
+        archive_days INTEGER
       )''');
     await db.execute('CREATE INDEX idx_items_browse ON items(playlist_id, kind, grp)');
     await db.execute('CREATE UNIQUE INDEX idx_items_key ON items(playlist_id, ukey)');

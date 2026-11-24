@@ -1544,6 +1544,48 @@ abstract class AppLocalizations {
   /// **'Up next'**
   String get upNext;
 
+  /// No description provided for @pastPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'Past programs'**
+  String get pastPrograms;
+
+  /// No description provided for @pastProgramsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Past programs · {channel}'**
+  String pastProgramsOf(String channel);
+
+  /// No description provided for @noPastPrograms.
+  ///
+  /// In en, this message translates to:
+  /// **'No recordings are available for this channel right now.'**
+  String get noPastPrograms;
+
+  /// No description provided for @backToLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to live'**
+  String get backToLive;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @hasArchive.
+  ///
+  /// In en, this message translates to:
+  /// **'Past programs available'**
+  String get hasArchive;
+
   /// No description provided for @errNoContent.
   ///
   /// In en, this message translates to:

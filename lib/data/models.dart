@@ -95,6 +95,7 @@ class MediaItem {
     this.year,
     this.plot,
     this.favorite = false,
+    this.archiveDays,
   });
 
   final int id;
@@ -116,6 +117,10 @@ class MediaItem {
   final String? plot;
   final bool favorite;
 
+  /// Live channels whose provider keeps recordings: how many days back.
+  final int? archiveDays;
+  bool get hasArchive => (archiveDays ?? 0) > 0;
+
   Map<String, Object?> toRow() => {
     'playlist_id': playlistId,
     'kind': kind.dbValue,
@@ -129,6 +134,7 @@ class MediaItem {
     'rating': rating,
     'year': year,
     'plot': plot,
+    'archive_days': archiveDays,
   };
 
   factory MediaItem.fromRow(Map<String, Object?> r) => MediaItem(
@@ -146,6 +152,7 @@ class MediaItem {
     year: r['year'] as String?,
     plot: r['plot'] as String?,
     favorite: (r['fav'] as int? ?? 0) == 1,
+    archiveDays: r['archive_days'] as int?,
   );
 
   /// Identity is the playlist + stable key, so providers keyed by an item
@@ -171,6 +178,7 @@ class MediaItem {
     year: year,
     plot: plot,
     favorite: favorite ?? this.favorite,
+    archiveDays: archiveDays,
   );
 }
 
@@ -313,6 +321,7 @@ class PlayRequest {
     this.siblings = const [],
     this.description,
     this.upNext = const [],
+    this.catchUp = false,
   });
 
   /// Episodes that follow this one, played automatically in order.
@@ -328,6 +337,7 @@ class PlayRequest {
     siblings: siblings,
     description: description,
     upNext: upNext ?? this.upNext,
+    catchUp: catchUp,
   );
 
   final MediaItem item;
@@ -345,5 +355,8 @@ class PlayRequest {
   /// Channels the user can zap between (live only).
   final List<MediaItem> siblings;
 
-  bool get isLive => item.kind == ContentKind.live;
+  /// A past program of a live channel, played from the provider's archive.
+  final bool catchUp;
+
+  bool get isLive => item.kind == ContentKind.live && !catchUp;
 }
