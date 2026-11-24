@@ -6,6 +6,8 @@ All notable changes to Tally are listed here. Downloads are on the
 ## Unreleased
 
 ### Fixed
+- The universal APK of 0.1.2 wouldn't install over an earlier per-device APK ("package appears to be invalid").
+  Every APK now carries the same, higher version number, so updates install whichever file you pick.
 - The Download button on the new version notice, and other buttons on pop-up messages, were dark on a dark
   background. They are yellow now.
 
