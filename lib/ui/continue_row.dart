@@ -77,7 +77,7 @@ class ContinueRow extends ConsumerWidget {
                       const SizedBox(height: 6),
                       Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.labelMedium),
                       Text(
-                        context.l10n.timeLeft(formatDuration(left)),
+                        context.l10n.timeLeft(formatTimeLeft(left)),
                         style: t.labelSmall!.copyWith(color: AppColors.tally),
                       ),
                     ],

@@ -11,6 +11,9 @@ All notable changes to Tally are listed here. Downloads are on the
 - On tablets, the player's side panel no longer sits under the status bar, and the ends of lists stay clear of
   the navigation buttons.
 - Series pages keep a readable width on tablets, with a larger poster.
+- Back in full screen leaves full screen instead of closing the player.
+- When a stream can't play, the play buttons no longer cover the message and its Try again button.
+- The guide says "1 min left" in a program's last minute instead of "0 min left".
 
 ## 0.1.5 (2026-11-24)
 

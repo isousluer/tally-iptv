@@ -301,6 +301,10 @@ String formatDuration(Duration d) {
   return strings.durationMinutes(m);
 }
 
+/// Time left, rounded up to the minute, so the last minute reads "1 min"
+/// rather than "0 min".
+String formatTimeLeft(Duration d) => formatDuration(Duration(minutes: (d.inSeconds / 60).ceil()));
+
 /// Playback position like `0:12`, `12:05` or `1:05:30`.
 String formatClock(Duration d) {
   final h = d.inHours;

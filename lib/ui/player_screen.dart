@@ -296,6 +296,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (d == null) return;
     _sleepTimer = Timer(d, () async {
       await _player.pause();
+      if (!mounted) return;
+      // Back would only leave full screen, so do that first.
+      if (_fullscreen && !Device.isTv) {
+        await _setFullscreen(false);
+        await WidgetsBinding.instance.endOfFrame;
+      }
       if (mounted) Navigator.of(context).maybePop();
     });
   }
@@ -724,11 +730,19 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       );
     }
 
-    return Focus(
-      focusNode: _keys,
-      autofocus: true,
-      onKeyEvent: _onKey,
-      child: Scaffold(backgroundColor: videoOnly ? Colors.black : AppColors.canvas, body: body),
+    // Back leaves full screen first, like the back button on the video.
+    final leaveFullscreenFirst = _fullscreen && !Device.isTv;
+    return PopScope(
+      canPop: !leaveFullscreenFirst,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && leaveFullscreenFirst) _setFullscreen(false);
+      },
+      child: Focus(
+        focusNode: _keys,
+        autofocus: true,
+        onKeyEvent: _onKey,
+        child: Scaffold(backgroundColor: videoOnly ? Colors.black : AppColors.canvas, body: body),
+      ),
     );
   }
 }
@@ -854,6 +868,7 @@ class _VideoSurface extends StatelessWidget {
             duration: const Duration(milliseconds: 180),
             child: _Controls(
               player: player,
+              hasError: error != null,
               title: title,
               subtitle: subtitle,
               isLive: isLive,
@@ -1501,6 +1516,7 @@ String formatDelay(double seconds) => intl.NumberFormat('0.0#', intl.Intl.defaul
 class _Controls extends StatelessWidget {
   const _Controls({
     required this.player,
+    this.hasError = false,
     required this.title,
     required this.subtitle,
     required this.isLive,
@@ -1528,6 +1544,9 @@ class _Controls extends StatelessWidget {
   final MediaItem? lastChannel;
   final VoidCallback onLastChannel;
   final Player player;
+
+  /// Hides the play buttons so they don't cover the error message.
+  final bool hasError;
   final String title;
   final String? subtitle;
   final bool isLive;
@@ -1596,69 +1615,72 @@ class _Controls extends StatelessWidget {
                 ],
               ),
               Expanded(
-                child: Center(
-                  child: StreamBuilder<bool>(
-                    stream: player.stream.playing,
-                    initialData: player.state.playing,
-                    builder: (_, s) {
-                      final playing = s.data ?? false;
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Live TV can't be rewound; the side buttons change
-                          // channel instead.
-                          if (onPrevChannel != null)
-                            _RoundButton(
-                              icon: Icons.skip_previous,
-                              tooltip: context.l10n.previousChannel,
-                              onPressed: () {
-                                onPrevChannel!();
-                                onInteract();
-                              },
-                            ),
-                          if (!isLive)
-                            _RoundButton(
-                              icon: Icons.replay_10,
-                              tooltip: context.l10n.back10,
-                              onPressed: () {
-                                player.seek(player.state.position - const Duration(seconds: 10));
-                                onInteract();
-                              },
-                            ),
-                          const SizedBox(width: 20),
-                          _RoundButton(
-                            icon: playing ? Icons.pause : Icons.play_arrow,
-                            tooltip: playing ? context.l10n.pause : context.l10n.play,
-                            big: true,
-                            onPressed: () {
-                              player.playOrPause();
-                              onInteract();
-                            },
-                          ),
-                          const SizedBox(width: 20),
-                          if (!isLive)
-                            _RoundButton(
-                              icon: Icons.forward_10,
-                              tooltip: context.l10n.forward10,
-                              onPressed: () {
-                                player.seek(player.state.position + const Duration(seconds: 10));
-                                onInteract();
-                              },
-                            ),
-                          if (onNextChannel != null)
-                            _RoundButton(
-                              icon: Icons.skip_next,
-                              tooltip: context.l10n.nextChannel,
-                              onPressed: () {
-                                onNextChannel!();
-                                onInteract();
-                              },
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
+                // The error message and its buttons sit here instead.
+                child: hasError
+                    ? const SizedBox.shrink()
+                    : Center(
+                        child: StreamBuilder<bool>(
+                          stream: player.stream.playing,
+                          initialData: player.state.playing,
+                          builder: (_, s) {
+                            final playing = s.data ?? false;
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Live TV can't be rewound; the side buttons change
+                                // channel instead.
+                                if (onPrevChannel != null)
+                                  _RoundButton(
+                                    icon: Icons.skip_previous,
+                                    tooltip: context.l10n.previousChannel,
+                                    onPressed: () {
+                                      onPrevChannel!();
+                                      onInteract();
+                                    },
+                                  ),
+                                if (!isLive)
+                                  _RoundButton(
+                                    icon: Icons.replay_10,
+                                    tooltip: context.l10n.back10,
+                                    onPressed: () {
+                                      player.seek(player.state.position - const Duration(seconds: 10));
+                                      onInteract();
+                                    },
+                                  ),
+                                const SizedBox(width: 20),
+                                _RoundButton(
+                                  icon: playing ? Icons.pause : Icons.play_arrow,
+                                  tooltip: playing ? context.l10n.pause : context.l10n.play,
+                                  big: true,
+                                  onPressed: () {
+                                    player.playOrPause();
+                                    onInteract();
+                                  },
+                                ),
+                                const SizedBox(width: 20),
+                                if (!isLive)
+                                  _RoundButton(
+                                    icon: Icons.forward_10,
+                                    tooltip: context.l10n.forward10,
+                                    onPressed: () {
+                                      player.seek(player.state.position + const Duration(seconds: 10));
+                                      onInteract();
+                                    },
+                                  ),
+                                if (onNextChannel != null)
+                                  _RoundButton(
+                                    icon: Icons.skip_next,
+                                    tooltip: context.l10n.nextChannel,
+                                    onPressed: () {
+                                      onNextChannel!();
+                                      onInteract();
+                                    },
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 4, 4),
@@ -2813,7 +2835,7 @@ class _Guide extends ConsumerWidget {
                         ),
                         const Spacer(),
                         Text(
-                          context.l10n.timeLeft(formatDuration(current.stop.difference(now))),
+                          context.l10n.timeLeft(formatTimeLeft(current.stop.difference(now))),
                           style: t.labelMedium!.copyWith(color: AppColors.muted),
                         ),
                       ],
