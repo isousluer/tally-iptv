@@ -817,6 +817,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextChannel => 'Next channel';
 
   @override
+  String get streamInfo => 'Stream info';
+
+  @override
+  String get streamInfoHint => 'Resolution, codecs and bitrate over the video. I key on a keyboard.';
+
+  @override
+  String get infoVideo => 'Video';
+
+  @override
+  String get infoBitrate => 'Bitrate';
+
+  @override
+  String get infoBuffer => 'Buffer';
+
+  @override
+  String get infoDecoder => 'Decoder';
+
+  @override
+  String get infoHardware => 'hardware';
+
+  @override
+  String get infoSoftware => 'software';
+
+  @override
   String backToChannel(String channel) {
     return 'Back to $channel';
   }

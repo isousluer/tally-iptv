@@ -1454,6 +1454,54 @@ abstract class AppLocalizations {
   /// **'Next channel'**
   String get nextChannel;
 
+  /// No description provided for @streamInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream info'**
+  String get streamInfo;
+
+  /// No description provided for @streamInfoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution, codecs and bitrate over the video. I key on a keyboard.'**
+  String get streamInfoHint;
+
+  /// No description provided for @infoVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get infoVideo;
+
+  /// No description provided for @infoBitrate.
+  ///
+  /// In en, this message translates to:
+  /// **'Bitrate'**
+  String get infoBitrate;
+
+  /// No description provided for @infoBuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffer'**
+  String get infoBuffer;
+
+  /// No description provided for @infoDecoder.
+  ///
+  /// In en, this message translates to:
+  /// **'Decoder'**
+  String get infoDecoder;
+
+  /// No description provided for @infoHardware.
+  ///
+  /// In en, this message translates to:
+  /// **'hardware'**
+  String get infoHardware;
+
+  /// No description provided for @infoSoftware.
+  ///
+  /// In en, this message translates to:
+  /// **'software'**
+  String get infoSoftware;
+
   /// No description provided for @backToChannel.
   ///
   /// In en, this message translates to:

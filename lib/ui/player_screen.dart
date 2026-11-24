@@ -63,6 +63,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Timer? _zapTimer;
   final _keys = FocusNode(debugLabel: 'player keys');
 
+  /// Technical details shown over the video.
+  bool _streamInfo = false;
+
   /// Live TV: the channel watched before this one, for jumping back and forth.
   MediaItem? _previous;
 
@@ -447,6 +450,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         },
         onSleep: _setSleep,
         onPip: Device.enterPip,
+        streamInfo: _streamInfo,
+        onStreamInfo: (v) => setState(() => _streamInfo = v),
       ),
     ).then((_) => _takeKeys());
   }
@@ -558,6 +563,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _setFullscreen(false);
     } else if (k == LogicalKeyboardKey.contextMenu || k == LogicalKeyboardKey.keyM) {
       _showOptions();
+    } else if (k == LogicalKeyboardKey.keyI || k == LogicalKeyboardKey.info) {
+      setState(() => _streamInfo = !_streamInfo);
     } else if (_isLive && (k == LogicalKeyboardKey.mediaLast || k == LogicalKeyboardKey.keyB)) {
       _lastChannel();
       return KeyEventResult.handled;
@@ -625,6 +632,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       onChannels: _canZap && videoOnly ? _showChannelList : null,
       lastChannel: _isLive ? _previous : null,
       onLastChannel: _lastChannel,
+      infoCard: _streamInfo ? _StreamInfo(player: _player) : null,
       // The small player has the same details right below it.
       channelCard: _isLive && _banner && videoOnly ? _ChannelCard(item: _item) : null,
       digitsCard: _digits.isEmpty ? null : _DigitsCard(digits: _digits, missing: _digitsMissing),
@@ -709,6 +717,7 @@ class _VideoSurface extends StatelessWidget {
     required this.onChannels,
     required this.lastChannel,
     required this.onLastChannel,
+    required this.infoCard,
     required this.channelCard,
     required this.digitsCard,
     required this.nextCard,
@@ -719,6 +728,7 @@ class _VideoSurface extends StatelessWidget {
   final VoidCallback? onChannels;
   final MediaItem? lastChannel;
   final VoidCallback onLastChannel;
+  final Widget? infoCard;
   final Widget? channelCard;
   final Widget? digitsCard;
   final VideoController video;
@@ -816,6 +826,7 @@ class _VideoSurface extends StatelessWidget {
               child: Align(alignment: Alignment.bottomLeft, child: channelCard!),
             ),
           ),
+        if (infoCard != null) Positioned(top: 60, left: 12, child: IgnorePointer(child: infoCard!)),
         if (digitsCard != null) Positioned(top: 12, right: 16, child: IgnorePointer(child: digitsCard!)),
         if (nextCard != null) Positioned(right: 12, bottom: 56, child: nextCard!),
       ],
@@ -1168,8 +1179,12 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     required this.onRate,
     required this.onSleep,
     required this.onPip,
+    required this.streamInfo,
+    required this.onStreamInfo,
   });
   final bool isLive;
+  final bool streamInfo;
+  final ValueChanged<bool> onStreamInfo;
 
   /// The video sits in a 16:9 box above the details, where size choices
   /// rarely make a visible difference.
@@ -1188,6 +1203,7 @@ class _OptionsSheet extends ConsumerStatefulWidget {
 class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
   late double _rate = widget.rate;
   late DateTime? _sleepAt = widget.sleepAt;
+  late bool _streamInfo = widget.streamInfo;
 
   static const _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   static const _sleeps = [15, 30, 45, 60, 90, 120];
@@ -1279,6 +1295,16 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
               (m) {
                 widget.onSleep(m == null ? null : Duration(minutes: m));
                 setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
+              },
+            ),
+            SwitchListTile(
+              secondary: const Icon(Icons.info_outline),
+              title: Text(l.streamInfo),
+              subtitle: Text(l.streamInfoHint),
+              value: _streamInfo,
+              onChanged: (v) {
+                setState(() => _streamInfo = v);
+                widget.onStreamInfo(v);
               },
             ),
             if (widget.pipSupported)
@@ -1773,6 +1799,126 @@ class _FittedVideo extends StatelessWidget {
       VideoFit.stretch => BoxFit.fill,
     },
   );
+}
+
+/// Technical details of what is playing, read from mpv once a second.
+class _StreamInfo extends StatefulWidget {
+  const _StreamInfo({required this.player});
+  final Player player;
+
+  @override
+  State<_StreamInfo> createState() => _StreamInfoState();
+}
+
+class _StreamInfoState extends State<_StreamInfo> {
+  Timer? _timer;
+  Map<String, String> _p = const {};
+
+  static const _props = [
+    'video-format',
+    'video-codec',
+    'estimated-vf-fps',
+    'container-fps',
+    'video-bitrate',
+    'audio-codec-name',
+    'audio-params/channel-count',
+    'audio-params/samplerate',
+    'audio-bitrate',
+    'demuxer-cache-duration',
+    'hwdec-current',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _read();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _read());
+  }
+
+  Future<void> _read() async {
+    final native = widget.player.platform;
+    if (native is! NativePlayer) return;
+    final values = <String, String>{};
+    for (final p in _props) {
+      try {
+        final v = await native.getProperty(p);
+        if (v.isNotEmpty) values[p] = v;
+      } catch (_) {}
+    }
+    if (mounted) setState(() => _p = values);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  static String _bitrate(String? bps) {
+    final v = double.tryParse(bps ?? '');
+    if (v == null || v <= 0) return '–';
+    return v >= 1e6 ? '${(v / 1e6).toStringAsFixed(1)} Mbps' : '${(v / 1e3).round()} kbps';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final s = widget.player.state;
+    String? codec(String? short, String? long) => (short ?? long?.split(' ').first)?.toUpperCase();
+    final fps = double.tryParse(_p['estimated-vf-fps'] ?? _p['container-fps'] ?? '');
+    final hw = _p['hwdec-current'];
+    final rate = int.tryParse(_p['audio-params/samplerate'] ?? '');
+    final rows = <(String, String)>[
+      (
+        l.infoVideo,
+        [
+          if (s.width != null && s.height != null) '${s.width}×${s.height}',
+          if (fps != null && fps > 0) '${fps.toStringAsFixed(fps % 1 == 0 ? 0 : 2)} fps',
+          ?codec(_p['video-format'], _p['video-codec']),
+        ].join(' · '),
+      ),
+      (
+        l.audio,
+        [
+          ?codec(_p['audio-codec-name'], null),
+          if (_p['audio-params/channel-count'] != null)
+            _TracksButtons._channels(int.tryParse(_p['audio-params/channel-count']!)),
+          if (rate != null) '${(rate / 1000).toStringAsFixed(rate % 1000 == 0 ? 0 : 1)} kHz',
+        ].where((x) => x.isNotEmpty).join(' · '),
+      ),
+      (l.infoBitrate, '${_bitrate(_p['video-bitrate'])} + ${_bitrate(_p['audio-bitrate'])}'),
+      (l.infoBuffer, '${(double.tryParse(_p['demuxer-cache-duration'] ?? '') ?? 0).toStringAsFixed(1)} s'),
+      (l.infoDecoder, hw == null || hw == 'no' ? l.infoSoftware : '${l.infoHardware} ($hw)'),
+    ];
+    final t = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(color: const Color(0xC0000000), borderRadius: BorderRadius.circular(8)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final (label, value) in rows)
+            if (value.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 1),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: '$label  ',
+                        style: const TextStyle(color: AppColors.tally),
+                      ),
+                      TextSpan(text: value),
+                    ],
+                  ),
+                  style: t.labelSmall!.copyWith(color: Colors.white, fontFeatures: tabular),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Whether two language codes ("tr", "tur", "Turkish") mean the same language.

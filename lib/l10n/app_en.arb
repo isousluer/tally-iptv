@@ -556,6 +556,14 @@
   "playerOptions": "Player options",
   "previousChannel": "Previous channel",
   "nextChannel": "Next channel",
+  "streamInfo": "Stream info",
+  "streamInfoHint": "Resolution, codecs and bitrate over the video. I key on a keyboard.",
+  "infoVideo": "Video",
+  "infoBitrate": "Bitrate",
+  "infoBuffer": "Buffer",
+  "infoDecoder": "Decoder",
+  "infoHardware": "hardware",
+  "infoSoftware": "software",
   "backToChannel": "Back to {channel}",
   "@backToChannel": {
     "placeholders": {

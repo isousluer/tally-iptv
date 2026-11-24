@@ -801,6 +801,30 @@ class AppLocalizationsTr extends AppLocalizations {
   String get nextChannel => 'Sonraki kanal';
 
   @override
+  String get streamInfo => 'Yayın bilgisi';
+
+  @override
+  String get streamInfoHint => 'Çözünürlük, codec ve bit hızı görüntünün üstünde. Klavyede I tuşu.';
+
+  @override
+  String get infoVideo => 'Görüntü';
+
+  @override
+  String get infoBitrate => 'Bit hızı';
+
+  @override
+  String get infoBuffer => 'Tampon';
+
+  @override
+  String get infoDecoder => 'Kod çözücü';
+
+  @override
+  String get infoHardware => 'donanım';
+
+  @override
+  String get infoSoftware => 'yazılım';
+
+  @override
   String backToChannel(String channel) {
     return '$channel kanalına dön';
   }

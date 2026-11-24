@@ -58,7 +58,7 @@ with a TV guide, favorites and playback that picks up where you left off.
 - Choose audio and subtitle tracks; your language choice is remembered
 - Swipe up and down for brightness (left) and volume (right), double-tap for full screen
 - Picture-in-picture on Android, sleep timer and playback speed
-- Keyboard and remote keys: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek, number keys jump to a channel, `B` (or the remote's Last key) goes back to the previous channel
+- Keyboard and remote keys: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek, number keys jump to a channel, `B` (or the remote's Last key) goes back to the previous channel, `I` shows stream info
 
 ### Your data
 - **Parental lock**: lock categories behind a PIN

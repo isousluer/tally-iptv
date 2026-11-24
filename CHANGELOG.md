@@ -13,6 +13,8 @@ All notable changes to Tally are listed here. Downloads are on the
   next update.
 - Last channel: a button in the player (and `B` or a remote's Last key) jumps back to the channel you watched
   before, and pressing it again comes back.
+- Stream info in the player options (or `I` / a remote's Info key): resolution, frame rate, codecs, bitrate,
+  buffer and whether the hardware decoder is in use.
 - Tally tells you when a new version is out on GitHub, once per version. You can turn this off or check by hand
   under Settings → About.
 
