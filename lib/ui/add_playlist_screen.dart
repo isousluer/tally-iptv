@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../data/models.dart';
 import '../data/repository.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'loading_view.dart';
 import 'theme.dart';
@@ -49,7 +50,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
 
   Future<void> _pickFile() async {
     final file = await FilePicker.pickFile(
-      dialogTitle: 'Choose an M3U playlist',
+      dialogTitle: context.l10n.chooseM3uPlaylist,
       type: FileType.custom,
       allowedExtensions: const ['m3u', 'm3u8', 'txt'],
     );
@@ -70,7 +71,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
   Future<void> _submit() async {
     if (!_form.currentState!.validate()) return;
     if (_type == SourceType.m3uFile && _filePath == null) {
-      setState(() => _error = 'Choose a playlist file first.');
+      setState(() => _error = context.l10n.chooseFileFirst);
       return;
     }
     setState(() {
@@ -114,25 +115,26 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
 
   String _defaultName() => switch (_type) {
     SourceType.xtream => Uri.tryParse(_server.text.trim())?.host ?? 'Xtream',
-    SourceType.m3uUrl => Uri.tryParse(_url.text.trim())?.host ?? 'Playlist',
-    SourceType.m3uFile => _fileName ?? 'Playlist',
+    SourceType.m3uUrl => Uri.tryParse(_url.text.trim())?.host ?? context.l10n.defaultPlaylistName,
+    SourceType.m3uFile => _fileName ?? context.l10n.defaultPlaylistName,
   };
 
-  String? _required(String? v) => (v == null || v.trim().isEmpty) ? 'Required' : null;
+  String? _required(String? v) => (v == null || v.trim().isEmpty) ? context.l10n.required : null;
 
   String? _validUrl(String? v) {
-    if (_required(v) != null) return 'Required';
+    if (_required(v) != null) return context.l10n.required;
     final s = v!.trim();
     final uri = Uri.tryParse(s.contains('://') ? s : 'http://$s');
-    return (uri == null || uri.host.isEmpty) ? 'Enter a valid address' : null;
+    return (uri == null || uri.host.isEmpty) ? context.l10n.enterValidAddress : null;
   }
 
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l = context.l10n;
     if (_busy) return LoadingPlaylistView(name: _name.text.trim(), progress: _progress);
     return Scaffold(
-      appBar: widget.firstRun ? null : AppBar(title: const Text('Add playlist')),
+      appBar: widget.firstRun ? null : AppBar(title: Text(l.addPlaylist)),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -155,21 +157,17 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                       ],
                     ),
                     const SizedBox(height: 28),
-                    Text('Add your playlist', style: t.headlineLarge),
+                    Text(l.addYourPlaylist, style: t.headlineLarge),
                     const SizedBox(height: 8),
                   ],
-                  Text(
-                    'Your playlist stays on this device. Tally doesn\'t provide any channels. '
-                    'Use a playlist from your TV provider.',
-                    style: t.bodyMedium!.copyWith(color: AppColors.muted),
-                  ),
+                  Text(l.playlistStaysHere, style: t.bodyMedium!.copyWith(color: AppColors.muted)),
                   const SizedBox(height: 22),
                   SegmentedButton<SourceType>(
                     showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(value: SourceType.m3uUrl, label: Text('M3U link')),
-                      ButtonSegment(value: SourceType.m3uFile, label: Text('M3U file')),
-                      ButtonSegment(value: SourceType.xtream, label: Text('Xtream Codes')),
+                    segments: [
+                      ButtonSegment(value: SourceType.m3uUrl, label: Text(l.m3uLink)),
+                      ButtonSegment(value: SourceType.m3uFile, label: Text(l.m3uFile)),
+                      const ButtonSegment(value: SourceType.xtream, label: Text('Xtream Codes')),
                     ],
                     selected: {_type},
                     onSelectionChanged: (s) => setState(() {
@@ -179,11 +177,11 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                   ),
                   const SizedBox(height: 22),
                   _Field(
-                    label: 'Playlist name',
+                    label: l.playlistName,
                     child: TextFormField(
                       controller: _name,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(hintText: 'Home'),
+                      decoration: InputDecoration(hintText: l.playlistNameHint),
                     ),
                   ),
                   ..._sourceFields(t),
@@ -197,7 +195,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                         children: [
                           const Icon(Icons.tune, size: 20, color: AppColors.muted),
                           const SizedBox(width: 10),
-                          Expanded(child: Text('Advanced', style: t.titleSmall)),
+                          Expanded(child: Text(l.advanced, style: t.titleSmall)),
                           Icon(_showAdvanced ? Icons.expand_less : Icons.expand_more, color: AppColors.muted),
                         ],
                       ),
@@ -205,10 +203,8 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                   ),
                   if (_showAdvanced)
                     _Field(
-                      label: 'TV guide (XMLTV) link',
-                      help: _type == SourceType.xtream
-                          ? 'Leave empty to use the guide from your Xtream server.'
-                          : 'Leave empty to use the guide named in the playlist, if any.',
+                      label: l.guideLinkField,
+                      help: _type == SourceType.xtream ? l.guideHelpXtream : l.guideHelpM3u,
                       child: TextFormField(
                         controller: _epg,
                         keyboardType: TextInputType.url,
@@ -236,12 +232,12 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.onTally),
                           )
-                        : const Text('Add playlist'),
+                        : Text(l.addPlaylist),
                   ),
                   if (_busy) ...[
                     const SizedBox(height: 10),
                     Text(
-                      'Loading channels. Large playlists can take a minute.',
+                      l.loadingChannelsHint,
                       textAlign: TextAlign.center,
                       style: t.bodySmall!.copyWith(color: AppColors.muted),
                     ),
@@ -256,11 +252,12 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
   }
 
   List<Widget> _sourceFields(TextTheme t) {
+    final l = context.l10n;
     switch (_type) {
       case SourceType.m3uUrl:
         return [
           _Field(
-            label: 'Playlist link',
+            label: l.playlistLink,
             child: TextFormField(
               controller: _url,
               keyboardType: TextInputType.url,
@@ -272,19 +269,19 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
       case SourceType.m3uFile:
         return [
           _Field(
-            label: 'Playlist file',
+            label: l.playlistFile,
             child: OutlinedButton.icon(
               onPressed: _pickFile,
               style: OutlinedButton.styleFrom(alignment: Alignment.centerLeft),
               icon: const Icon(Icons.folder_open_outlined),
-              label: Text(_fileName ?? 'Choose .m3u file', overflow: TextOverflow.ellipsis),
+              label: Text(_fileName ?? l.chooseM3uFile, overflow: TextOverflow.ellipsis),
             ),
           ),
         ];
       case SourceType.xtream:
         return [
           _Field(
-            label: 'Server URL',
+            label: l.serverUrl,
             child: TextFormField(
               controller: _server,
               keyboardType: TextInputType.url,
@@ -294,7 +291,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
             ),
           ),
           _Field(
-            label: 'Username',
+            label: l.username,
             child: TextFormField(
               controller: _user,
               validator: _required,
@@ -303,7 +300,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
             ),
           ),
           _Field(
-            label: 'Password',
+            label: l.password,
             child: TextFormField(
               controller: _pass,
               validator: _required,
@@ -313,7 +310,7 @@ class _AddPlaylistScreenState extends ConsumerState<AddPlaylistScreen> {
               onFieldSubmitted: (_) => _submit(),
               decoration: InputDecoration(
                 suffixIcon: IconButton(
-                  tooltip: _showPassword ? 'Hide password' : 'Show password',
+                  tooltip: _showPassword ? l.hidePassword : l.showPassword,
                   onPressed: () => setState(() => _showPassword = !_showPassword),
                   icon: Icon(_showPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                 ),

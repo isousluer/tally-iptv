@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../l10n/strings.dart';
 import 'models.dart';
 
 class XtreamException implements Exception {
@@ -42,12 +43,12 @@ class XtreamClient {
     // Large libraries (50k+ movies) can take a while to generate server-side.
     final res = await _http.get(uri).timeout(const Duration(seconds: 180));
     if (res.statusCode != 200) {
-      throw XtreamException('Server responded with ${res.statusCode}.');
+      throw XtreamException(strings.errHttpStatus(res.statusCode));
     }
     try {
       return jsonDecode(utf8.decode(res.bodyBytes, allowMalformed: true));
     } on FormatException {
-      throw XtreamException('The server did not return valid Xtream data.');
+      throw XtreamException(strings.errInvalidXtream);
     }
   }
 
@@ -56,11 +57,11 @@ class XtreamClient {
     final data = await _get({});
     final info = data is Map ? data['user_info'] : null;
     if (info is! Map || '${info['auth']}' != '1') {
-      throw XtreamException('Username or password was rejected by the server.');
+      throw XtreamException(strings.errLoginRejected);
     }
     final status = '${info['status'] ?? ''}'.toLowerCase();
     if (status.isNotEmpty && status != 'active') {
-      throw XtreamException('This account is $status.');
+      throw XtreamException(strings.errAccountStatus(status));
     }
   }
 

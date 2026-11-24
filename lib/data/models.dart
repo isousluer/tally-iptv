@@ -176,15 +176,12 @@ class MediaItem {
 
 /// Order of items in a list.
 enum ItemSort {
-  playlist('Playlist order'),
-  number('Channel number'),
-  nameAsc('Name A–Z'),
-  nameDesc('Name Z–A'),
-  rating('Highest rated'),
-  year('Newest first');
-
-  const ItemSort(this.label);
-  final String label;
+  playlist,
+  number,
+  nameAsc,
+  nameDesc,
+  rating,
+  year;
 
   /// Choices that make sense for [kind].
   static List<ItemSort> forKind(ContentKind kind) => kind == ContentKind.live

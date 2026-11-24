@@ -32,8 +32,21 @@ flutter test
 ## Code layout
 
 - `lib/data` — parsing, network and storage. Keep it free of Flutter UI imports so it can run in isolates and be unit tested.
+  Messages people see come from `strings` in `lib/l10n/strings.dart`.
 - `lib/state` — Riverpod providers that connect data to the UI.
 - `lib/ui` — screens and widgets. Use the colors in `ui/theme.dart` (`AppColors`) instead of hard-coded values.
+
+## Translations
+
+All text people see lives in `lib/l10n/app_en.arb` (English, the template) and one file per language, such as
+`app_tr.arb`. To change or add text:
+
+1. Add the key to `app_en.arb` and to every other `.arb` file.
+2. Run `flutter gen-l10n` (or just `flutter run`) to regenerate `app_localizations*.dart`.
+3. In widgets use `context.l10n.yourKey`; in code without a `BuildContext` use `strings.yourKey`.
+
+To add a language, copy `app_en.arb` to `app_<code>.arb`, translate the values, add the locale to `appLocales`
+in `lib/l10n/strings.dart` and its name to `languageLabel` in `lib/ui/settings_screen.dart`.
 
 ## UI writing style
 

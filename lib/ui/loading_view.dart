@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../data/repository.dart';
+import '../l10n/strings.dart';
 import 'theme.dart';
-import 'widgets.dart';
 
 /// Step-by-step progress while a playlist is added or updated.
 class LoadingPlaylistView extends StatelessWidget {
@@ -10,21 +10,20 @@ class LoadingPlaylistView extends StatelessWidget {
   final String name;
   final LoadProgress? progress;
 
-  static String label(LoadStage s, {required bool m3u}) => switch (s) {
-    LoadStage.connect => m3u ? 'Downloading playlist' : 'Connecting to server',
-    LoadStage.live => 'Live TV',
-    LoadStage.movies => 'Movies',
-    LoadStage.series => 'Series',
-    LoadStage.save => 'Saving to this device',
+  static String label(AppLocalizations l, LoadStage s, {required bool m3u}) => switch (s) {
+    LoadStage.connect => m3u ? l.stageDownloadPlaylist : l.stageConnect,
+    LoadStage.live => l.liveTv,
+    LoadStage.movies => l.movies,
+    LoadStage.series => l.series,
+    LoadStage.save => l.stageSave,
   };
 
-  static String? countLabel(LoadStage s, int? n) {
+  static String? countLabel(AppLocalizations l, LoadStage s, int? n) {
     if (n == null) return null;
-    final c = compactCount(n);
     return switch (s) {
-      LoadStage.live => n == 1 ? '1 channel' : '$c channels',
-      LoadStage.movies => n == 1 ? '1 movie' : '$c movies',
-      LoadStage.series => '$c series',
+      LoadStage.live => l.channelCount(n),
+      LoadStage.movies => l.movieCount(n),
+      LoadStage.series => l.seriesCount(n),
       _ => null,
     };
   }
@@ -32,6 +31,7 @@ class LoadingPlaylistView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l = context.l10n;
     final p = progress;
     final m3u = p != null && !p.stages.contains(LoadStage.series);
     final stages = p?.stages ?? const [LoadStage.connect];
@@ -47,17 +47,14 @@ class LoadingPlaylistView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name.isEmpty ? 'Loading your playlist' : 'Loading $name', style: t.headlineMedium),
+                  Text(name.isEmpty ? l.loadingYourPlaylist : l.loadingPlaylist(name), style: t.headlineMedium),
                   const SizedBox(height: 6),
-                  Text(
-                    'Large playlists can take a minute. Keep the app open.',
-                    style: t.bodyMedium!.copyWith(color: AppColors.muted),
-                  ),
+                  Text(l.keepAppOpen, style: t.bodyMedium!.copyWith(color: AppColors.muted)),
                   const SizedBox(height: 28),
                   for (final s in stages)
                     _StageRow(
-                      label: label(s, m3u: m3u),
-                      count: countLabel(s, p?.counts[s]),
+                      label: label(l, s, m3u: m3u),
+                      count: countLabel(l, s, p?.counts[s]),
                       state: p == null
                           ? _State.active
                           : p.current == s

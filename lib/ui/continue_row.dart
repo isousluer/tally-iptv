@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'playback.dart';
 import 'theme.dart';
@@ -28,7 +29,7 @@ class ContinueRow extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-          child: Text('Continue watching', style: t.titleLarge),
+          child: Text(context.l10n.continueWatching, style: t.titleLarge),
         ),
         SizedBox(
           height: 168,
@@ -75,7 +76,10 @@ class ContinueRow extends ConsumerWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.labelMedium),
-                      Text('${formatDuration(left)} left', style: t.labelSmall!.copyWith(color: AppColors.tally)),
+                      Text(
+                        context.l10n.timeLeft(formatDuration(left)),
+                        style: t.labelSmall!.copyWith(color: AppColors.tally),
+                      ),
                     ],
                   ),
                 ),

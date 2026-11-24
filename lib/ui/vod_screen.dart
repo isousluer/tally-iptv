@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'category_picker.dart';
 import 'continue_row.dart';
@@ -33,7 +34,7 @@ class _VodScreenState extends ConsumerState<VodScreen> {
 
     final query = (kind: widget.kind, group: _group, search: _search);
     final items = ref.watch(itemsProvider(query));
-    final noun = _movies ? 'movies' : 'series';
+    final l = context.l10n;
     final wideLayout = isWide(context);
     // The category panel takes 280 px on wide screens.
     final width = MediaQuery.sizeOf(context).width - (wideLayout ? 380 : 0);
@@ -42,8 +43,8 @@ class _VodScreenState extends ConsumerState<VodScreen> {
     final wide = isWide(context);
     void select(String g) => setState(() => _group = g);
     final header = ScreenHeader(
-      title: _movies ? 'Movies' : 'Series',
-      subtitle: '${compactCount(count)} $noun',
+      title: _movies ? l.movies : l.series,
+      subtitle: _movies ? l.movieCount(count) : l.seriesCount(count),
       actions: [
         SearchButton(first: widget.kind),
         SortButton(kind: widget.kind),
@@ -64,12 +65,12 @@ class _VodScreenState extends ConsumerState<VodScreen> {
                 child: EmptyState(
                   icon: _movies ? Icons.movie_outlined : Icons.video_library_outlined,
                   title: _search.isNotEmpty
-                      ? 'Nothing matches "$_search"'
+                      ? l.nothingMatches(_search)
                       : _group == groupFavorites
-                      ? 'No favorite $noun yet'
-                      : 'No $noun in this playlist',
+                      ? (_movies ? l.noFavoriteMovies : l.noFavoriteSeries)
+                      : (_movies ? l.noMoviesInPlaylist : l.noSeriesInPlaylist),
                   message: count == 0 && _search.isEmpty && _group == groupAll
-                      ? 'Your playlist doesn\'t include $noun. Xtream Codes accounts usually do.'
+                      ? (_movies ? l.playlistHasNoMovies : l.playlistHasNoSeries)
                       : null,
                 ),
               ),

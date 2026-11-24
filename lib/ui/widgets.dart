@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:material_ui/material_ui.dart';
 
+import '../l10n/strings.dart';
 import 'theme.dart';
 
 String initials(String name) {
@@ -156,7 +158,10 @@ class LiveBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(color: AppColors.live, borderRadius: BorderRadius.circular(99)),
-      child: Text('Live', style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, height: 1.2)),
+      child: Text(
+        context.l10n.live,
+        style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, height: 1.2),
+      ),
     );
   }
 }
@@ -228,7 +233,7 @@ class SearchBarField extends StatelessWidget {
               ),
             ),
           ),
-          IconButton(tooltip: 'Close search', onPressed: onClose, icon: const Icon(Icons.close)),
+          IconButton(tooltip: context.l10n.closeSearch, onPressed: onClose, icon: const Icon(Icons.close)),
         ],
       ),
     );
@@ -281,9 +286,9 @@ class ErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) => EmptyState(
     icon: Icons.error_outline,
-    title: 'Something went wrong',
+    title: context.l10n.somethingWentWrong,
     message: '$error',
-    action: onRetry == null ? null : OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+    action: onRetry == null ? null : OutlinedButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
   );
 }
 
@@ -292,8 +297,8 @@ String formatTime(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minut
 String formatDuration(Duration d) {
   final h = d.inHours;
   final m = d.inMinutes.remainder(60);
-  if (h > 0) return '${h}h ${m}m';
-  return '${m}m';
+  if (h > 0) return strings.durationHoursMinutes(h, m);
+  return strings.durationMinutes(m);
 }
 
 /// Playback position like `0:12`, `12:05` or `1:05:30`.
@@ -304,15 +309,8 @@ String formatClock(Duration d) {
   return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$s' : '$m:$s';
 }
 
-String compactCount(int n) {
-  final s = n.toString();
-  final b = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
-    b.write(s[i]);
-  }
-  return b.toString();
-}
+/// A count with thousands separators in the app's language: 12,345 or 12.345.
+String compactCount(int n) => intl.NumberFormat.decimalPattern(strings.localeName).format(n);
 
 bool isWide(BuildContext context) => MediaQuery.sizeOf(context).width >= 840;
 

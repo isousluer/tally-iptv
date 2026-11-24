@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'live_screen.dart';
 import 'playback.dart';
@@ -18,7 +19,7 @@ class SearchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-    tooltip: 'Search',
+    tooltip: context.l10n.search,
     onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => SearchScreen(first: first))),
     icon: const Icon(Icons.search),
   );
@@ -53,6 +54,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
+    final l = context.l10n;
     final results = ref.watch(searchProvider(_text));
     final order = [widget.first, ...ContentKind.values.where((k) => k != widget.first)];
     final guide = ref.watch(nowPlayingProvider).value ?? const {};
@@ -78,9 +80,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       autofocus: true,
                       onChanged: _onChanged,
                       textInputAction: TextInputAction.search,
-                      decoration: const InputDecoration(
-                        hintText: 'Search channels, movies and series',
-                        prefixIcon: Icon(Icons.search, color: AppColors.muted),
+                      decoration: InputDecoration(
+                        hintText: l.searchHint,
+                        prefixIcon: const Icon(Icons.search, color: AppColors.muted),
                         isDense: true,
                       ),
                     ),
@@ -90,17 +92,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             Expanded(
               child: _text.length < 2
-                  ? const EmptyState(
-                      icon: Icons.manage_search,
-                      title: 'Search everything',
-                      message: 'Type at least two letters of a channel, movie or series name.',
-                    )
+                  ? EmptyState(icon: Icons.manage_search, title: l.searchEverything, message: l.searchMinLetters)
                   : results.when(
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (e, _) => ErrorState(error: e),
                       data: (map) {
                         if (map.values.every((l) => l.isEmpty)) {
-                          return EmptyState(icon: Icons.search_off, title: 'Nothing matches "$_text"');
+                          return EmptyState(icon: Icons.search_off, title: l.nothingMatches(_text));
                         }
                         return CustomScrollView(
                           slivers: [
@@ -108,9 +106,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                               if ((map[kind] ?? const []).isNotEmpty) ...[
                                 SliverToBoxAdapter(
                                   child: heading(switch (kind) {
-                                    ContentKind.live => 'Channels',
-                                    ContentKind.movie => 'Movies',
-                                    ContentKind.series => 'Series',
+                                    ContentKind.live => l.channels,
+                                    ContentKind.movie => l.movies,
+                                    ContentKind.series => l.series,
                                   }, map[kind]!.length),
                                 ),
                                 if (kind == ContentKind.live)

@@ -20,7 +20,7 @@ Future<List<EpgProgram>> downloadEpg(
   try {
     final res = await client.send(http.Request('GET', Uri.parse(url)));
     if (res.statusCode != 200) {
-      throw HttpException('Guide download failed (${res.statusCode}).');
+      throw HttpException('HTTP ${res.statusCode}');
     }
     final bytes = await _maybeGunzip(res.stream);
     return await parseXmltv(bytes, channelIds, past: past, future: future);

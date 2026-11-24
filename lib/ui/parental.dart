@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'theme.dart';
 
@@ -13,7 +14,7 @@ Future<bool> unlockWithPin(BuildContext context, WidgetRef ref) async {
   final pin = ref.read(parentalPinProvider);
   final ok = await showDialog<bool>(
     context: context,
-    builder: (_) => _PinDialog(title: 'Enter PIN', check: (v) => v == pin),
+    builder: (ctx) => _PinDialog(title: ctx.l10n.enterPin, check: (v) => v == pin),
   );
   if (ok == true) ref.read(parentalUnlockedProvider.notifier).set(true);
   return ok == true;
@@ -31,12 +32,12 @@ Future<bool> ensureUnlockedFor(BuildContext context, WidgetRef ref, MediaItem it
 Future<String?> choosePin(BuildContext context) async {
   final first = await showDialog<String>(
     context: context,
-    builder: (_) => const _PinDialog(title: 'Choose a 4-digit PIN', returnValue: true),
+    builder: (ctx) => _PinDialog(title: ctx.l10n.chooseFourDigitPin, returnValue: true),
   );
   if (first == null || !context.mounted) return null;
   final again = await showDialog<String>(
     context: context,
-    builder: (_) => _PinDialog(title: 'Enter the PIN again', returnValue: true, check: (v) => v == first),
+    builder: (ctx) => _PinDialog(title: ctx.l10n.enterPinAgain, returnValue: true, check: (v) => v == first),
   );
   return again;
 }
@@ -68,12 +69,12 @@ class _PinDialogState extends State<_PinDialog> {
   void _submit() {
     final v = _c.text.trim();
     if (v.length != 4) {
-      setState(() => _error = 'Use 4 digits.');
+      setState(() => _error = context.l10n.pinUseFourDigits);
       return;
     }
     if (widget.check != null && !widget.check!(v)) {
       setState(() {
-        _error = widget.returnValue ? 'The PINs don\'t match.' : 'Wrong PIN.';
+        _error = widget.returnValue ? context.l10n.pinsDontMatch : context.l10n.wrongPin;
         _c.clear();
       });
       // Keep the keyboard up so the viewer can try again right away.
@@ -103,11 +104,11 @@ class _PinDialogState extends State<_PinDialog> {
         onSubmitted: (_) => _submit(),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(context.l10n.cancel)),
         TextButton(
           onPressed: _submit,
           style: TextButton.styleFrom(foregroundColor: AppColors.tally),
-          child: const Text('OK'),
+          child: Text(context.l10n.ok),
         ),
       ],
     );

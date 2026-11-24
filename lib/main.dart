@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data/database.dart';
+import 'l10n/strings.dart';
 import 'platform/device.dart';
 import 'state/providers.dart';
 import 'ui/add_playlist_screen.dart';
@@ -25,13 +26,19 @@ Future<void> main() async {
   );
 }
 
-class TallyApp extends StatelessWidget {
+class TallyApp extends ConsumerWidget {
   const TallyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final language = ref.watch(settingsProvider.select((s) => s.language));
+    final locale = language == null ? systemLocale() : Locale(language);
+    useLocale(locale);
     return MaterialApp(
       title: 'Tally',
+      locale: locale,
+      supportedLocales: appLocales,
+      localizationsDelegates: const [AppLocalizations.delegate, ...GlobalMaterialLocalizations.delegates],
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       darkTheme: buildTheme(),
@@ -54,7 +61,7 @@ class _Root extends ConsumerWidget {
     final playlists = ref.watch(playlistsProvider);
     return playlists.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('Could not open the library: $e'))),
+      error: (e, _) => Scaffold(body: Center(child: Text(context.l10n.libraryOpenFailed('$e')))),
       data: (list) => list.isEmpty ? const AddPlaylistScreen(firstRun: true) : const HomeShell(),
     );
   }

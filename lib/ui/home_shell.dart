@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'library_screen.dart';
 import 'live_screen.dart';
@@ -27,16 +28,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       if (!ref.read(settingsProvider).autoRefresh) return;
       final updated = await ref.read(playlistsProvider.notifier).refreshStale();
       if (!mounted || updated.isEmpty) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Updated ${updated.join(', ')}')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.l10n.playlistsAutoUpdated(updated.join(', ')))));
     });
   }
 
-  static const _destinations = [
-    (Icons.live_tv_outlined, Icons.live_tv, 'Live TV'),
-    (Icons.movie_outlined, Icons.movie, 'Movies'),
-    (Icons.video_library_outlined, Icons.video_library, 'Series'),
-    (Icons.bookmarks_outlined, Icons.bookmarks, 'Library'),
-    (Icons.tune_outlined, Icons.tune, 'Settings'),
+  static List<(IconData, IconData, String)> _destinations(AppLocalizations l) => [
+    (Icons.live_tv_outlined, Icons.live_tv, l.liveTv),
+    (Icons.movie_outlined, Icons.movie, l.movies),
+    (Icons.video_library_outlined, Icons.video_library, l.series),
+    (Icons.bookmarks_outlined, Icons.bookmarks, l.library),
+    (Icons.tune_outlined, Icons.tune, l.settings),
   ];
 
   // Tabs are built lazily and then kept alive so scroll positions survive.
@@ -57,11 +59,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final destinations = _destinations(context.l10n);
     final body = IndexedStack(
       index: _index,
-      children: [
-        for (var i = 0; i < _destinations.length; i++) _built.contains(i) ? _page(i) : const SizedBox.shrink(),
-      ],
+      children: [for (var i = 0; i < destinations.length; i++) _built.contains(i) ? _page(i) : const SizedBox.shrink()],
     );
 
     if (isWide(context)) {
@@ -74,7 +75,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               labelType: NavigationRailLabelType.all,
               groupAlignment: -0.85,
               destinations: [
-                for (final (icon, selected, label) in _destinations)
+                for (final (icon, selected, label) in destinations)
                   NavigationRailDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: Text(label)),
               ],
             ),
@@ -90,7 +91,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         selectedIndex: _index,
         onDestinationSelected: _select,
         destinations: [
-          for (final (icon, selected, label) in _destinations)
+          for (final (icon, selected, label) in destinations)
             NavigationDestination(icon: Icon(icon), selectedIcon: Icon(selected), label: label),
         ],
       ),

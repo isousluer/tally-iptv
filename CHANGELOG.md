@@ -3,6 +3,22 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## Unreleased
+
+### Added
+- Turkish. The app follows your device's language, and you can pick English or Turkish yourself under
+  Settings → Language.
+- "Best fit" picture size: the video fills the screen when only a thin strip would be cut off, and fits it
+  otherwise. It is the new default; a picture size you picked before stays as it is.
+
+### Changed
+- The Library has two tabs. History opens first, with continue watching and recently watched channels; Favorites
+  holds your starred channels, movies and series.
+- Clearing the watch history asks first.
+
+### Fixed
+- A movie now shows up in watch history as soon as you leave it, instead of after the next refresh.
+
 ## 0.1.1 (2026-11-24)
 
 ### Changed

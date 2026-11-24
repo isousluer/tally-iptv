@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../l10n/strings.dart';
 import 'database.dart';
 import 'models.dart';
 
@@ -45,7 +46,7 @@ class RestoreResult {
 
 class BackupFormatException implements Exception {
   @override
-  String toString() => 'This file is not a Tally backup.';
+  String toString() => strings.errNotBackup;
 }
 
 /// Merges a backup into the database. Playlists that already exist (same

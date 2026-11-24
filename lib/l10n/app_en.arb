@@ -1,0 +1,626 @@
+{
+  "@@locale": "en",
+  "cancel": "Cancel",
+  "save": "Save",
+  "ok": "OK",
+  "remove": "Remove",
+  "tryAgain": "Try again",
+  "close": "Close",
+  "back": "Back",
+  "off": "Off",
+  "play": "Play",
+  "required": "Required",
+  "show": "Show",
+  "hide": "Hide",
+  "more": "More",
+  "search": "Search",
+  "live": "Live",
+  "unknownError": "unknown error",
+  "somethingWentWrong": "Something went wrong",
+  "liveTv": "Live TV",
+  "movies": "Movies",
+  "series": "Series",
+  "library": "Library",
+  "settings": "Settings",
+  "channels": "Channels",
+  "categories": "Categories",
+  "libraryOpenFailed": "Could not open the library: {error}",
+  "@libraryOpenFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistsAutoUpdated": "Updated {names}",
+  "@playlistsAutoUpdated": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "channelCount": "{count, plural, =1{1 channel} other{{count} channels}}",
+  "@channelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "movieCount": "{count, plural, =1{1 movie} other{{count} movies}}",
+  "@movieCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "seriesCount": "{count} series",
+  "@seriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "playlistCount": "{count, plural, =1{1 playlist} other{{count} playlists}}",
+  "@playlistCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "seasonCount": "{count, plural, =1{1 season} other{{count} seasons}}",
+  "@seasonCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours}h {minutes}m",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{minutes}m",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timerMinutes": "{minutes} min",
+  "@timerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timerHours": "{hours} h",
+  "@timerHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "timerHoursMinutes": "{hours} h {minutes} min",
+  "@timerHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "timeLeft": "{time} left",
+  "@timeLeft": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "playlists": "Playlists",
+  "addPlaylist": "Add playlist",
+  "autoRefreshTitle": "Update playlists automatically",
+  "autoRefreshSubtitle": "When the app opens, lists older than a day are refreshed.",
+  "categoriesSubtitle": "Hide, lock or reorder categories",
+  "language": "Language",
+  "systemLanguage": "System language",
+  "playback": "Playback",
+  "autoNextTitle": "Play next episode automatically",
+  "audioLanguage": "Audio language",
+  "audioLanguageDefault": "Stream default. Pick a language in the player and it's used from then on.",
+  "subtitles": "Subtitles",
+  "subtitlesDefault": "Stream default. Pick subtitles in the player and they're used from then on.",
+  "tapForStreamDefault": "{choice} · tap to go back to the stream default",
+  "@tapForStreamDefault": {
+    "placeholders": {
+      "choice": {
+        "type": "String"
+      }
+    }
+  },
+  "parentalControl": "Parental control",
+  "setPin": "Set a PIN",
+  "changePin": "Change PIN",
+  "pinNotSet": "Lock categories so they need a PIN to open.",
+  "pinUnlocked": "Locked categories are open until the app restarts.",
+  "pinLocked": "Locked categories need the PIN to open.",
+  "lockNow": "Lock now",
+  "removePin": "Remove PIN",
+  "removePinSubtitle": "Locked categories open without a PIN.",
+  "backup": "Backup",
+  "backupToFile": "Back up to a file",
+  "backupToFileSubtitle": "Playlists, logins, favorites, watch history and categories",
+  "restoreFromFile": "Restore from a file",
+  "restoreFromFileSubtitle": "Adds the playlists from a backup and downloads their channels",
+  "tvGuide": "TV guide",
+  "updateTvGuideNow": "Update TV guide now",
+  "downloadingGuide": "Downloading guide…",
+  "guideUpdateFailed": "Update failed: {error}",
+  "@guideUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "guideNoLink": "No guide link for this playlist. Add one from the playlist menu.",
+  "guideUpdatesAutomatically": "Updates automatically when a playlist is refreshed.",
+  "guideProgramsLoaded": "{count} programs loaded",
+  "@guideProgramsLoaded": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "about": "About",
+  "versionLine": "Version {version} · Free and open source under GPL-3.0",
+  "@versionLine": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "sourceCode": "Source code",
+  "disclaimer": "Tally is a player only. It does not include, sell or promote any channels or content. Use it with playlists you are allowed to watch.",
+  "backupWarning": "The file includes your playlist links, usernames and passwords. Keep it somewhere private.",
+  "backUp": "Back up",
+  "saveBackup": "Save backup",
+  "backupSaved": "Backup saved",
+  "backupFailed": "Couldn't save the backup: {error}",
+  "@backupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseBackup": "Choose a backup",
+  "readingBackup": "Reading backup…",
+  "loadingNamed": "Loading {name}…",
+  "@loadingNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreAdded": "Added {playlists}",
+  "@restoreAdded": {
+    "placeholders": {
+      "playlists": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreAllPresent": "{playlists} already in the app, so only favorites, history and categories were merged",
+  "@restoreAllPresent": {
+    "placeholders": {
+      "playlists": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreSomePresent": "{count} already in the app",
+  "@restoreSomePresent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreSkipped": "Skipped local files: {names}",
+  "@restoreSkipped": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreEmpty": "The backup has no playlists.",
+  "playlistUpdated": "{name} updated",
+  "@playlistUpdated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistUpdateFailed": "Couldn't update {name}: {error}",
+  "@playlistUpdateFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "removePlaylistTitle": "Remove {name}?",
+  "@removePlaylistTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removePlaylistBody": "Its channels, favorites and watch history are removed from this device.",
+  "neverUpdated": "Never updated",
+  "updatedOn": "Updated {date}",
+  "@updatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "inUse": "In use · {status}",
+  "@inUse": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistOptions": "Playlist options",
+  "updateChannels": "Update channels",
+  "rename": "Rename",
+  "renamePlaylist": "Rename playlist",
+  "tvGuideLink": "TV guide link",
+  "chooseM3uPlaylist": "Choose an M3U playlist",
+  "chooseFileFirst": "Choose a playlist file first.",
+  "defaultPlaylistName": "Playlist",
+  "enterValidAddress": "Enter a valid address",
+  "addYourPlaylist": "Add your playlist",
+  "playlistStaysHere": "Your playlist stays on this device. Tally doesn't provide any channels. Use a playlist from your TV provider.",
+  "m3uLink": "M3U link",
+  "m3uFile": "M3U file",
+  "playlistName": "Playlist name",
+  "playlistNameHint": "Home",
+  "advanced": "Advanced",
+  "guideLinkField": "TV guide (XMLTV) link",
+  "guideHelpXtream": "Leave empty to use the guide from your Xtream server.",
+  "guideHelpM3u": "Leave empty to use the guide named in the playlist, if any.",
+  "loadingChannelsHint": "Loading channels. Large playlists can take a minute.",
+  "playlistLink": "Playlist link",
+  "playlistFile": "Playlist file",
+  "chooseM3uFile": "Choose .m3u file",
+  "serverUrl": "Server URL",
+  "username": "Username",
+  "password": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
+  "stageDownloadPlaylist": "Downloading playlist",
+  "stageConnect": "Connecting to server",
+  "stageSave": "Saving to this device",
+  "loadingYourPlaylist": "Loading your playlist",
+  "loadingPlaylist": "Loading {name}",
+  "@loadingPlaylist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "keepAppOpen": "Large playlists can take a minute. Keep the app open.",
+  "watchHistory": "History",
+  "historyEmptyTitle": "Nothing watched yet",
+  "historyEmptyMessage": "Channels you watch and movies or series you start show up here.",
+  "favoritesEmptyTitle": "No favorites yet",
+  "favoritesEmptyMessage": "Tap the star on any channel, movie or series to add it here.",
+  "favoriteChannels": "Favorite channels",
+  "favoriteMoviesAndSeries": "Favorite movies and series",
+  "recentChannels": "Recently watched channels",
+  "clearHistory": "Clear history",
+  "clearHistoryTitle": "Clear watch history?",
+  "clearHistoryBody": "Recently watched channels and continue watching are cleared for this playlist.",
+  "clear": "Clear",
+  "continueWatching": "Continue watching",
+  "searchHint": "Search channels, movies and series",
+  "searchEverything": "Search everything",
+  "searchMinLetters": "Type at least two letters of a channel, movie or series name.",
+  "nothingMatches": "Nothing matches \"{query}\"",
+  "@nothingMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "noFavoriteMovies": "No favorite movies yet",
+  "noFavoriteSeries": "No favorite series yet",
+  "noMoviesInPlaylist": "No movies in this playlist",
+  "noSeriesInPlaylist": "No series in this playlist",
+  "playlistHasNoMovies": "Your playlist doesn't include movies. Xtream Codes accounts usually do.",
+  "playlistHasNoSeries": "Your playlist doesn't include series. Xtream Codes accounts usually do.",
+  "noChannelsMatch": "No channels match \"{query}\"",
+  "@noChannelsMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "noFavoriteChannels": "No favorite channels yet",
+  "noChannelsHere": "No channels here",
+  "favoriteChannelsHint": "Tap the star next to a channel to keep it here.",
+  "addToFavorites": "Add to favorites",
+  "removeFromFavorites": "Remove from favorites",
+  "inFavorites": "In favorites",
+  "closeSearch": "Close search",
+  "sort": "Sort",
+  "sortPlaylist": "Playlist order",
+  "sortNumber": "Channel number",
+  "sortNameAsc": "Name A–Z",
+  "sortNameDesc": "Name Z–A",
+  "sortRating": "Highest rated",
+  "sortYear": "Newest first",
+  "switchPlaylist": "Switch playlist",
+  "enterPin": "Enter PIN",
+  "chooseFourDigitPin": "Choose a 4-digit PIN",
+  "enterPinAgain": "Enter the PIN again",
+  "pinUseFourDigits": "Use 4 digits.",
+  "pinsDontMatch": "The PINs don't match.",
+  "wrongPin": "Wrong PIN.",
+  "noAdultCategories": "No adult categories found in this list.",
+  "lockedCategories": "{count, plural, =1{Locked 1 category} other{Locked {count} categories}}",
+  "@lockedCategories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "lockAdultCategories": "Lock adult categories",
+  "showAllRestoreOrder": "Show all and restore order",
+  "categoriesHelp": "Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.",
+  "noCategoriesHere": "No categories here",
+  "uncategorized": "Uncategorized",
+  "unlock": "Unlock",
+  "lockWithPin": "Lock with PIN",
+  "all": "All",
+  "favorites": "Favorites",
+  "manageCategories": "Manage categories",
+  "findCategory": "Find a category",
+  "noCategoryMatches": "No category matches \"{query}\"",
+  "@noCategoryMatches": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "director": "Director",
+  "cast": "Cast",
+  "resumeFrom": "Resume from {time}",
+  "@resumeFrom": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "startOver": "Start over",
+  "noDescription": "No description available.",
+  "episodeCode": "S{season} · E{episode}",
+  "@episodeCode": {
+    "placeholders": {
+      "season": {
+        "type": "int"
+      },
+      "episode": {
+        "type": "int"
+      }
+    }
+  },
+  "playEpisode": "Play {episode}",
+  "@playEpisode": {
+    "placeholders": {
+      "episode": {
+        "type": "String"
+      }
+    }
+  },
+  "continueEpisode": "Continue {episode}",
+  "@continueEpisode": {
+    "placeholders": {
+      "episode": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonNumber": "Season {number}",
+  "@seasonNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "noEpisodes": "No episodes available",
+  "closeChannelList": "Close channel list",
+  "streamCouldNotPlay": "This stream could not be played",
+  "nextProgram": "Next  {time}  {title}",
+  "@nextProgram": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "noChannelNumber": "No channel {number}",
+  "@noChannelNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "nextEpisodeIn": "Next episode in {seconds} s",
+  "@nextEpisodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "playNow": "Play now",
+  "speedNormal": "Normal",
+  "pictureSize": "Picture size",
+  "pictureSizeSmallPlayer": "You see the difference in full screen. The small player keeps the original shape, so most videos look the same here.",
+  "fitBest": "Best fit",
+  "fitFit": "Fit",
+  "fitFill": "Fill screen",
+  "fitStretch": "Stretch",
+  "playbackSpeed": "Playback speed",
+  "sleepTimer": "Sleep timer",
+  "stopsIn": "Stops in {time}",
+  "@stopsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pictureInPicture": "Picture in picture",
+  "pictureInPictureHint": "Keep watching in a small window. Pressing Home does this too.",
+  "playerOptions": "Player options",
+  "previousChannel": "Previous channel",
+  "nextChannel": "Next channel",
+  "back10": "Back 10 seconds",
+  "forward10": "Forward 10 seconds",
+  "pause": "Pause",
+  "fullScreen": "Full screen",
+  "exitFullScreen": "Exit full screen",
+  "trackNumber": "Track {number}",
+  "@trackNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "audioMono": "Mono",
+  "audioStereo": "Stereo",
+  "audioChannels": "{count} ch",
+  "@audioChannels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "audio": "Audio",
+  "playing": "Playing",
+  "moreFrom": "More from {group}",
+  "@moreFrom": {
+    "placeholders": {
+      "group": {
+        "type": "String"
+      }
+    }
+  },
+  "noGuideData": "No guide data for this channel.",
+  "now": "Now",
+  "upNext": "Up next",
+  "errNoContent": "This account has no channels, movies or series.",
+  "errNoChannelsInM3u": "No channels were found in this playlist. Check that the link points to an M3U file.",
+  "errProviderNoGuide": "Your provider doesn't offer a TV guide. You can add a guide (XMLTV) link from the playlist menu.",
+  "errGuideLinkNotFound": "The guide link was not found. Check the link in the playlist menu.",
+  "errGuideUnreachable": "Could not reach the guide server. Check your connection.",
+  "errGuideDownload": "Guide download failed ({detail}).",
+  "@errGuideDownload": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "errServerUnreachable": "Could not reach the server. Check the address and your internet connection.",
+  "errSecureConnection": "Secure connection failed. Try the address with http:// instead of https://.",
+  "errConnectionFailed": "Connection failed: {error}",
+  "@errConnectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "errTimeout": "The server took too long to answer. Try again in a moment.",
+  "errFullLink": "Enter a full playlist link starting with http:// or https://.",
+  "errAccessRefused": "The server refused access ({code}). Check that your subscription is active.",
+  "@errAccessRefused": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "errHttpStatus": "The server responded with error {code}.",
+  "@errHttpStatus": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "errInvalidXtream": "The server did not return valid Xtream data.",
+  "errLoginRejected": "Username or password was rejected by the server.",
+  "errAccountStatus": "This account is {status}.",
+  "@errAccountStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "errNotBackup": "This file is not a Tally backup."
+}

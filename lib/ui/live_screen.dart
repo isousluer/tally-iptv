@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'category_picker.dart';
 import 'playback.dart';
@@ -30,6 +31,7 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
     final items = ref.watch(itemsProvider(query));
 
     final wide = isWide(context);
+    final l = context.l10n;
     void select(String g) => setState(() => _group = g);
     final content = items.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -39,11 +41,11 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
           return EmptyState(
             icon: _group == groupFavorites ? Icons.star_border : Icons.live_tv_outlined,
             title: _search.isNotEmpty
-                ? 'No channels match "$_search"'
+                ? l.noChannelsMatch(_search)
                 : _group == groupFavorites
-                ? 'No favorite channels yet'
-                : 'No channels here',
-            message: _group == groupFavorites ? 'Tap the star next to a channel to keep it here.' : null,
+                ? l.noFavoriteChannels
+                : l.noChannelsHere,
+            message: _group == groupFavorites ? l.favoriteChannelsHint : null,
           );
         }
         return _ChannelList(channels: list);
@@ -55,8 +57,8 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
       child: Column(
         children: [
           ScreenHeader(
-            title: 'Live TV',
-            subtitle: playlist == null ? null : '${compactCount(count)} channels',
+            title: l.liveTv,
+            subtitle: playlist == null ? null : l.channelCount(count),
             actions: const [
               SearchButton(first: ContentKind.live),
               SortButton(kind: ContentKind.live),
@@ -179,7 +181,7 @@ class ChannelRow extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: channel.favorite ? 'Remove from favorites' : 'Add to favorites',
+                tooltip: channel.favorite ? context.l10n.removeFromFavorites : context.l10n.addToFavorites,
                 onPressed: onFavorite,
                 icon: Icon(
                   channel.favorite ? Icons.star : Icons.star_border,

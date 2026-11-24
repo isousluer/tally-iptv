@@ -4,13 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'categories_screen.dart';
 import 'parental.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-String _label(String group) => group.isEmpty ? 'Uncategorized' : group;
+String _label(String group) => group.isEmpty ? strings.uncategorized : group;
 
 /// Categories a tab shows (hidden ones left out), plus whether locked ones are open.
 ({List<GroupInfo>? groups, List<GroupInfo> visible, bool open}) _watchGroups(WidgetRef ref, ContentKind kind) {
@@ -80,9 +81,9 @@ class CategoryBar extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          chip(groupAll, 'All'),
+          chip(groupAll, context.l10n.all),
           const SizedBox(width: 8),
-          chip(groupFavorites, 'Favorites'),
+          chip(groupFavorites, context.l10n.favorites),
           const SizedBox(width: 8),
           Expanded(
             child: OutlinedButton(
@@ -98,7 +99,7 @@ class CategoryBar extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      inCategory ? _label(selected) : 'Categories',
+                      inCategory ? _label(selected) : context.l10n.categories,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: t.labelMedium!.copyWith(color: inCategory ? AppColors.tally : AppColors.text),
@@ -252,7 +253,7 @@ class _CategoryListState extends ConsumerState<CategoryList> {
     final manage = ListTile(
       dense: true,
       leading: const Icon(Icons.tune, size: 20, color: AppColors.muted),
-      title: Text('Manage categories', style: t.bodyMedium!.copyWith(color: AppColors.muted)),
+      title: Text(context.l10n.manageCategories, style: t.bodyMedium!.copyWith(color: AppColors.muted)),
       onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
     );
 
@@ -269,7 +270,7 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                 padding: EdgeInsets.fromLTRB(16, widget.showShortcuts ? 12 : 0, 16, 4),
                 child: Row(
                   children: [
-                    Expanded(child: Text('Categories', style: t.titleMedium)),
+                    Expanded(child: Text(context.l10n.categories, style: t.titleMedium)),
                     Text('${visible.length}', style: t.labelMedium!.copyWith(color: AppColors.muted)),
                   ],
                 ),
@@ -279,9 +280,9 @@ class _CategoryListState extends ConsumerState<CategoryList> {
               child: TextField(
                 onChanged: (v) => setState(() => _query = v),
                 textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
-                  hintText: 'Find a category',
-                  prefixIcon: Icon(Icons.search, color: AppColors.muted),
+                decoration: InputDecoration(
+                  hintText: context.l10n.findCategory,
+                  prefixIcon: const Icon(Icons.search, color: AppColors.muted),
                   isDense: true,
                 ),
               ),
@@ -293,8 +294,8 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                       padding: const EdgeInsets.only(bottom: 8),
                       children: [
                         if (widget.showShortcuts && q.isEmpty) ...[
-                          row(groupAll, 'All', icon: Icons.apps),
-                          row(groupFavorites, 'Favorites', icon: Icons.star_border),
+                          row(groupAll, context.l10n.all, icon: Icons.apps),
+                          row(groupFavorites, context.l10n.favorites, icon: Icons.star_border),
                           const Divider(height: 12),
                         ],
                         for (final g in shown) row(g.name, _label(g.name), count: g.count, locked: g.locked && !open),
@@ -302,7 +303,7 @@ class _CategoryListState extends ConsumerState<CategoryList> {
                           Padding(
                             padding: const EdgeInsets.all(24),
                             child: Text(
-                              'No category matches "$_query"',
+                              context.l10n.noCategoryMatches(_query),
                               textAlign: TextAlign.center,
                               style: t.bodyMedium!.copyWith(color: AppColors.muted),
                             ),

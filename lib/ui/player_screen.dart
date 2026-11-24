@@ -10,6 +10,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../data/database.dart';
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../platform/device.dart';
 import '../state/providers.dart';
 import 'theme.dart';
@@ -313,7 +314,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       picked = await showGeneralDialog<MediaItem>(
         context: context,
         barrierDismissible: true,
-        barrierLabel: 'Close channel list',
+        barrierLabel: context.l10n.closeChannelList,
         barrierColor: Colors.black38,
         transitionDuration: const Duration(milliseconds: 180),
         pageBuilder: (ctx, _, _) => Align(
@@ -559,11 +560,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     return KeyEventResult.handled;
   }
 
-  BoxFit get _fit => switch (ref.watch(settingsProvider).videoFit) {
-    VideoFit.fit => BoxFit.contain,
-    VideoFit.fill => BoxFit.cover,
-    VideoFit.stretch => BoxFit.fill,
-  };
+  VideoFit get _fit => ref.watch(settingsProvider).videoFit;
 
   @override
   Widget build(BuildContext context) {
@@ -571,7 +568,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_pip) {
       return Scaffold(
         backgroundColor: Colors.black,
-        body: Video(controller: _video, controls: NoVideoControls, fill: Colors.black, fit: fit),
+        body: _FittedVideo(controller: _video, player: _player, mode: fit),
       );
     }
 
@@ -699,7 +696,7 @@ class _VideoSurface extends StatelessWidget {
   final Widget? digitsCard;
   final VideoController video;
   final Player player;
-  final BoxFit fit;
+  final VideoFit fit;
   final String title;
   final String? subtitle;
   final bool isLive;
@@ -724,7 +721,7 @@ class _VideoSurface extends StatelessWidget {
     final stack = Stack(
       fit: StackFit.expand,
       children: [
-        Video(controller: video, controls: NoVideoControls, fill: Colors.black, fit: fit),
+        _FittedVideo(controller: video, player: player, mode: fit),
         StreamBuilder<bool>(
           stream: player.stream.buffering,
           builder: (_, s) => (s.data ?? false) && error == null
@@ -741,7 +738,7 @@ class _VideoSurface extends StatelessWidget {
               children: [
                 const Icon(Icons.portable_wifi_off, color: AppColors.muted, size: 34),
                 const SizedBox(height: 10),
-                Text('This stream could not be played', style: t.titleMedium),
+                Text(context.l10n.streamCouldNotPlay, style: t.titleMedium),
                 const SizedBox(height: 4),
                 Text(
                   error!,
@@ -751,7 +748,7 @@ class _VideoSurface extends StatelessWidget {
                   style: t.bodySmall!.copyWith(color: AppColors.muted),
                 ),
                 const SizedBox(height: 14),
-                OutlinedButton(onPressed: onRetry, child: const Text('Try again')),
+                OutlinedButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
               ],
             ),
           ),
@@ -1022,7 +1019,7 @@ class _ChannelCard extends ConsumerWidget {
                 if (next != null) ...[
                   const SizedBox(height: 6),
                   Text(
-                    'Next  ${formatTime(next.start)}  ${next.title}',
+                    context.l10n.nextProgram(formatTime(next.start), next.title),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: t.bodySmall!.copyWith(color: AppColors.muted),
@@ -1065,7 +1062,8 @@ class _DigitsCard extends StatelessWidget {
               letterSpacing: 2,
             ),
           ),
-          if (missing) Text('No channel $digits', style: t.labelSmall!.copyWith(color: AppColors.muted)),
+          if (missing)
+            Text(context.l10n.noChannelNumber(digits), style: t.labelSmall!.copyWith(color: AppColors.muted)),
         ],
       ),
     );
@@ -1094,16 +1092,16 @@ class _NextEpisodeCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Next episode in $seconds s', style: t.labelMedium!.copyWith(color: AppColors.tally)),
+          Text(context.l10n.nextEpisodeIn(seconds), style: t.labelMedium!.copyWith(color: AppColors.tally)),
           const SizedBox(height: 4),
           Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: t.titleSmall),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: onCancel, child: const Text('Cancel')),
+              TextButton(onPressed: onCancel, child: Text(context.l10n.cancel)),
               const SizedBox(width: 4),
-              FilledButton(onPressed: onPlay, child: const Text('Play now')),
+              FilledButton(onPressed: onPlay, child: Text(context.l10n.playNow)),
             ],
           ),
         ],
@@ -1147,7 +1145,7 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
   static const _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   static const _sleeps = [15, 30, 45, 60, 90, 120];
 
-  String _rateLabel(double r) => r == 1 ? 'Normal' : '${r.toString().replaceAll(RegExp(r'\.0$'), '')}×';
+  String _rateLabel(double r) => r == 1 ? context.l10n.speedNormal : '${r.toString().replaceAll(RegExp(r'\.0$'), '')}×';
 
   Widget _choices<T>(List<T> values, T? selected, String Function(T) label, ValueChanged<T> onTap) {
     return Padding(
@@ -1175,6 +1173,7 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
     final t = Theme.of(context).textTheme;
     final fit = ref.watch(settingsProvider).videoFit;
     final left = _sleepAt?.difference(DateTime.now());
+    final l = context.l10n;
 
     Widget heading(String text, [String? trailing]) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -1193,40 +1192,44 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            heading('Picture size'),
+            heading(l.pictureSize),
             if (widget.smallPlayer)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Text(
-                  'You see the difference in full screen. The small player keeps the original shape, so most videos look the same here.',
-                  style: t.bodySmall!.copyWith(color: AppColors.muted),
-                ),
+                child: Text(l.pictureSizeSmallPlayer, style: t.bodySmall!.copyWith(color: AppColors.muted)),
               ),
             _choices<VideoFit>(
               VideoFit.values,
               fit,
               (f) => switch (f) {
-                VideoFit.fit => 'Fit',
-                VideoFit.fill => 'Fill screen',
-                VideoFit.stretch => 'Stretch',
+                VideoFit.best => l.fitBest,
+                VideoFit.fit => l.fitFit,
+                VideoFit.fill => l.fitFill,
+                VideoFit.stretch => l.fitStretch,
               },
               (f) => ref.read(settingsProvider.notifier).setVideoFit(f),
             ),
             if (!widget.isLive) ...[
-              heading('Playback speed'),
+              heading(l.playbackSpeed),
               _choices<double>(_rates, _rate, _rateLabel, (r) {
                 setState(() => _rate = r);
                 widget.onRate(r);
               }),
             ],
             heading(
-              'Sleep timer',
-              left == null || left.isNegative ? null : 'Stops in ${formatDuration(left + const Duration(seconds: 59))}',
+              l.sleepTimer,
+              left == null || left.isNegative ? null : l.stopsIn(formatDuration(left + const Duration(seconds: 59))),
             ),
             _choices<int?>(
               [null, ..._sleeps],
               null,
-              (m) => m == null ? 'Off' : (m < 60 ? '$m min' : '${m ~/ 60} h${m % 60 == 0 ? '' : ' ${m % 60} min'}'),
+              (m) => m == null
+                  ? l.off
+                  : m < 60
+                  ? l.timerMinutes(m)
+                  : m % 60 == 0
+                  ? l.timerHours(m ~/ 60)
+                  : l.timerHoursMinutes(m ~/ 60, m % 60),
               (m) {
                 widget.onSleep(m == null ? null : Duration(minutes: m));
                 setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
@@ -1235,8 +1238,8 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
             if (widget.pipSupported)
               ListTile(
                 leading: const Icon(Icons.picture_in_picture_alt_outlined),
-                title: const Text('Picture in picture'),
-                subtitle: const Text('Keep watching in a small window. Pressing Home does this too.'),
+                title: Text(l.pictureInPicture),
+                subtitle: Text(l.pictureInPictureHint),
                 onTap: () {
                   Navigator.pop(context);
                   widget.onPip();
@@ -1303,7 +1306,7 @@ class _Controls extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    tooltip: 'Back',
+                    tooltip: context.l10n.back,
                     onPressed: onBack,
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                   ),
@@ -1323,13 +1326,13 @@ class _Controls extends StatelessWidget {
                     ),
                   if (onChannels != null)
                     IconButton(
-                      tooltip: 'Channels',
+                      tooltip: context.l10n.channels,
                       onPressed: onChannels,
                       icon: const Icon(Icons.format_list_bulleted, color: Colors.white),
                     ),
                   _TracksButtons(player: player, onInteract: onInteract, onAudio: onAudio, onSubtitle: onSubtitle),
                   IconButton(
-                    tooltip: 'Player options',
+                    tooltip: context.l10n.playerOptions,
                     onPressed: onOptions,
                     icon: const Icon(Icons.tune, color: Colors.white),
                   ),
@@ -1350,7 +1353,7 @@ class _Controls extends StatelessWidget {
                           if (onPrevChannel != null)
                             _RoundButton(
                               icon: Icons.skip_previous,
-                              tooltip: 'Previous channel',
+                              tooltip: context.l10n.previousChannel,
                               onPressed: () {
                                 onPrevChannel!();
                                 onInteract();
@@ -1359,7 +1362,7 @@ class _Controls extends StatelessWidget {
                           if (!isLive)
                             _RoundButton(
                               icon: Icons.replay_10,
-                              tooltip: 'Back 10 seconds',
+                              tooltip: context.l10n.back10,
                               onPressed: () {
                                 player.seek(player.state.position - const Duration(seconds: 10));
                                 onInteract();
@@ -1368,7 +1371,7 @@ class _Controls extends StatelessWidget {
                           const SizedBox(width: 20),
                           _RoundButton(
                             icon: playing ? Icons.pause : Icons.play_arrow,
-                            tooltip: playing ? 'Pause' : 'Play',
+                            tooltip: playing ? context.l10n.pause : context.l10n.play,
                             big: true,
                             onPressed: () {
                               player.playOrPause();
@@ -1379,7 +1382,7 @@ class _Controls extends StatelessWidget {
                           if (!isLive)
                             _RoundButton(
                               icon: Icons.forward_10,
-                              tooltip: 'Forward 10 seconds',
+                              tooltip: context.l10n.forward10,
                               onPressed: () {
                                 player.seek(player.state.position + const Duration(seconds: 10));
                                 onInteract();
@@ -1388,7 +1391,7 @@ class _Controls extends StatelessWidget {
                           if (onNextChannel != null)
                             _RoundButton(
                               icon: Icons.skip_next,
-                              tooltip: 'Next channel',
+                              tooltip: context.l10n.nextChannel,
                               onPressed: () {
                                 onNextChannel!();
                                 onInteract();
@@ -1416,12 +1419,12 @@ class _Controls extends StatelessWidget {
                     ),
                     if (onPip != null)
                       IconButton(
-                        tooltip: 'Picture in picture',
+                        tooltip: context.l10n.pictureInPicture,
                         onPressed: onPip,
                         icon: const Icon(Icons.picture_in_picture_alt_outlined, color: Colors.white),
                       ),
                     IconButton(
-                      tooltip: fullscreen ? 'Exit full screen' : 'Full screen',
+                      tooltip: fullscreen ? context.l10n.exitFullScreen : context.l10n.fullScreen,
                       onPressed: onFullscreen,
                       icon: Icon(fullscreen ? Icons.fullscreen_exit : Icons.fullscreen, color: Colors.white),
                     ),
@@ -1557,16 +1560,16 @@ class _TracksButtons extends StatelessWidget {
       // Skip a title that only repeats the language ("English").
       if (title != null && title.isNotEmpty && (name == null || title.toLowerCase() != name.toLowerCase())) title,
     ];
-    return parts.isEmpty ? 'Track ${i + 1}' : parts.join(' · ');
+    return parts.isEmpty ? strings.trackNumber(i + 1) : parts.join(' · ');
   }
 
   static String _channels(int? count) => switch (count) {
     null || 0 => '',
-    1 => 'Mono',
-    2 => 'Stereo',
+    1 => strings.audioMono,
+    2 => strings.audioStereo,
     6 => '5.1',
     8 => '7.1',
-    _ => '$count ch',
+    _ => strings.audioChannels(count),
   };
 
   /// Audio label with the format, so two English tracks can be told apart.
@@ -1581,7 +1584,10 @@ class _TracksButtons extends StatelessWidget {
 
   /// Gives identical labels a track number so every row is distinct.
   static List<String> _distinct(List<String> labels) {
-    return [for (final (i, l) in labels.indexed) labels.where((o) => o == l).length > 1 ? '$l · Track ${i + 1}' : l];
+    return [
+      for (final (i, l) in labels.indexed)
+        labels.where((o) => o == l).length > 1 ? '$l · ${strings.trackNumber(i + 1)}' : l,
+    ];
   }
 
   /// The track actually playing. Before the viewer picks one the player
@@ -1611,11 +1617,11 @@ class _TracksButtons extends StatelessWidget {
           children: [
             if (audio.length > 1)
               IconButton(
-                tooltip: 'Audio',
+                tooltip: context.l10n.audio,
                 icon: const Icon(Icons.audiotrack_outlined, color: Colors.white),
                 onPressed: () => _pick<AudioTrack>(
                   context,
-                  title: 'Audio',
+                  title: context.l10n.audio,
                   options: [
                     for (final (i, label) in _distinct([for (final (i, a) in audio.indexed) _audioLabel(a, i)]).indexed)
                       (audio[i], label),
@@ -1627,13 +1633,13 @@ class _TracksButtons extends StatelessWidget {
               ),
             if (subs.isNotEmpty)
               IconButton(
-                tooltip: 'Subtitles',
+                tooltip: context.l10n.subtitles,
                 icon: const Icon(Icons.closed_caption_outlined, color: Colors.white),
                 onPressed: () => _pick<SubtitleTrack>(
                   context,
-                  title: 'Subtitles',
+                  title: context.l10n.subtitles,
                   options: [
-                    (SubtitleTrack.no(), 'Off'),
+                    (SubtitleTrack.no(), context.l10n.off),
                     for (final (i, label) in _distinct([
                       for (final (i, s) in subs.indexed) _label(s.title, s.language, i),
                     ]).indexed)
@@ -1692,14 +1698,91 @@ class _TracksButtons extends StatelessWidget {
   }
 }
 
+/// The video, sized by the viewer's picture size setting.
+class _FittedVideo extends StatelessWidget {
+  const _FittedVideo({required this.controller, required this.player, required this.mode});
+  final VideoController controller;
+  final Player player;
+  final VideoFit mode;
+
+  /// "Best fit" fills the screen when at most this share of the picture is
+  /// cut off. 16:9 video on a 20:9 phone loses about a fifth and fills;
+  /// 4:3 video on a 16:9 screen would lose a quarter and is fitted instead.
+  static const _maxCrop = 0.23;
+
+  static BoxFit bestFit(Size video, Size view) {
+    if (video.isEmpty || view.isEmpty) return BoxFit.contain;
+    final a = video.aspectRatio, b = view.aspectRatio;
+    final crop = 1 - min(a, b) / max(a, b);
+    return crop <= _maxCrop ? BoxFit.cover : BoxFit.contain;
+  }
+
+  Widget _video(BoxFit fit) => Video(controller: controller, controls: NoVideoControls, fill: Colors.black, fit: fit);
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (mode) {
+      VideoFit.fit => _video(BoxFit.contain),
+      VideoFit.fill => _video(BoxFit.cover),
+      VideoFit.stretch => _video(BoxFit.fill),
+      VideoFit.best => LayoutBuilder(
+        builder: (context, box) => StreamBuilder<int?>(
+          stream: player.stream.height,
+          builder: (context, _) {
+            final w = player.state.width ?? 0, h = player.state.height ?? 0;
+            return _video(bestFit(Size(w.toDouble(), h.toDouble()), box.biggest));
+          },
+        ),
+      ),
+    };
+  }
+}
+
 /// Whether two language codes ("tr", "tur", "Turkish") mean the same language.
 bool sameLanguage(String? a, String b) {
   if (a == null || a.isEmpty) return false;
   return _languageName(a).toLowerCase() == _languageName(b).toLowerCase();
 }
 
-/// Readable names for the language codes streams usually carry.
-String languageName(String code) => _languageName(code);
+/// Readable names for the language codes streams usually carry, in the
+/// app's language.
+String languageName(String code) {
+  final english = _languageName(code);
+  return strings.localeName == 'tr' ? (_turkishNames[english] ?? english) : english;
+}
+
+const _turkishNames = {
+  'Turkish': 'Türkçe',
+  'English': 'İngilizce',
+  'German': 'Almanca',
+  'French': 'Fransızca',
+  'Spanish': 'İspanyolca',
+  'Italian': 'İtalyanca',
+  'Arabic': 'Arapça',
+  'Russian': 'Rusça',
+  'Portuguese': 'Portekizce',
+  'Dutch': 'Felemenkçe',
+  'Polish': 'Lehçe',
+  'Greek': 'Yunanca',
+  'Japanese': 'Japonca',
+  'Korean': 'Korece',
+  'Chinese': 'Çince',
+  'Hindi': 'Hintçe',
+  'Persian': 'Farsça',
+  'Kurdish': 'Kürtçe',
+  'Azerbaijani': 'Azerice',
+  'Swedish': 'İsveççe',
+  'Norwegian': 'Norveççe',
+  'Danish': 'Danca',
+  'Finnish': 'Fince',
+  'Romanian': 'Rumence',
+  'Bulgarian': 'Bulgarca',
+  'Hungarian': 'Macarca',
+  'Czech': 'Çekçe',
+  'Ukrainian': 'Ukraynaca',
+  'Hebrew': 'İbranice',
+  'Unknown': 'Bilinmiyor',
+};
 
 String _languageName(String code) {
   const names = {
@@ -1776,8 +1859,12 @@ class _ChannelPicker extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 6),
           child: Row(
             children: [
-              Expanded(child: Text('Channels', style: t.titleMedium)),
-              IconButton(tooltip: 'Close', onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
+              Expanded(child: Text(context.l10n.channels, style: t.titleMedium)),
+              IconButton(
+                tooltip: context.l10n.close,
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.close),
+              ),
             ],
           ),
         ),
@@ -1950,7 +2037,7 @@ class _InfoPanel extends ConsumerWidget {
           ),
         ),
         IconButton(
-          tooltip: favorite ? 'Remove from favorites' : 'Add to favorites',
+          tooltip: favorite ? context.l10n.removeFromFavorites : context.l10n.addToFavorites,
           onPressed: () async {
             await ref.read(favoritesControllerProvider).toggle(item.copyWith(favorite: favorite));
             ref.invalidate(_favoriteProvider(item));
@@ -1971,7 +2058,7 @@ class _InfoPanel extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text('Channels', style: t.titleMedium),
+            child: Text(context.l10n.channels, style: t.titleMedium),
           ),
           Expanded(
             child: _ChannelList(channels: request.siblings, current: item, onPick: onPickChannel),
@@ -2060,7 +2147,7 @@ class _EpisodesState extends ConsumerState<_Episodes> {
                 final active = seasons[i] == season;
                 return Center(
                   child: ChoiceChip(
-                    label: Text('Season ${seasons[i]}'),
+                    label: Text(context.l10n.seasonNumber(seasons[i])),
                     selected: active,
                     onSelected: (_) => setState(() => _season = seasons[i]),
                     labelStyle: t.labelMedium!.copyWith(color: active ? AppColors.onTally : AppColors.text),
@@ -2070,7 +2157,7 @@ class _EpisodesState extends ConsumerState<_Episodes> {
             ),
           )
         else
-          Text('Season $season', style: t.titleMedium),
+          Text(context.l10n.seasonNumber(season), style: t.titleMedium),
         const SizedBox(height: 8),
         for (final e in episodes)
           _EpisodeTile(
@@ -2134,7 +2221,7 @@ class _EpisodeTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        playing ? 'Playing' : episode.duration ?? '',
+                        playing ? context.l10n.playing : episode.duration ?? '',
                         style: t.labelSmall!.copyWith(
                           color: playing ? AppColors.tally : AppColors.muted,
                           fontFeatures: tabular,
@@ -2170,7 +2257,7 @@ class _MoreMovies extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 24),
-        Text('More from ${movie.group}', maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleMedium),
+        Text(context.l10n.moreFrom(movie.group), maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleMedium),
         const SizedBox(height: 10),
         SizedBox(
           height: 196,
@@ -2226,7 +2313,7 @@ class _Guide extends ConsumerWidget {
       data: (list) {
         if (list.isEmpty) {
           if (compact) return const SizedBox.shrink();
-          return Text('No guide data for this channel.', style: t.bodySmall!.copyWith(color: AppColors.muted));
+          return Text(context.l10n.noGuideData, style: t.bodySmall!.copyWith(color: AppColors.muted));
         }
         final current = list.first.isLiveAt(now) ? list.first : null;
         final upcoming = current == null ? list : list.skip(1).toList();
@@ -2246,7 +2333,7 @@ class _Guide extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Text('Now', style: t.labelMedium!.copyWith(color: AppColors.tally)),
+                        Text(context.l10n.now, style: t.labelMedium!.copyWith(color: AppColors.tally)),
                         const SizedBox(width: 8),
                         Text(
                           '${formatTime(current.start)} – ${formatTime(current.stop)}',
@@ -2254,7 +2341,7 @@ class _Guide extends ConsumerWidget {
                         ),
                         const Spacer(),
                         Text(
-                          '${formatDuration(current.stop.difference(now))} left',
+                          context.l10n.timeLeft(formatDuration(current.stop.difference(now))),
                           style: t.labelMedium!.copyWith(color: AppColors.muted),
                         ),
                       ],
@@ -2279,7 +2366,7 @@ class _Guide extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Next  ${formatTime(upcoming.first.start)}  ${upcoming.first.title}',
+                  context.l10n.nextProgram(formatTime(upcoming.first.start), upcoming.first.title),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: t.bodySmall!.copyWith(color: AppColors.muted),
@@ -2287,7 +2374,7 @@ class _Guide extends ConsumerWidget {
               ),
             if (!compact && upcoming.isNotEmpty) ...[
               const SizedBox(height: 20),
-              Text('Up next', style: t.titleMedium),
+              Text(context.l10n.upNext, style: t.titleMedium),
               const SizedBox(height: 6),
               for (final p in upcoming.take(12))
                 Padding(

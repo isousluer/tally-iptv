@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'playback.dart';
 import 'theme.dart';
@@ -16,7 +17,7 @@ PlayRequest episodeRequest(MediaItem series, Episode e, List<Episode> all) {
   PlayRequest request(Episode e, [List<PlayRequest> upNext = const []]) => PlayRequest(
     item: series,
     url: e.url,
-    title: 'S${e.season} · E${e.number}  ${e.title}',
+    title: '${strings.episodeCode(e.season, e.number)}  ${e.title}',
     subtitle: series.name,
     historyKey: e.key,
     description: e.plot ?? series.plot,
@@ -79,7 +80,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
           final plot = d.plot ?? s.plot;
           final meta = [
             s.year,
-            '${seasons.length} season${seasons.length == 1 ? '' : 's'}',
+            context.l10n.seasonCount(seasons.length),
             if (s.rating != null) '★ ${s.rating}',
           ].whereType<String>().join('  ·  ');
 
@@ -142,8 +143,12 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                         icon: const Icon(Icons.play_arrow),
                         label: Text(
                           resumeEp == null
-                              ? 'Play S${allEpisodes.first.season} · E${allEpisodes.first.number}'
-                              : 'Continue S${resumeEp.season} · E${resumeEp.number}',
+                              ? context.l10n.playEpisode(
+                                  context.l10n.episodeCode(allEpisodes.first.season, allEpisodes.first.number),
+                                )
+                              : context.l10n.continueEpisode(
+                                  context.l10n.episodeCode(resumeEp.season, resumeEp.number),
+                                ),
                         ),
                       ),
                     const SizedBox(height: 20),
@@ -158,7 +163,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                             final active = seasons[i] == season;
                             return Center(
                               child: ChoiceChip(
-                                label: Text('Season ${seasons[i]}'),
+                                label: Text(context.l10n.seasonNumber(seasons[i])),
                                 selected: active,
                                 onSelected: (_) => setState(() => _season = seasons[i]),
                                 labelStyle: t.labelMedium!.copyWith(color: active ? AppColors.onTally : AppColors.text),
@@ -168,10 +173,10 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                         ),
                       )
                     else if (season != null)
-                      Text('Season $season', style: t.titleLarge),
+                      Text(context.l10n.seasonNumber(season), style: t.titleLarge),
                     const SizedBox(height: 8),
                     if (allEpisodes.isEmpty)
-                      const EmptyState(icon: Icons.video_library_outlined, title: 'No episodes available'),
+                      EmptyState(icon: Icons.video_library_outlined, title: context.l10n.noEpisodes),
                   ],
                 ),
               ),
@@ -219,7 +224,7 @@ class _SeriesScreenState extends ConsumerState<SeriesScreen> {
                               ),
                             ),
                             IconButton(
-                              tooltip: _favorite ? 'Remove from favorites' : 'Add to favorites',
+                              tooltip: _favorite ? context.l10n.removeFromFavorites : context.l10n.addToFavorites,
                               onPressed: () async {
                                 await ref.read(favoritesControllerProvider).toggle(s.copyWith(favorite: _favorite));
                                 setState(() => _favorite = !_favorite);

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'parental.dart';
 import 'theme.dart';
@@ -54,7 +55,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     final matches = groups.where((g) => adultGroupPattern.hasMatch(g.name) && !g.locked).toList();
     final messenger = ScaffoldMessenger.of(context);
     if (matches.isEmpty) {
-      messenger.showSnackBar(const SnackBar(content: Text('No adult categories found in this list.')));
+      messenger.showSnackBar(SnackBar(content: Text(context.l10n.noAdultCategories)));
       return;
     }
     if (!await _ensurePin()) return;
@@ -63,7 +64,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       await db.setGroupFlags(p.id, _kind, g.name, locked: true);
     }
     _bump();
-    messenger.showSnackBar(SnackBar(content: Text('Locked ${matches.length} categories')));
+    messenger.showSnackBar(SnackBar(content: Text(strings.lockedCategories(matches.length))));
   }
 
   Future<void> _reorder(List<GroupInfo> list, int from, int to) async {
@@ -103,17 +104,17 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Categories'),
+          title: Text(context.l10n.categories),
           actions: [
             PopupMenuButton<String>(
-              tooltip: 'More',
+              tooltip: context.l10n.more,
               onSelected: (v) {
                 if (v == 'adult') _lockAdult(groups ?? const []);
                 if (v == 'reset') _reset();
               },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'adult', child: Text('Lock adult categories')),
-                PopupMenuItem(value: 'reset', child: Text('Show all and restore order')),
+              itemBuilder: (_) => [
+                PopupMenuItem(value: 'adult', child: Text(context.l10n.lockAdultCategories)),
+                PopupMenuItem(value: 'reset', child: Text(context.l10n.showAllRestoreOrder)),
               ],
             ),
           ],
@@ -126,10 +127,10 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 Padding(
                   padding: EdgeInsets.fromLTRB(16 + inset, 8, 16 + inset, 4),
                   child: SegmentedButton<ContentKind>(
-                    segments: const [
-                      ButtonSegment(value: ContentKind.live, label: Text('Live TV')),
-                      ButtonSegment(value: ContentKind.movie, label: Text('Movies')),
-                      ButtonSegment(value: ContentKind.series, label: Text('Series')),
+                    segments: [
+                      ButtonSegment(value: ContentKind.live, label: Text(context.l10n.liveTv)),
+                      ButtonSegment(value: ContentKind.movie, label: Text(context.l10n.movies)),
+                      ButtonSegment(value: ContentKind.series, label: Text(context.l10n.series)),
                     ],
                     selected: {_kind},
                     onSelectionChanged: (s) => setState(() {
@@ -140,16 +141,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                 ),
                 Padding(
                   padding: EdgeInsets.fromLTRB(16 + inset, 8, 16 + inset, 4),
-                  child: Text(
-                    'Drag to reorder. Hidden categories disappear from the lists; locked ones need your PIN.',
-                    style: t.bodySmall!.copyWith(color: AppColors.muted),
-                  ),
+                  child: Text(context.l10n.categoriesHelp, style: t.bodySmall!.copyWith(color: AppColors.muted)),
                 ),
                 Expanded(
                   child: groups == null
                       ? const Center(child: CircularProgressIndicator())
                       : groups.isEmpty
-                      ? const EmptyState(icon: Icons.category_outlined, title: 'No categories here')
+                      ? EmptyState(icon: Icons.category_outlined, title: context.l10n.noCategoriesHere)
                       : ReorderableListView.builder(
                           padding: EdgeInsets.fromLTRB(inset, 0, inset, 24),
                           itemCount: groups.length,
@@ -161,7 +159,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                               contentPadding: const EdgeInsets.only(left: 16, right: 4),
                               key: ValueKey(g.name),
                               title: Text(
-                                g.name.isEmpty ? 'Uncategorized' : g.name,
+                                g.name.isEmpty ? context.l10n.uncategorized : g.name,
                                 style: TextStyle(color: g.hidden ? AppColors.muted : null),
                               ),
                               subtitle: Text(compactCount(g.count)),
@@ -169,7 +167,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    tooltip: g.locked ? 'Unlock' : 'Lock with PIN',
+                                    tooltip: g.locked ? context.l10n.unlock : context.l10n.lockWithPin,
                                     onPressed: () => _toggleLocked(g),
                                     icon: Icon(
                                       g.locked ? Icons.lock : Icons.lock_open_outlined,
@@ -177,7 +175,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
                                     ),
                                   ),
                                   IconButton(
-                                    tooltip: g.hidden ? 'Show' : 'Hide',
+                                    tooltip: g.hidden ? context.l10n.show : context.l10n.hide,
                                     onPressed: () => _toggleHidden(g),
                                     icon: Icon(
                                       g.hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined,

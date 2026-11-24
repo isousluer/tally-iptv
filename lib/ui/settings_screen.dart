@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../data/backup.dart';
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'add_playlist_screen.dart';
 import 'categories_screen.dart';
@@ -30,6 +31,7 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final pin = ref.watch(parentalPinProvider);
     final unlocked = ref.watch(parentalUnlockedProvider);
+    final l = context.l10n;
 
     Widget heading(String text) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -44,41 +46,47 @@ class SettingsScreen extends ConsumerWidget {
           return ListView(
             padding: EdgeInsets.fromLTRB(inset, 0, inset, 32),
             children: [
-              const ScreenHeader(title: 'Settings'),
-              heading('Playlists'),
+              ScreenHeader(title: l.settings),
+              ListTile(
+                leading: const Icon(Icons.translate),
+                title: Text(l.language),
+                subtitle: Text(languageLabel(l, settings.language)),
+                onTap: () => _pickLanguage(context, ref, settings.language),
+              ),
+              heading(l.playlists),
               for (final p in playlists) _PlaylistTile(playlist: p, active: p.id == active?.id),
               ListTile(
                 leading: const Icon(Icons.add, color: AppColors.tally),
-                title: const Text('Add playlist'),
+                title: Text(l.addPlaylist),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AddPlaylistScreen())),
               ),
               SwitchListTile(
                 secondary: const Icon(Icons.sync),
-                title: const Text('Update playlists automatically'),
-                subtitle: const Text('When the app opens, lists older than a day are refreshed.'),
+                title: Text(l.autoRefreshTitle),
+                subtitle: Text(l.autoRefreshSubtitle),
                 value: settings.autoRefresh,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setAutoRefresh(v),
               ),
               ListTile(
                 leading: const Icon(Icons.category_outlined),
-                title: const Text('Categories'),
-                subtitle: const Text('Hide, lock or reorder categories'),
+                title: Text(l.categories),
+                subtitle: Text(l.categoriesSubtitle),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
               ),
-              heading('Playback'),
+              heading(l.playback),
               SwitchListTile(
                 secondary: const Icon(Icons.skip_next_outlined),
-                title: const Text('Play next episode automatically'),
+                title: Text(l.autoNextTitle),
                 value: settings.autoNext,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setAutoNext(v),
               ),
               ListTile(
                 leading: const Icon(Icons.audiotrack_outlined),
-                title: const Text('Audio language'),
+                title: Text(l.audioLanguage),
                 subtitle: Text(
                   settings.audioLanguage == null
-                      ? 'Stream default. Pick a language in the player and it\'s used from then on.'
-                      : '${languageName(settings.audioLanguage!)} · tap to go back to the stream default',
+                      ? l.audioLanguageDefault
+                      : l.tapForStreamDefault(languageName(settings.audioLanguage!)),
                 ),
                 onTap: settings.audioLanguage == null
                     ? null
@@ -86,26 +94,26 @@ class SettingsScreen extends ConsumerWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.closed_caption_outlined),
-                title: const Text('Subtitles'),
+                title: Text(l.subtitles),
                 subtitle: Text(switch (settings.subtitleLanguage) {
-                  null => 'Stream default. Pick subtitles in the player and they\'re used from then on.',
-                  'off' => 'Off · tap to go back to the stream default',
-                  final l => '${languageName(l)} · tap to go back to the stream default',
+                  null => l.subtitlesDefault,
+                  'off' => l.tapForStreamDefault(l.off),
+                  final code => l.tapForStreamDefault(languageName(code)),
                 }),
                 onTap: settings.subtitleLanguage == null
                     ? null
                     : () => ref.read(settingsProvider.notifier).setSubtitleLanguage(null),
               ),
-              heading('Parental control'),
+              heading(l.parentalControl),
               ListTile(
                 leading: const Icon(Icons.pin_outlined),
-                title: Text(pin == null ? 'Set a PIN' : 'Change PIN'),
+                title: Text(pin == null ? l.setPin : l.changePin),
                 subtitle: Text(
                   pin == null
-                      ? 'Lock categories so they need a PIN to open.'
+                      ? l.pinNotSet
                       : unlocked
-                      ? 'Locked categories are open until the app restarts.'
-                      : 'Locked categories need the PIN to open.',
+                      ? l.pinUnlocked
+                      : l.pinLocked,
                 ),
                 onTap: () async {
                   if (pin != null && !await unlockWithPin(context, ref)) return;
@@ -117,45 +125,45 @@ class SettingsScreen extends ConsumerWidget {
               if (pin != null && unlocked)
                 ListTile(
                   leading: const Icon(Icons.lock_outline),
-                  title: const Text('Lock now'),
+                  title: Text(l.lockNow),
                   onTap: () => ref.read(parentalUnlockedProvider.notifier).set(false),
                 ),
               if (pin != null)
                 ListTile(
                   leading: const Icon(Icons.no_encryption_outlined),
-                  title: const Text('Remove PIN'),
-                  subtitle: const Text('Locked categories open without a PIN.'),
+                  title: Text(l.removePin),
+                  subtitle: Text(l.removePinSubtitle),
                   onTap: () async {
                     if (!await unlockWithPin(context, ref)) return;
                     await ref.read(parentalPinProvider.notifier).set(null);
                   },
                 ),
-              heading('Backup'),
+              heading(l.backup),
               ListTile(
                 leading: const Icon(Icons.save_alt),
-                title: const Text('Back up to a file'),
-                subtitle: const Text('Playlists, logins, favorites, watch history and categories'),
+                title: Text(l.backupToFile),
+                subtitle: Text(l.backupToFileSubtitle),
                 onTap: () => _backup(context, ref),
               ),
               ListTile(
                 leading: const Icon(Icons.settings_backup_restore),
-                title: const Text('Restore from a file'),
-                subtitle: const Text('Adds the playlists from a backup and downloads their channels'),
+                title: Text(l.restoreFromFile),
+                subtitle: Text(l.restoreFromFileSubtitle),
                 onTap: () => _restore(context, ref),
               ),
-              heading('TV guide'),
+              heading(l.tvGuide),
               ListTile(
                 leading: const Icon(Icons.event_note_outlined),
-                title: const Text('Update TV guide now'),
+                title: Text(l.updateTvGuideNow),
                 subtitle: Text(switch (epgStatus) {
-                  EpgStatus.loading => 'Downloading guide…',
-                  EpgStatus.failed =>
-                    'Update failed: ${ref.read(epgStatusProvider.notifier).message ?? 'unknown error'}',
+                  EpgStatus.loading => l.downloadingGuide,
+                  EpgStatus.failed => l.guideUpdateFailed(
+                    ref.read(epgStatusProvider.notifier).message ?? l.unknownError,
+                  ),
                   EpgStatus.idle =>
                     active?.epgUrl == null
-                        ? 'No guide link for this playlist. Add one from the playlist menu.'
-                        : ref.read(epgStatusProvider.notifier).message ??
-                              'Updates automatically when a playlist is refreshed.',
+                        ? l.guideNoLink
+                        : ref.read(epgStatusProvider.notifier).message ?? l.guideUpdatesAutomatically,
                 }),
                 trailing: epgStatus == EpgStatus.loading
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
@@ -164,11 +172,11 @@ class SettingsScreen extends ConsumerWidget {
                     ? null
                     : () => ref.read(playlistsProvider.notifier).refreshEpg(active),
               ),
-              heading('About'),
+              heading(l.about),
               ListTile(
                 leading: const Icon(Icons.info_outline),
                 title: const Text('Tally'),
-                subtitle: const Text('Version $appVersion · Free and open source under GPL-3.0'),
+                subtitle: Text(l.versionLine(appVersion)),
                 onTap: () => showLicensePage(
                   context: context,
                   applicationName: 'Tally',
@@ -178,14 +186,14 @@ class SettingsScreen extends ConsumerWidget {
                       'Licensed under the GNU General Public License v3.0.',
                 ),
               ),
-              const ListTile(leading: Icon(Icons.code), title: Text('Source code'), subtitle: SelectableText(repoUrl)),
+              ListTile(
+                leading: const Icon(Icons.code),
+                title: Text(l.sourceCode),
+                subtitle: const SelectableText(repoUrl),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Text(
-                  'Tally is a player only. It does not include, sell or promote any channels or content. '
-                  'Use it with playlists you are allowed to watch.',
-                  style: t.bodySmall!.copyWith(color: AppColors.muted),
-                ),
+                child: Text(l.disclaimer, style: t.bodySmall!.copyWith(color: AppColors.muted)),
               ),
             ],
           );
@@ -195,19 +203,43 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+/// Name of a language setting: a language in its own name, or "System language".
+String languageLabel(AppLocalizations l, String? code) => switch (code) {
+  null => l.systemLanguage,
+  'tr' => 'Türkçe',
+  _ => 'English',
+};
+
+Future<void> _pickLanguage(BuildContext context, WidgetRef ref, String? current) async {
+  final l = context.l10n;
+  final picked = await showDialog<(String?,)>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: Text(l.language),
+      children: [
+        for (final code in [null, ...appLocales.map((x) => x.languageCode)])
+          ListTile(
+            title: Text(languageLabel(l, code)),
+            trailing: code == current ? const Icon(Icons.check, color: AppColors.tally) : null,
+            onTap: () => Navigator.pop(ctx, (code,)),
+          ),
+      ],
+    ),
+  );
+  if (picked != null) await ref.read(settingsProvider.notifier).setLanguage(picked.$1);
+}
+
 Future<void> _backup(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l = context.l10n;
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Back up to a file'),
-      content: const Text(
-        'The file includes your playlist links, usernames and passwords. '
-        'Keep it somewhere private.',
-      ),
+      title: Text(l.backupToFile),
+      content: Text(l.backupWarning),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Back up')),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+        TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.backUp)),
       ],
     ),
   );
@@ -221,19 +253,20 @@ Future<void> _backup(BuildContext context, WidgetRef ref) async {
       fileName: name,
       bytes: Uint8List.fromList(utf8.encode(json)),
       mimeType: 'application/json',
-      dialogTitle: 'Save backup',
+      dialogTitle: l.saveBackup,
     );
-    if (saved != null) messenger.showSnackBar(const SnackBar(content: Text('Backup saved')));
+    if (saved != null) messenger.showSnackBar(SnackBar(content: Text(l.backupSaved)));
   } catch (e) {
-    messenger.showSnackBar(SnackBar(content: Text('Couldn\'t save the backup: $e')));
+    messenger.showSnackBar(SnackBar(content: Text(l.backupFailed('$e'))));
   }
 }
 
 Future<void> _restore(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
-  final file = await FilePicker.pickFile(dialogTitle: 'Choose a backup', type: FileType.any);
+  final l = context.l10n;
+  final file = await FilePicker.pickFile(dialogTitle: l.chooseBackup, type: FileType.any);
   if (file == null || !context.mounted) return;
-  final status = ValueNotifier<String>('Reading backup…');
+  final status = ValueNotifier<String>(l.readingBackup);
   showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -254,21 +287,19 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
   );
   try {
     final json = utf8.decode(await file.readAsBytes(), allowMalformed: true);
-    final r = await ref.read(playlistsProvider.notifier).restore(json, onLoading: (n) => status.value = 'Loading $n…');
-    String count(int n) => '$n playlist${n == 1 ? '' : 's'}';
+    final r = await ref
+        .read(playlistsProvider.notifier)
+        .restore(json, onLoading: (n) => status.value = l.loadingNamed(n));
     final parts = [
-      if (r.playlists.isNotEmpty) 'Added ${count(r.playlists.length)}',
+      if (r.playlists.isNotEmpty) l.restoreAdded(l.playlistCount(r.playlists.length)),
       if (r.alreadyThere > 0)
         r.playlists.isEmpty
-            ? '${count(r.alreadyThere)} already in the app, so only favorites, history and categories were merged'
-            : '${r.alreadyThere} already in the app',
-      if (r.skipped.isNotEmpty) 'Skipped local files: ${r.skipped.join(', ')}',
+            ? l.restoreAllPresent(l.playlistCount(r.alreadyThere))
+            : l.restoreSomePresent(r.alreadyThere),
+      if (r.skipped.isNotEmpty) l.restoreSkipped(r.skipped.join(', ')),
     ];
     messenger.showSnackBar(
-      SnackBar(
-        content: Text(parts.isEmpty ? 'The backup has no playlists.' : parts.join(' · ')),
-        duration: const Duration(seconds: 6),
-      ),
+      SnackBar(content: Text(parts.isEmpty ? l.restoreEmpty : parts.join(' · ')), duration: const Duration(seconds: 6)),
     );
   } catch (e) {
     messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -296,9 +327,9 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(playlistsProvider.notifier).refresh(p);
-      messenger.showSnackBar(SnackBar(content: Text('${p.name} updated')));
+      messenger.showSnackBar(SnackBar(content: Text(strings.playlistUpdated(p.name))));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Couldn\'t update ${p.name}: $e')));
+      messenger.showSnackBar(SnackBar(content: Text(strings.playlistUpdateFailed(p.name, '$e'))));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -316,8 +347,8 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
           decoration: InputDecoration(hintText: hint),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, c.text.trim()), child: const Text('Save')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l10n.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, c.text.trim()), child: Text(context.l10n.save)),
         ],
       ),
     );
@@ -327,14 +358,14 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Remove ${p.name}?'),
-        content: const Text('Its channels, favorites and watch history are removed from this device.'),
+        title: Text(context.l10n.removePlaylistTitle(p.name)),
+        content: Text(context.l10n.removePlaylistBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l10n.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.live),
-            child: const Text('Remove'),
+            child: Text(context.l10n.remove),
           ),
         ],
       ),
@@ -344,42 +375,45 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final updated = p.lastUpdated == null
-        ? 'Never updated'
-        : 'Updated ${p.lastUpdated!.day}.${p.lastUpdated!.month}.${p.lastUpdated!.year} ${formatTime(p.lastUpdated!)}';
+        ? l.neverUpdated
+        : l.updatedOn(
+            '${p.lastUpdated!.day}.${p.lastUpdated!.month}.${p.lastUpdated!.year} ${formatTime(p.lastUpdated!)}',
+          );
     return ListTile(
       leading: Icon(
         p.isXtream ? Icons.dns_outlined : Icons.playlist_play,
         color: widget.active ? AppColors.tally : AppColors.muted,
       ),
       title: Text(p.name),
-      subtitle: Text(widget.active ? 'In use · $updated' : updated),
+      subtitle: Text(widget.active ? l.inUse(updated) : updated),
       onTap: widget.active ? null : () => ref.read(activePlaylistIdProvider.notifier).select(p.id),
       trailing: _busy
           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
           : PopupMenuButton<String>(
-              tooltip: 'Playlist options',
+              tooltip: l.playlistOptions,
               onSelected: (v) async {
                 switch (v) {
                   case 'refresh':
                     await _refresh();
                   case 'rename':
-                    final name = await _ask('Rename playlist', p.name);
+                    final name = await _ask(l.renamePlaylist, p.name);
                     if (name != null && name.isNotEmpty) {
                       await ref.read(playlistsProvider.notifier).rename(p, name);
                     }
                   case 'epg':
-                    final url = await _ask('TV guide link', p.epgUrl ?? '', hint: 'https://…/guide.xml.gz');
+                    final url = await _ask(l.tvGuideLink, p.epgUrl ?? '', hint: 'https://…/guide.xml.gz');
                     if (url != null) await ref.read(playlistsProvider.notifier).setEpgUrl(p, url);
                   case 'delete':
                     await _delete();
                 }
               },
               itemBuilder: (_) => [
-                if (p.type != SourceType.m3uFile) const PopupMenuItem(value: 'refresh', child: Text('Update channels')),
-                const PopupMenuItem(value: 'rename', child: Text('Rename')),
-                const PopupMenuItem(value: 'epg', child: Text('TV guide link')),
-                const PopupMenuItem(value: 'delete', child: Text('Remove')),
+                if (p.type != SourceType.m3uFile) PopupMenuItem(value: 'refresh', child: Text(l.updateChannels)),
+                PopupMenuItem(value: 'rename', child: Text(l.rename)),
+                PopupMenuItem(value: 'epg', child: Text(l.tvGuideLink)),
+                PopupMenuItem(value: 'delete', child: Text(l.remove)),
               ],
             ),
     );

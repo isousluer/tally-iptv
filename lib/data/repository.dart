@@ -5,6 +5,7 @@ import 'dart:isolate';
 
 import 'package:http/http.dart' as http;
 
+import '../l10n/strings.dart';
 import 'database.dart';
 import 'epg_parser.dart';
 import 'm3u_parser.dart';
@@ -106,7 +107,7 @@ class PlaylistRepository {
         final series = await _guard(() => client.fetchSeries(p.id));
         report(progress = progress.withCount(LoadStage.series, series.length).at(LoadStage.save));
         items = [...live, ...movies, ...series];
-        if (items.isEmpty) throw SourceException('This account has no channels, movies or series.');
+        if (items.isEmpty) throw SourceException(strings.errNoContent);
 
       case SourceType.m3uUrl:
       case SourceType.m3uFile:
@@ -122,7 +123,7 @@ class PlaylistRepository {
         final id = p.id;
         final result = await Isolate.run(() => parseM3u(text, id));
         if (result.items.isEmpty) {
-          throw SourceException('No channels were found in this playlist. Check that the link points to an M3U file.');
+          throw SourceException(strings.errNoChannelsInM3u);
         }
         final liveCount = result.items.where((i) => i.kind == ContentKind.live).length;
         progress = progress.withCount(LoadStage.live, liveCount).at(LoadStage.movies);
@@ -149,14 +150,12 @@ class PlaylistRepository {
     } on HttpException catch (e) {
       if (e.message.contains('404') || e.message.contains('403')) {
         throw SourceException(
-          p.isXtream && url == xtreamFor(p).epgUrl
-              ? 'Your provider doesn\'t offer a TV guide. You can add a guide (XMLTV) link from the playlist menu.'
-              : 'The guide link was not found. Check the link in the playlist menu.',
+          p.isXtream && url == xtreamFor(p).epgUrl ? strings.errProviderNoGuide : strings.errGuideLinkNotFound,
         );
       }
-      rethrow;
+      throw SourceException(strings.errGuideDownload(e.message));
     } on SocketException {
-      throw SourceException('Could not reach the guide server. Check your connection.');
+      throw SourceException(strings.errGuideUnreachable);
     }
     await db.replaceEpg(p.id, programs);
     return programs.length;
@@ -169,27 +168,27 @@ class PlaylistRepository {
     try {
       return await run();
     } on SocketException {
-      throw SourceException('Could not reach the server. Check the address and your internet connection.');
+      throw SourceException(strings.errServerUnreachable);
     } on HandshakeException {
-      throw SourceException('Secure connection failed. Try the address with http:// instead of https://.');
+      throw SourceException(strings.errSecureConnection);
     } on http.ClientException catch (e) {
-      throw SourceException('Connection failed: ${e.message}');
+      throw SourceException(strings.errConnectionFailed(e.message));
     } on TimeoutException {
-      throw SourceException('The server took too long to answer. Try again in a moment.');
+      throw SourceException(strings.errTimeout);
     }
   }
 
   Future<String> _download(String url) async {
     final uri = Uri.tryParse(url.trim());
     if (uri == null || !uri.hasScheme) {
-      throw SourceException('Enter a full playlist link starting with http:// or https://.');
+      throw SourceException(strings.errFullLink);
     }
     final res = await _guard(() => http.get(uri).timeout(const Duration(seconds: 120)));
     if (res.statusCode == 401 || res.statusCode == 403) {
-      throw SourceException('The server refused access (${res.statusCode}). Check that your subscription is active.');
+      throw SourceException(strings.errAccessRefused(res.statusCode));
     }
     if (res.statusCode != 200) {
-      throw SourceException('The server responded with error ${res.statusCode}.');
+      throw SourceException(strings.errHttpStatus(res.statusCode));
     }
     final bytes = res.bodyBytes.length > 2 && res.bodyBytes[0] == 0x1f && res.bodyBytes[1] == 0x8b
         ? gzip.decode(res.bodyBytes)

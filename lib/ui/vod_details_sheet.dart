@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../data/models.dart';
+import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'playback.dart';
 import 'theme.dart';
@@ -99,8 +100,8 @@ class _VodDetails extends ConsumerWidget {
                       ],
                       const SizedBox(height: 2),
                       Text(genre, maxLines: 2, overflow: TextOverflow.ellipsis, style: muted),
-                      if (info?.director != null) credit('Director', info!.director!, lines: 1),
-                      if (info?.cast != null) credit('Cast', info!.cast!, lines: 3),
+                      if (info?.director != null) credit(context.l10n.director, info!.director!, lines: 1),
+                      if (info?.cast != null) credit(context.l10n.cast, info!.cast!, lines: 3),
                     ],
                   ),
                 ),
@@ -118,14 +119,18 @@ class _VodDetails extends ConsumerWidget {
             FilledButton.icon(
               onPressed: () => start(resume: true),
               icon: const Icon(Icons.play_arrow),
-              label: Text(resumeMs > 0 ? 'Resume from ${formatClock(Duration(milliseconds: resumeMs))}' : 'Play'),
+              label: Text(
+                resumeMs > 0
+                    ? context.l10n.resumeFrom(formatClock(Duration(milliseconds: resumeMs)))
+                    : context.l10n.play,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
                 if (resumeMs > 0) ...[
                   Expanded(
-                    child: OutlinedButton(onPressed: () => start(resume: false), child: const Text('Start over')),
+                    child: OutlinedButton(onPressed: () => start(resume: false), child: Text(context.l10n.startOver)),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -136,7 +141,7 @@ class _VodDetails extends ConsumerWidget {
                       ref.invalidate(_resumeProvider(movie));
                     },
                     icon: Icon(favorite ? Icons.star : Icons.star_border, color: favorite ? AppColors.tally : null),
-                    label: Text(favorite ? 'In favorites' : 'Add to favorites'),
+                    label: Text(favorite ? context.l10n.inFavorites : context.l10n.addToFavorites),
                   ),
                 ),
               ],
@@ -178,11 +183,11 @@ class VodInfoText extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          plot ?? 'No description available.',
+          plot ?? context.l10n.noDescription,
           style: t.bodyMedium!.copyWith(color: plot == null ? AppColors.muted : null),
         ),
-        if (info?.director != null) credit('Director', info!.director!),
-        if (info?.cast != null) credit('Cast', info!.cast!),
+        if (info?.director != null) credit(context.l10n.director, info!.director!),
+        if (info?.cast != null) credit(context.l10n.cast, info!.cast!),
       ],
     );
   }
@@ -204,7 +209,7 @@ class _PlotState extends State<_Plot> {
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
     if (widget.text == null) {
-      return Text('No description available.', style: t.bodyMedium!.copyWith(color: AppColors.muted));
+      return Text(context.l10n.noDescription, style: t.bodyMedium!.copyWith(color: AppColors.muted));
     }
     return GestureDetector(
       onTap: () => setState(() => _expanded = !_expanded),

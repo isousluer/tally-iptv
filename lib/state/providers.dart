@@ -8,6 +8,7 @@ import '../data/backup.dart';
 import '../data/database.dart';
 import '../data/models.dart';
 import '../data/repository.dart';
+import '../l10n/strings.dart';
 
 /// Overridden in `main()` once the database is open.
 final databaseProvider = Provider<AppDatabase>((ref) => throw UnimplementedError());
@@ -40,7 +41,7 @@ class PlaylistsNotifier extends AsyncNotifier<List<Playlist>> {
     ref.read(epgStatusProvider.notifier).set(EpgStatus.loading);
     try {
       final count = await ref.read(repositoryProvider).refreshEpg(p);
-      ref.read(epgStatusProvider.notifier).set(EpgStatus.idle, message: '${compactNumber(count)} programs loaded');
+      ref.read(epgStatusProvider.notifier).set(EpgStatus.idle, message: strings.guideProgramsLoaded(count));
       ref.read(epgVersionProvider.notifier).bump();
     } catch (e, st) {
       debugPrint('TV guide update failed: $e\n$st');
@@ -282,16 +283,6 @@ class EpgStatusNotifier extends Notifier<EpgStatus> {
   }
 }
 
-String compactNumber(int n) {
-  final s = n.toString();
-  final b = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
-    b.write(s[i]);
-  }
-  return b.toString();
-}
-
 final epgStatusProvider = NotifierProvider<EpgStatusNotifier, EpgStatus>(EpgStatusNotifier.new);
 
 /// Ticks every 30 seconds so progress bars and "now" programs stay current.
@@ -365,16 +356,18 @@ final adultGroupPattern = RegExp(r'adult|xxx|porn|erotic|\+18|18\+|\bfor adults\
 
 // ----------------------------------------------------------------- settings
 
-/// How the picture fills the player.
-enum VideoFit { fit, fill, stretch }
+/// How the picture fills the player. [best] fills the screen when that cuts
+/// off only a thin strip of the picture, and fits it otherwise.
+enum VideoFit { best, fit, fill, stretch }
 
 class AppSettings {
   const AppSettings({
-    this.videoFit = VideoFit.fit,
+    this.videoFit = VideoFit.best,
     this.audioLanguage,
     this.subtitleLanguage,
     this.autoNext = true,
     this.autoRefresh = true,
+    this.language,
   });
 
   final VideoFit videoFit;
@@ -388,6 +381,9 @@ class AppSettings {
 
   /// Update playlists older than a day when the app opens.
   final bool autoRefresh;
+
+  /// App language code, or null to follow the device.
+  final String? language;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -397,11 +393,12 @@ class SettingsNotifier extends Notifier<AppSettings> {
   AppSettings build() {
     final p = ref.watch(prefsProvider);
     return AppSettings(
-      videoFit: VideoFit.values.firstWhere((f) => f.name == p.getString('video_fit'), orElse: () => VideoFit.fit),
+      videoFit: VideoFit.values.firstWhere((f) => f.name == p.getString('video_fit'), orElse: () => VideoFit.best),
       audioLanguage: p.getString('audio_lang'),
       subtitleLanguage: p.getString('subtitle_lang'),
       autoNext: p.getBool('auto_next') ?? true,
       autoRefresh: p.getBool('auto_refresh') ?? true,
+      language: p.getString('app_language'),
     );
   }
 
@@ -429,6 +426,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setAutoRefresh(bool v) async {
     await _p.setBool('auto_refresh', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setLanguage(String? code) async {
+    await _str('app_language', code);
     ref.invalidateSelf();
   }
 }

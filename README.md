@@ -143,7 +143,7 @@ The mockups were made with [Stitch](https://stitch.withgoogle.com) and live in [
 - [ ] Full-screen TV guide grid
 - [ ] Polished Android TV layout
 - [ ] Custom user agent and headers per playlist
-- [ ] Translations
+- [x] Turkish and English (more translations welcome)
 - [ ] Stalker / MAC portal support
 - [ ] macOS and iOS
 
