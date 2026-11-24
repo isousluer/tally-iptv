@@ -3,7 +3,7 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
-## Unreleased
+## 0.1.2 (2026-11-24)
 
 ### Added
 - Turkish. The app follows your device's language, and you can pick English or Turkish yourself under
