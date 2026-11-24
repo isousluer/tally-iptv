@@ -425,6 +425,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get listEmptyMessage => 'Touch and hold a channel in Live TV to add it here.';
 
   @override
+  String get openInOtherApp => 'Open in another app';
+
+  @override
+  String get openInOtherAppHint => 'VLC, MX Player or another video player';
+
+  @override
+  String get noAppToOpen => 'No app on this device can play this stream.';
+
+  @override
   String get parentalControl => 'Parental control';
 
   @override

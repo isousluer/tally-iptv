@@ -172,6 +172,15 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_isLive) unawaited(_recordLive());
   }
 
+  /// Plays the current stream in another app, for the rare stream mpv can't.
+  Future<void> _openExternally() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l = context.l10n;
+    await _player.pause();
+    final ok = await Device.openExternally(_url, title: _req.title ?? _item.name);
+    if (!ok) messenger.showSnackBar(SnackBar(content: Text(l.noAppToOpen)));
+  }
+
   Future<void> _setDelay(String property, double seconds) async {
     setState(() => property == 'audio-delay' ? _audioDelay = seconds : _subDelay = seconds);
     final native = _player.platform;
@@ -475,6 +484,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         subDelay: _subDelay,
         onAudioDelay: (v) => _setDelay('audio-delay', v),
         onSubDelay: (v) => _setDelay('sub-delay', v),
+        onExternal: Device.canOpenExternally ? _openExternally : null,
       ),
     ).then((_) => _takeKeys());
   }
@@ -645,6 +655,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       onBack: () => videoOnly && _fullscreen && !Device.isTv ? _setFullscreen(false) : Navigator.of(context).pop(),
       onFullscreen: () => _setFullscreen(!_fullscreen),
       onRetry: () => _open(_url, start: _player.state.position),
+      onExternal: Device.canOpenExternally ? _openExternally : null,
       onOptions: _showOptions,
       onPip: _pipSupported ? Device.enterPip : null,
       onAudio: _pickAudio,
@@ -731,6 +742,7 @@ class _VideoSurface extends StatelessWidget {
     required this.onBack,
     required this.onFullscreen,
     required this.onRetry,
+    required this.onExternal,
     required this.onOptions,
     required this.onPip,
     required this.onAudio,
@@ -769,6 +781,7 @@ class _VideoSurface extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback onFullscreen;
   final VoidCallback onRetry;
+  final VoidCallback? onExternal;
   final VoidCallback onOptions;
   final VoidCallback? onPip;
   final ValueChanged<AudioTrack> onAudio;
@@ -808,7 +821,20 @@ class _VideoSurface extends StatelessWidget {
                   style: t.bodySmall!.copyWith(color: AppColors.muted),
                 ),
                 const SizedBox(height: 14),
-                OutlinedButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    OutlinedButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
+                    if (onExternal != null)
+                      TextButton.icon(
+                        onPressed: onExternal,
+                        icon: const Icon(Icons.open_in_new, size: 18),
+                        label: Text(context.l10n.openInOtherApp),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -1208,8 +1234,10 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     required this.subDelay,
     required this.onAudioDelay,
     required this.onSubDelay,
+    required this.onExternal,
   });
   final bool isLive;
+  final VoidCallback? onExternal;
   final double audioDelay;
   final double subDelay;
   final ValueChanged<double> onAudioDelay;
@@ -1367,6 +1395,16 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
                 widget.onStreamInfo(v);
               },
             ),
+            if (widget.onExternal != null)
+              ListTile(
+                leading: const Icon(Icons.open_in_new),
+                title: Text(l.openInOtherApp),
+                subtitle: Text(l.openInOtherAppHint),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onExternal!();
+                },
+              ),
             if (widget.pipSupported)
               ListTile(
                 leading: const Icon(Icons.picture_in_picture_alt_outlined),

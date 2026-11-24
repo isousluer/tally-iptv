@@ -1,11 +1,14 @@
 package io.github.isousluer.tally
 
 import android.app.PictureInPictureParams
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Rational
@@ -65,8 +68,29 @@ class MainActivity : FlutterActivity() {
                 }
                 "enterPip" -> result.success(enterPip())
                 "isTv" -> result.success(isTv())
+                "openExternally" -> {
+                    val args = call.arguments as Map<*, *>
+                    result.success(openExternally(args["url"] as String, args["title"] as? String))
+                }
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    /** Hands a stream to another video app, letting the viewer pick which one. */
+    private fun openExternally(url: String, title: String?): Boolean {
+        val view = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(Uri.parse(url), "video/*")
+            if (title != null) {
+                putExtra("title", title) // MX Player, VLC and most others
+                putExtra(Intent.EXTRA_TITLE, title)
+            }
+        }
+        return try {
+            startActivity(Intent.createChooser(view, title))
+            true
+        } catch (_: ActivityNotFoundException) {
+            false
         }
     }
 

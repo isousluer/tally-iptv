@@ -764,6 +764,24 @@ abstract class AppLocalizations {
   /// **'Touch and hold a channel in Live TV to add it here.'**
   String get listEmptyMessage;
 
+  /// No description provided for @openInOtherApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in another app'**
+  String get openInOtherApp;
+
+  /// No description provided for @openInOtherAppHint.
+  ///
+  /// In en, this message translates to:
+  /// **'VLC, MX Player or another video player'**
+  String get openInOtherAppHint;
+
+  /// No description provided for @noAppToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'No app on this device can play this stream.'**
+  String get noAppToOpen;
+
   /// No description provided for @parentalControl.
   ///
   /// In en, this message translates to:

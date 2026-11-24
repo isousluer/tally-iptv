@@ -15,6 +15,8 @@ All notable changes to Tally are listed here. Downloads are on the
   show up next to All and Favorites in Live TV, and changing channels in the player stays within the list. Make,
   rename, reorder and delete lists, and put their channels in your order, under Settings → My channel lists. Lists
   are included in backups.
+- Open in another app: for the rare stream Tally can't play, hand it to VLC, MX Player or another video player from
+  the player options or the error message (Android).
 
 ## 0.1.3 (2026-11-24)
 

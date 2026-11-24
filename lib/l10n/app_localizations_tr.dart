@@ -415,6 +415,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get listEmptyMessage => 'Canlı TV\'de bir kanala basılı tutarak buraya ekleyebilirsin.';
 
   @override
+  String get openInOtherApp => 'Başka uygulamada aç';
+
+  @override
+  String get openInOtherAppHint => 'VLC, MX Player veya başka bir video oynatıcı';
+
+  @override
+  String get noAppToOpen => 'Bu cihazda bu yayını açabilecek bir uygulama yok.';
+
+  @override
   String get parentalControl => 'Ebeveyn denetimi';
 
   @override

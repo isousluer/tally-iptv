@@ -62,6 +62,15 @@ class Device {
   static Future<bool> enterPip() async =>
       _android && (await _safe(() => _ch.invokeMethod<bool>('enterPip'), false) ?? false);
 
+  /// Lets the viewer play [url] in another app such as VLC or MX Player.
+  /// False when no app can open it, or off Android.
+  static Future<bool> openExternally(String url, {String? title}) async =>
+      _android &&
+      (await _safe(() => _ch.invokeMethod<bool>('openExternally', {'url': url, 'title': title}), false) ?? false);
+
+  /// Only Android can hand a stream to another app.
+  static bool get canOpenExternally => _android;
+
   static Future<T?> _safe<T>(Future<T?> Function() run, T? fallback) async {
     try {
       return await run();
