@@ -817,6 +817,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextChannel => 'Next channel';
 
   @override
+  String backToChannel(String channel) {
+    return 'Back to $channel';
+  }
+
+  @override
   String get back10 => 'Back 10 seconds';
 
   @override

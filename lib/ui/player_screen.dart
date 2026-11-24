@@ -63,6 +63,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   Timer? _zapTimer;
   final _keys = FocusNode(debugLabel: 'player keys');
 
+  /// Live TV: the channel watched before this one, for jumping back and forth.
+  MediaItem? _previous;
+
   /// Live TV: the channel card shown for a few seconds after a change.
   bool _banner = false;
   Timer? _bannerTimer;
@@ -123,6 +126,11 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       setState(() => _pipSupported = v);
       _updatePip();
     });
+    // The last channel from watch history, so "back" works on the first zap too.
+    _previous = (ref.read(historyProvider).value ?? const [])
+        .map((h) => h.$1.item)
+        .where((i) => i.kind == ContentKind.live && i.key != _item.key && i.url != null)
+        .firstOrNull;
     _open(_url, start: _req.startAt);
     _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) => _saveProgress());
     if (_fullscreen) _setFullscreen(true);
@@ -281,6 +289,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   void _switchTo(MediaItem channel, {bool now = false}) {
     if (channel.url == null) return;
     setState(() {
+      if (channel.key != _item.key && _item.kind == ContentKind.live) _previous = _item;
       // Leaving a recorded program goes back to live TV.
       if (_req.catchUp) _req = PlayRequest(item: channel, url: channel.url!, siblings: _req.siblings);
       _item = channel;
@@ -291,6 +300,12 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     _zapTimer = Timer(now ? Duration.zero : const Duration(milliseconds: 400), () {
       if (mounted) _open(_url);
     });
+  }
+
+  /// Jumps to the channel watched before this one; pressing again comes back.
+  void _lastChannel() {
+    final previous = _previous;
+    if (previous != null && _isLive) _switchTo(previous, now: true);
   }
 
   void _pickChannel(MediaItem c) {
@@ -543,6 +558,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _setFullscreen(false);
     } else if (k == LogicalKeyboardKey.contextMenu || k == LogicalKeyboardKey.keyM) {
       _showOptions();
+    } else if (_isLive && (k == LogicalKeyboardKey.mediaLast || k == LogicalKeyboardKey.keyB)) {
+      _lastChannel();
+      return KeyEventResult.handled;
     } else if (_canZap && k == LogicalKeyboardKey.keyL) {
       _showChannelList();
       return KeyEventResult.handled;
@@ -605,6 +623,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       onNextChannel: _canZap ? () => _zap(1) : null,
       // Outside full screen the channel list already shows next to the video.
       onChannels: _canZap && videoOnly ? _showChannelList : null,
+      lastChannel: _isLive ? _previous : null,
+      onLastChannel: _lastChannel,
       // The small player has the same details right below it.
       channelCard: _isLive && _banner && videoOnly ? _ChannelCard(item: _item) : null,
       digitsCard: _digits.isEmpty ? null : _DigitsCard(digits: _digits, missing: _digitsMissing),
@@ -687,6 +707,8 @@ class _VideoSurface extends StatelessWidget {
     required this.onPrevChannel,
     required this.onNextChannel,
     required this.onChannels,
+    required this.lastChannel,
+    required this.onLastChannel,
     required this.channelCard,
     required this.digitsCard,
     required this.nextCard,
@@ -695,6 +717,8 @@ class _VideoSurface extends StatelessWidget {
   final VoidCallback? onPrevChannel;
   final VoidCallback? onNextChannel;
   final VoidCallback? onChannels;
+  final MediaItem? lastChannel;
+  final VoidCallback onLastChannel;
   final Widget? channelCard;
   final Widget? digitsCard;
   final VideoController video;
@@ -778,6 +802,8 @@ class _VideoSurface extends StatelessWidget {
               onPrevChannel: onPrevChannel,
               onNextChannel: onNextChannel,
               onChannels: onChannels,
+              lastChannel: lastChannel,
+              onLastChannel: onLastChannel,
             ),
           ),
         ),
@@ -1291,11 +1317,17 @@ class _Controls extends StatelessWidget {
     required this.onPrevChannel,
     required this.onNextChannel,
     required this.onChannels,
+    required this.lastChannel,
+    required this.onLastChannel,
   });
 
   final VoidCallback? onPrevChannel;
   final VoidCallback? onNextChannel;
   final VoidCallback? onChannels;
+
+  /// Live TV: the channel to jump back to, when there is one.
+  final MediaItem? lastChannel;
+  final VoidCallback onLastChannel;
   final Player player;
   final String title;
   final String? subtitle;
@@ -1343,6 +1375,12 @@ class _Controls extends StatelessWidget {
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 4),
                       child: Icon(Icons.bedtime_outlined, color: AppColors.tally, size: 20),
+                    ),
+                  if (lastChannel != null)
+                    IconButton(
+                      tooltip: context.l10n.backToChannel(lastChannel!.name),
+                      onPressed: onLastChannel,
+                      icon: const Icon(Icons.swap_horiz, color: Colors.white),
                     ),
                   if (onChannels != null)
                     IconButton(

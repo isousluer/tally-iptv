@@ -227,6 +227,7 @@
   "playerOptions": "Oynatıcı seçenekleri",
   "previousChannel": "Önceki kanal",
   "nextChannel": "Sonraki kanal",
+  "backToChannel": "{channel} kanalına dön",
   "back10": "10 saniye geri",
   "forward10": "10 saniye ileri",
   "pause": "Duraklat",

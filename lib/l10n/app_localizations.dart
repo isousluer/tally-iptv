@@ -1454,6 +1454,12 @@ abstract class AppLocalizations {
   /// **'Next channel'**
   String get nextChannel;
 
+  /// No description provided for @backToChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to {channel}'**
+  String backToChannel(String channel);
+
   /// No description provided for @back10.
   ///
   /// In en, this message translates to:

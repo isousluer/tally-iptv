@@ -11,6 +11,8 @@ All notable changes to Tally are listed here. Downloads are on the
 - Catch-up for Xtream Codes channels that keep recordings: a clock icon marks them, and the clock button under the
   player lists past programs to watch, with a Back to live button. Channels show the icon after the playlist's
   next update.
+- Last channel: a button in the player (and `B` or a remote's Last key) jumps back to the channel you watched
+  before, and pressing it again comes back.
 - Tally tells you when a new version is out on GitHub, once per version. You can turn this off or check by hand
   under Settings → About.
 

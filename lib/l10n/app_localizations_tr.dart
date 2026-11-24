@@ -801,6 +801,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get nextChannel => 'Sonraki kanal';
 
   @override
+  String backToChannel(String channel) {
+    return '$channel kanalına dön';
+  }
+
+  @override
   String get back10 => '10 saniye geri';
 
   @override

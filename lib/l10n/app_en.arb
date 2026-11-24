@@ -556,6 +556,14 @@
   "playerOptions": "Player options",
   "previousChannel": "Previous channel",
   "nextChannel": "Next channel",
+  "backToChannel": "Back to {channel}",
+  "@backToChannel": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
   "back10": "Back 10 seconds",
   "forward10": "Forward 10 seconds",
   "pause": "Pause",
