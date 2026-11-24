@@ -263,6 +263,89 @@ class AppLocalizationsEn extends AppLocalizations {
   String get positionHigh => 'Higher';
 
   @override
+  String get account => 'Account';
+
+  @override
+  String get accountInfo => 'Account info';
+
+  @override
+  String get details => 'Details';
+
+  @override
+  String get accountLoadFailed => 'Couldn\'t load the account';
+
+  @override
+  String get accountStatus => 'Status';
+
+  @override
+  String get accountActive => 'Active';
+
+  @override
+  String get accountExpired => 'Expired';
+
+  @override
+  String get accountBanned => 'Banned';
+
+  @override
+  String get accountDisabled => 'Disabled';
+
+  @override
+  String get accountTrial => 'Trial';
+
+  @override
+  String get accountExpires => 'Ends';
+
+  @override
+  String get accountNoEnd => 'Doesn\'t run out';
+
+  @override
+  String get accountToday => 'ends today';
+
+  @override
+  String accountDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(days, locale: localeName, other: '$daysString days left', one: '1 day left');
+    return '$_temp0';
+  }
+
+  @override
+  String get accountConnections => 'Connections';
+
+  @override
+  String accountConnectionsInUse(int active, int max) {
+    return '$active of $max in use';
+  }
+
+  @override
+  String get accountCreated => 'Created';
+
+  @override
+  String accountEnded(String name) {
+    return 'The subscription for $name has ended.';
+  }
+
+  @override
+  String accountEndsToday(String name) {
+    return 'The subscription for $name ends today.';
+  }
+
+  @override
+  String accountEndsInDays(String name, int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'The subscription for $name ends in $daysString days.',
+      one: 'The subscription for $name ends tomorrow.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get parentalControl => 'Parental control';
 
   @override

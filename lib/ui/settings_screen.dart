@@ -10,6 +10,7 @@ import '../data/backup.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import 'account_sheet.dart';
 import 'add_playlist_screen.dart';
 import 'categories_screen.dart';
 import 'parental.dart';
@@ -415,6 +416,8 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
                 switch (v) {
                   case 'refresh':
                     await _refresh();
+                  case 'account':
+                    await showAccountSheet(context, p);
                   case 'rename':
                     final name = await _ask(l.renamePlaylist, p.name);
                     if (name != null && name.isNotEmpty) {
@@ -429,6 +432,7 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
               },
               itemBuilder: (_) => [
                 if (p.type != SourceType.m3uFile) PopupMenuItem(value: 'refresh', child: Text(l.updateChannels)),
+                if (p.isXtream) PopupMenuItem(value: 'account', child: Text(l.accountInfo)),
                 PopupMenuItem(value: 'rename', child: Text(l.rename)),
                 PopupMenuItem(value: 'epg', child: Text(l.tvGuideLink)),
                 PopupMenuItem(value: 'delete', child: Text(l.remove)),

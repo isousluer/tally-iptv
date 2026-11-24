@@ -65,6 +65,27 @@ class XtreamClient {
     }
   }
 
+  /// The subscription behind this login: status, end date and connections.
+  Future<XtreamAccount> account() async => parseAccount(await _get({}));
+
+  static XtreamAccount parseAccount(dynamic data) {
+    final info = data is Map ? data['user_info'] : null;
+    if (info is! Map || '${info['auth']}' != '1') throw XtreamException(strings.errLoginRejected);
+    DateTime? time(dynamic v) {
+      final ts = int.tryParse('${v ?? ''}');
+      return ts == null || ts <= 0 ? null : DateTime.fromMillisecondsSinceEpoch(ts * 1000);
+    }
+
+    return XtreamAccount(
+      status: (_str(info['status']) ?? 'active').toLowerCase(),
+      expires: time(info['exp_date']),
+      trial: '${info['is_trial']}' == '1',
+      activeConnections: int.tryParse('${info['active_cons'] ?? ''}'),
+      maxConnections: int.tryParse('${info['max_connections'] ?? ''}'),
+      createdAt: time(info['created_at']),
+    );
+  }
+
   Future<Map<String, String>> _categories(String action) async {
     final data = await _get({'action': action});
     if (data is! List) return {};

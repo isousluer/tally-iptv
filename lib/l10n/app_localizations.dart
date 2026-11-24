@@ -494,6 +494,126 @@ abstract class AppLocalizations {
   /// **'Higher'**
   String get positionHigh;
 
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @accountInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Account info'**
+  String get accountInfo;
+
+  /// No description provided for @details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get details;
+
+  /// No description provided for @accountLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the account'**
+  String get accountLoadFailed;
+
+  /// No description provided for @accountStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get accountStatus;
+
+  /// No description provided for @accountActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get accountActive;
+
+  /// No description provided for @accountExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get accountExpired;
+
+  /// No description provided for @accountBanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned'**
+  String get accountBanned;
+
+  /// No description provided for @accountDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get accountDisabled;
+
+  /// No description provided for @accountTrial.
+  ///
+  /// In en, this message translates to:
+  /// **'Trial'**
+  String get accountTrial;
+
+  /// No description provided for @accountExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get accountExpires;
+
+  /// No description provided for @accountNoEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Doesn\'t run out'**
+  String get accountNoEnd;
+
+  /// No description provided for @accountToday.
+  ///
+  /// In en, this message translates to:
+  /// **'ends today'**
+  String get accountToday;
+
+  /// No description provided for @accountDaysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day left} other{{days} days left}}'**
+  String accountDaysLeft(int days);
+
+  /// No description provided for @accountConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get accountConnections;
+
+  /// No description provided for @accountConnectionsInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'{active} of {max} in use'**
+  String accountConnectionsInUse(int active, int max);
+
+  /// No description provided for @accountCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created'**
+  String get accountCreated;
+
+  /// No description provided for @accountEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'The subscription for {name} has ended.'**
+  String accountEnded(String name);
+
+  /// No description provided for @accountEndsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'The subscription for {name} ends today.'**
+  String accountEndsToday(String name);
+
+  /// No description provided for @accountEndsInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{The subscription for {name} ends tomorrow.} other{The subscription for {name} ends in {days} days.}}'**
+  String accountEndsInDays(String name, int days);
+
   /// No description provided for @parentalControl.
   ///
   /// In en, this message translates to:

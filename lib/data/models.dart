@@ -360,3 +360,30 @@ class PlayRequest {
 
   bool get isLive => item.kind == ContentKind.live && !catchUp;
 }
+
+/// An Xtream Codes subscription as the server reports it.
+class XtreamAccount {
+  const XtreamAccount({
+    required this.status,
+    this.expires,
+    this.trial = false,
+    this.activeConnections,
+    this.maxConnections,
+    this.createdAt,
+  });
+
+  /// "active", "expired", "banned", "disabled"… in lower case.
+  final String status;
+
+  /// Null for subscriptions that don't run out.
+  final DateTime? expires;
+  final bool trial;
+  final int? activeConnections;
+  final int? maxConnections;
+  final DateTime? createdAt;
+
+  bool get isActive => status == 'active';
+
+  /// Whole days until the subscription runs out, or null when it doesn't.
+  int? daysLeft(DateTime now) => expires == null ? null : (expires!.difference(now).inHours / 24).floor();
+}

@@ -254,6 +254,88 @@ class AppLocalizationsTr extends AppLocalizations {
   String get positionHigh => 'Daha yukarıda';
 
   @override
+  String get account => 'Hesap';
+
+  @override
+  String get accountInfo => 'Hesap bilgisi';
+
+  @override
+  String get details => 'Ayrıntılar';
+
+  @override
+  String get accountLoadFailed => 'Hesap bilgisi alınamadı';
+
+  @override
+  String get accountStatus => 'Durum';
+
+  @override
+  String get accountActive => 'Aktif';
+
+  @override
+  String get accountExpired => 'Süresi dolmuş';
+
+  @override
+  String get accountBanned => 'Engellenmiş';
+
+  @override
+  String get accountDisabled => 'Devre dışı';
+
+  @override
+  String get accountTrial => 'Deneme';
+
+  @override
+  String get accountExpires => 'Bitiş';
+
+  @override
+  String get accountNoEnd => 'Süresiz';
+
+  @override
+  String get accountToday => 'bugün bitiyor';
+
+  @override
+  String accountDaysLeft(int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String daysString = daysNumberFormat.format(days);
+
+    return '$daysString gün kaldı';
+  }
+
+  @override
+  String get accountConnections => 'Bağlantılar';
+
+  @override
+  String accountConnectionsInUse(int active, int max) {
+    return '$max bağlantının $active tanesi kullanımda';
+  }
+
+  @override
+  String get accountCreated => 'Oluşturulma';
+
+  @override
+  String accountEnded(String name) {
+    return '$name aboneliğinin süresi doldu.';
+  }
+
+  @override
+  String accountEndsToday(String name) {
+    return '$name aboneliği bugün bitiyor.';
+  }
+
+  @override
+  String accountEndsInDays(String name, int days) {
+    final intl.NumberFormat daysNumberFormat = intl.NumberFormat.decimalPattern(localeName);
+    final String daysString = daysNumberFormat.format(days);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$name aboneliği $daysString gün sonra bitiyor.',
+      one: '$name aboneliği yarın bitiyor.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get parentalControl => 'Ebeveyn denetimi';
 
   @override

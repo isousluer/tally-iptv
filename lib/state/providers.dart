@@ -309,6 +309,13 @@ final archiveProvider = FutureProvider.autoDispose.family<List<(EpgProgram, Stri
   return ref.watch(repositoryProvider).xtreamFor(p).archive(channel);
 });
 
+/// The Xtream subscription behind a playlist, fetched each time it's shown.
+final accountProvider = FutureProvider.autoDispose.family<XtreamAccount, int>((ref, playlistId) async {
+  final playlists = await ref.watch(playlistsProvider.future);
+  final p = playlists.firstWhere((p) => p.id == playlistId);
+  return ref.watch(repositoryProvider).xtreamFor(p).account();
+});
+
 final scheduleProvider = FutureProvider.autoDispose.family<List<EpgProgram>, MediaItem>((ref, channel) async {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(epgVersionProvider);

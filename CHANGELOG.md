@@ -3,6 +3,13 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## Unreleased
+
+### Added
+- Xtream account info: open a playlist's menu in Settings and choose Account info to see whether the subscription
+  is active, when it ends, and how many of its connections are in use. Tally also warns you, once a day, when it
+  ends within a week.
+
 ## 0.1.3 (2026-11-24)
 
 ### Fixed

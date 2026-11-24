@@ -176,6 +176,69 @@
   "positionLow": "Bottom",
   "positionMiddle": "A little higher",
   "positionHigh": "Higher",
+  "account": "Account",
+  "accountInfo": "Account info",
+  "details": "Details",
+  "accountLoadFailed": "Couldn't load the account",
+  "accountStatus": "Status",
+  "accountActive": "Active",
+  "accountExpired": "Expired",
+  "accountBanned": "Banned",
+  "accountDisabled": "Disabled",
+  "accountTrial": "Trial",
+  "accountExpires": "Ends",
+  "accountNoEnd": "Doesn't run out",
+  "accountToday": "ends today",
+  "accountDaysLeft": "{days, plural, =1{1 day left} other{{days} days left}}",
+  "@accountDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "accountConnections": "Connections",
+  "accountConnectionsInUse": "{active} of {max} in use",
+  "@accountConnectionsInUse": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "accountCreated": "Created",
+  "accountEnded": "The subscription for {name} has ended.",
+  "@accountEnded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountEndsToday": "The subscription for {name} ends today.",
+  "@accountEndsToday": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountEndsInDays": "{days, plural, =1{The subscription for {name} ends tomorrow.} other{The subscription for {name} ends in {days} days.}}",
+  "@accountEndsInDays": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int",
+        "format": "decimalPattern"
+      }
+    }
+  },
   "parentalControl": "Parental control",
   "setPin": "Set a PIN",
   "changePin": "Change PIN",

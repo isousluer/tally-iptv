@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import 'account_sheet.dart';
 import 'library_screen.dart';
 import 'live_screen.dart';
 import 'settings_screen.dart';
@@ -28,6 +29,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     // and look for a new version of the app.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (ref.read(settingsProvider).checkUpdates) notifyAboutUpdate(context, ref);
+    });
+    // Later than the update notice, so the two don't replace each other at once.
+    Future.delayed(const Duration(seconds: 12), () {
+      if (mounted) warnAboutAccount(context, ref);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!ref.read(settingsProvider).autoRefresh) return;
