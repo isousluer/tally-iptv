@@ -54,6 +54,10 @@ in `lib/l10n/strings.dart` and its name to `languageLabel` in `lib/ui/settings_s
 - Buttons say what happens: "Update channels", not "Submit".
 - Error messages say what went wrong and how to fix it.
 
+## Releases
+
+Maintainers: see [RELEASING.md](RELEASING.md).
+
 ## Commit messages
 
 Use short, imperative subjects: `Add channel number search`, `Fix EPG time zone parsing`.
