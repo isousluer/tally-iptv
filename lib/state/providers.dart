@@ -367,6 +367,7 @@ class AppSettings {
     this.autoNext = true,
     this.autoRefresh = true,
     this.language,
+    this.checkUpdates = true,
   });
 
   final VideoFit videoFit;
@@ -383,6 +384,9 @@ class AppSettings {
 
   /// App language code, or null to follow the device.
   final String? language;
+
+  /// Look for a new release on GitHub when the app opens.
+  final bool checkUpdates;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -398,6 +402,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
       autoNext: p.getBool('auto_next') ?? true,
       autoRefresh: p.getBool('auto_refresh') ?? true,
       language: p.getString('app_language'),
+      checkUpdates: p.getBool('check_updates') ?? true,
     );
   }
 
@@ -425,6 +430,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setAutoRefresh(bool v) async {
     await _p.setBool('auto_refresh', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setCheckUpdates(bool v) async {
+    await _p.setBool('check_updates', v);
     ref.invalidateSelf();
   }
 

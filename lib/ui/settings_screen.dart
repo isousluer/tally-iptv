@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../app_info.dart';
 import '../data/backup.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
@@ -14,10 +15,8 @@ import 'categories_screen.dart';
 import 'parental.dart';
 import 'player_screen.dart' show languageName;
 import 'theme.dart';
+import 'updates.dart';
 import 'widgets.dart';
-
-const appVersion = '0.1.1';
-const repoUrl = 'https://github.com/isousluer/tally-iptv';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -185,6 +184,18 @@ class SettingsScreen extends ConsumerWidget {
                       'Copyright (C) 2026 Tally contributors.\n'
                       'Licensed under the GNU General Public License v3.0.',
                 ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.system_update_outlined),
+                title: Text(l.checkForUpdates),
+                onTap: () => checkForUpdateNow(context),
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.notifications_none),
+                title: Text(l.notifyUpdates),
+                subtitle: Text(l.notifyUpdatesSubtitle),
+                value: settings.checkUpdates,
+                onChanged: (v) => ref.read(settingsProvider.notifier).setCheckUpdates(v),
               ),
               ListTile(
                 leading: const Icon(Icons.code),

@@ -93,8 +93,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String channelCount(int count) {
-    final intl.NumberFormat countNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString kanal';
@@ -102,8 +101,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String movieCount(int count) {
-    final intl.NumberFormat countNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString film';
@@ -111,8 +109,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String seriesCount(int count) {
-    final intl.NumberFormat countNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString dizi';
@@ -120,8 +117,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String playlistCount(int count) {
-    final intl.NumberFormat countNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString liste';
@@ -129,8 +125,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String seasonCount(int count) {
-    final intl.NumberFormat countNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString sezon';
@@ -176,8 +171,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get autoRefreshTitle => 'Listeleri otomatik güncelle';
 
   @override
-  String get autoRefreshSubtitle =>
-      'Uygulama açılınca bir günden eski listeler yenilenir.';
+  String get autoRefreshSubtitle => 'Uygulama açılınca bir günden eski listeler yenilenir.';
 
   @override
   String get categoriesSubtitle => 'Kategorileri gizle, kilitle veya sırala';
@@ -198,15 +192,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get audioLanguage => 'Ses dili';
 
   @override
-  String get audioLanguageDefault =>
-      'Yayının varsayılanı. Oynatıcıda bir dil seçersen bundan sonra o kullanılır.';
+  String get audioLanguageDefault => 'Yayının varsayılanı. Oynatıcıda bir dil seçersen bundan sonra o kullanılır.';
 
   @override
   String get subtitles => 'Altyazı';
 
   @override
-  String get subtitlesDefault =>
-      'Yayının varsayılanı. Oynatıcıda altyazı seçersen bundan sonra o kullanılır.';
+  String get subtitlesDefault => 'Yayının varsayılanı. Oynatıcıda altyazı seçersen bundan sonra o kullanılır.';
 
   @override
   String tapForStreamDefault(String choice) {
@@ -226,8 +218,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pinNotSet => 'Kategorileri kilitle, açmak için PIN gereksin.';
 
   @override
-  String get pinUnlocked =>
-      'Kilitli kategoriler uygulama yeniden açılana kadar açık.';
+  String get pinUnlocked => 'Kilitli kategoriler uygulama yeniden açılana kadar açık.';
 
   @override
   String get pinLocked => 'Kilitli kategoriler PIN ile açılır.';
@@ -248,15 +239,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get backupToFile => 'Dosyaya yedekle';
 
   @override
-  String get backupToFileSubtitle =>
-      'Listeler, giriş bilgileri, favoriler, izleme geçmişi ve kategoriler';
+  String get backupToFileSubtitle => 'Listeler, giriş bilgileri, favoriler, izleme geçmişi ve kategoriler';
 
   @override
   String get restoreFromFile => 'Dosyadan geri yükle';
 
   @override
-  String get restoreFromFileSubtitle =>
-      'Yedekteki listeleri ekler ve kanallarını indirir';
+  String get restoreFromFileSubtitle => 'Yedekteki listeleri ekler ve kanallarını indirir';
 
   @override
   String get tvGuide => 'Yayın akışı';
@@ -273,17 +262,14 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get guideNoLink =>
-      'Bu listenin yayın akışı linki yok. Liste menüsünden ekleyebilirsin.';
+  String get guideNoLink => 'Bu listenin yayın akışı linki yok. Liste menüsünden ekleyebilirsin.';
 
   @override
-  String get guideUpdatesAutomatically =>
-      'Liste yenilenince kendiliğinden güncellenir.';
+  String get guideUpdatesAutomatically => 'Liste yenilenince kendiliğinden güncellenir.';
 
   @override
   String guideProgramsLoaded(int count) {
-    final intl.NumberFormat countNumberFormat =
-        intl.NumberFormat.decimalPattern(localeName);
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
     return '$countString program yüklendi';
@@ -299,6 +285,34 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get sourceCode => 'Kaynak kodu';
+
+  @override
+  String get checkForUpdates => 'Güncellemeleri denetle';
+
+  @override
+  String get notifyUpdates => 'Yeni sürümleri haber ver';
+
+  @override
+  String get notifyUpdatesSubtitle => 'Uygulama açılınca GitHub\'da yeni sürüm var mı diye bakar.';
+
+  @override
+  String get checkingForUpdates => 'Güncellemeler denetleniyor…';
+
+  @override
+  String updateAvailable(String version) {
+    return 'Tally $version çıktı';
+  }
+
+  @override
+  String get download => 'İndir';
+
+  @override
+  String upToDate(String version) {
+    return 'En son sürümü kullanıyorsun ($version).';
+  }
+
+  @override
+  String get updateCheckFailed => 'GitHub\'a ulaşılamadı. Biraz sonra tekrar dene.';
 
   @override
   String get disclaimer =>
@@ -372,8 +386,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get removePlaylistBody =>
-      'Kanalları, favorileri ve izleme geçmişi bu cihazdan silinir.';
+  String get removePlaylistBody => 'Kanalları, favorileri ve izleme geçmişi bu cihazdan silinir.';
 
   @override
   String get neverUpdated => 'Hiç güncellenmedi';
@@ -441,16 +454,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get guideLinkField => 'Yayın akışı (XMLTV) linki';
 
   @override
-  String get guideHelpXtream =>
-      'Boş bırakırsan Xtream sunucunun yayın akışı kullanılır.';
+  String get guideHelpXtream => 'Boş bırakırsan Xtream sunucunun yayın akışı kullanılır.';
 
   @override
-  String get guideHelpM3u =>
-      'Boş bırakırsan listede belirtilen yayın akışı (varsa) kullanılır.';
+  String get guideHelpM3u => 'Boş bırakırsan listede belirtilen yayın akışı (varsa) kullanılır.';
 
   @override
-  String get loadingChannelsHint =>
-      'Kanallar yükleniyor. Büyük listeler bir dakika sürebilir.';
+  String get loadingChannelsHint => 'Kanallar yükleniyor. Büyük listeler bir dakika sürebilir.';
 
   @override
   String get playlistLink => 'Liste linki';
@@ -494,8 +504,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get keepAppOpen =>
-      'Büyük listeler bir dakika sürebilir. Uygulamayı açık tut.';
+  String get keepAppOpen => 'Büyük listeler bir dakika sürebilir. Uygulamayı açık tut.';
 
   @override
   String get watchHistory => 'İzleme geçmişi';
@@ -504,15 +513,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get historyEmptyTitle => 'Henüz bir şey izlemedin';
 
   @override
-  String get historyEmptyMessage =>
-      'İzlediğin kanallar ve başladığın filmler ile diziler burada görünür.';
+  String get historyEmptyMessage => 'İzlediğin kanallar ve başladığın filmler ile diziler burada görünür.';
 
   @override
   String get favoritesEmptyTitle => 'Henüz favori yok';
 
   @override
-  String get favoritesEmptyMessage =>
-      'Bir kanalı, filmi ya da diziyi buraya eklemek için yıldızına dokun.';
+  String get favoritesEmptyMessage => 'Bir kanalı, filmi ya da diziyi buraya eklemek için yıldızına dokun.';
 
   @override
   String get favoriteChannels => 'Favori kanallar';
@@ -530,8 +537,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get clearHistoryTitle => 'İzleme geçmişi temizlensin mi?';
 
   @override
-  String get clearHistoryBody =>
-      'Bu listedeki son izlenen kanallar ve yarım kalan filmler ile diziler silinir.';
+  String get clearHistoryBody => 'Bu listedeki son izlenen kanallar ve yarım kalan filmler ile diziler silinir.';
 
   @override
   String get clear => 'Temizle';
@@ -546,8 +552,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get searchEverything => 'Her yerde ara';
 
   @override
-  String get searchMinLetters =>
-      'Kanal, film ya da dizi adından en az iki harf yaz.';
+  String get searchMinLetters => 'Kanal, film ya da dizi adından en az iki harf yaz.';
 
   @override
   String nothingMatches(String query) {
@@ -567,12 +572,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noSeriesInPlaylist => 'Bu listede dizi yok';
 
   @override
-  String get playlistHasNoMovies =>
-      'Listende film yok. Xtream Codes hesaplarında genelde bulunur.';
+  String get playlistHasNoMovies => 'Listende film yok. Xtream Codes hesaplarında genelde bulunur.';
 
   @override
-  String get playlistHasNoSeries =>
-      'Listende dizi yok. Xtream Codes hesaplarında genelde bulunur.';
+  String get playlistHasNoSeries => 'Listende dizi yok. Xtream Codes hesaplarında genelde bulunur.';
 
   @override
   String noChannelsMatch(String query) {
@@ -586,8 +589,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noChannelsHere => 'Burada kanal yok';
 
   @override
-  String get favoriteChannelsHint =>
-      'Burada tutmak için kanalın yanındaki yıldıza dokun.';
+  String get favoriteChannelsHint => 'Burada tutmak için kanalın yanındaki yıldıza dokun.';
 
   @override
   String get addToFavorites => 'Favorilere ekle';
@@ -658,8 +660,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get showAllRestoreOrder => 'Hepsini göster ve sırayı sıfırla';
 
   @override
-  String get categoriesHelp =>
-      'Sıralamak için sürükle. Gizlenen kategoriler listelerden kalkar, kilitliler PIN ister.';
+  String get categoriesHelp => 'Sıralamak için sürükle. Gizlenen kategoriler listelerden kalkar, kilitliler PIN ister.';
 
   @override
   String get noCategoriesHere => 'Burada kategori yok';
@@ -788,8 +789,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pictureInPicture => 'Resim içinde resim';
 
   @override
-  String get pictureInPictureHint =>
-      'Küçük bir pencerede izlemeye devam et. Ana ekran tuşu da bunu yapar.';
+  String get pictureInPictureHint => 'Küçük bir pencerede izlemeye devam et. Ana ekran tuşu da bunu yapar.';
 
   @override
   String get playerOptions => 'Oynatıcı seçenekleri';
@@ -855,20 +855,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get errNoContent => 'Bu hesapta kanal, film veya dizi yok.';
 
   @override
-  String get errNoChannelsInM3u =>
-      'Bu listede kanal bulunamadı. Linkin bir M3U dosyasını gösterdiğinden emin ol.';
+  String get errNoChannelsInM3u => 'Bu listede kanal bulunamadı. Linkin bir M3U dosyasını gösterdiğinden emin ol.';
 
   @override
   String get errProviderNoGuide =>
       'Sağlayıcın yayın akışı sunmuyor. Liste menüsünden bir yayın akışı (XMLTV) linki ekleyebilirsin.';
 
   @override
-  String get errGuideLinkNotFound =>
-      'Yayın akışı linki bulunamadı. Liste menüsündeki linki kontrol et.';
+  String get errGuideLinkNotFound => 'Yayın akışı linki bulunamadı. Liste menüsündeki linki kontrol et.';
 
   @override
-  String get errGuideUnreachable =>
-      'Yayın akışı sunucusuna ulaşılamadı. Bağlantını kontrol et.';
+  String get errGuideUnreachable => 'Yayın akışı sunucusuna ulaşılamadı. Bağlantını kontrol et.';
 
   @override
   String errGuideDownload(String detail) {
@@ -876,12 +873,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get errServerUnreachable =>
-      'Sunucuya ulaşılamadı. Adresi ve internet bağlantını kontrol et.';
+  String get errServerUnreachable => 'Sunucuya ulaşılamadı. Adresi ve internet bağlantını kontrol et.';
 
   @override
-  String get errSecureConnection =>
-      'Güvenli bağlantı kurulamadı. Adresi https:// yerine http:// ile dene.';
+  String get errSecureConnection => 'Güvenli bağlantı kurulamadı. Adresi https:// yerine http:// ile dene.';
 
   @override
   String errConnectionFailed(String error) {
@@ -889,12 +884,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get errTimeout =>
-      'Sunucu çok geç yanıt verdi. Biraz sonra tekrar dene.';
+  String get errTimeout => 'Sunucu çok geç yanıt verdi. Biraz sonra tekrar dene.';
 
   @override
-  String get errFullLink =>
-      'http:// veya https:// ile başlayan tam bir liste linki gir.';
+  String get errFullLink => 'http:// veya https:// ile başlayan tam bir liste linki gir.';
 
   @override
   String errAccessRefused(int code) {
@@ -910,8 +903,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get errInvalidXtream => 'Sunucu geçerli Xtream verisi döndürmedi.';
 
   @override
-  String get errLoginRejected =>
-      'Sunucu kullanıcı adını veya şifreyi kabul etmedi.';
+  String get errLoginRejected => 'Sunucu kullanıcı adını veya şifreyi kabul etmedi.';
 
   @override
   String errAccountStatus(String status) {

@@ -206,6 +206,28 @@
     }
   },
   "sourceCode": "Source code",
+  "checkForUpdates": "Check for updates",
+  "notifyUpdates": "Tell me about new versions",
+  "notifyUpdatesSubtitle": "Looks for a new release on GitHub when the app opens.",
+  "checkingForUpdates": "Checking for updates…",
+  "updateAvailable": "Tally {version} is available",
+  "@updateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "download": "Download",
+  "upToDate": "You have the latest version ({version}).",
+  "@upToDate": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateCheckFailed": "Couldn't reach GitHub. Try again later.",
   "disclaimer": "Tally is a player only. It does not include, sell or promote any channels or content. Use it with playlists you are allowed to watch.",
   "backupWarning": "The file includes your playlist links, usernames and passwords. Keep it somewhere private.",
   "backUp": "Back up",

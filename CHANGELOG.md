@@ -8,6 +8,8 @@ All notable changes to Tally are listed here. Downloads are on the
 ### Added
 - Turkish. The app follows your device's language, and you can pick English or Turkish yourself under
   Settings → Language.
+- Tally tells you when a new version is out on GitHub, once per version. You can turn this off or check by hand
+  under Settings → About.
 
 ### Changed
 - The Library has two tabs. History opens first, with continue watching and recently watched channels; Favorites

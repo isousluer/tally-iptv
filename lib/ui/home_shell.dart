@@ -7,6 +7,7 @@ import '../state/providers.dart';
 import 'library_screen.dart';
 import 'live_screen.dart';
 import 'settings_screen.dart';
+import 'updates.dart';
 import 'vod_screen.dart';
 import 'widgets.dart';
 
@@ -23,7 +24,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    // Refresh stale online playlists in the background after the first frame.
+    // Refresh stale online playlists in the background after the first frame,
+    // and look for a new version of the app.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(settingsProvider).checkUpdates) notifyAboutUpdate(context, ref);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!ref.read(settingsProvider).autoRefresh) return;
       final updated = await ref.read(playlistsProvider.notifier).refreshStale();
