@@ -182,6 +182,9 @@ ThemeData buildTheme() {
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: side),
     ),
+    // Menus drop down below the button that opened them, instead of
+    // covering it with the selected entry lined up over the button.
+    popupMenuTheme: const PopupMenuThemeData(position: PopupMenuPosition.under),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: AppColors.raised,
