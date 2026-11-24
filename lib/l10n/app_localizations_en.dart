@@ -311,12 +311,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get accountConnections => 'Connections';
+  String get accountConnections => 'Watching at once';
 
   @override
   String accountConnectionsInUse(int active, int max) {
-    return '$active of $max in use';
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Up to $max devices can watch at once',
+      one: 'One device can watch at a time',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      active,
+      locale: localeName,
+      other: '$active streams are playing on this account right now.',
+      one: '1 stream is playing on this account right now.',
+      zero: 'Nothing is playing on this account right now.',
+    );
+    return '$_temp0. $_temp1';
   }
+
+  @override
+  String get accountConnectionsFull =>
+      'All of them are in use, so a new stream may not start, or may stop the one already playing.';
 
   @override
   String get accountCreated => 'Created';

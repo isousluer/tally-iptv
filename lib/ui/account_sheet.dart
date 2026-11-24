@@ -145,7 +145,12 @@ class _AccountSheet extends ConsumerWidget {
           ListTile(
             leading: const Icon(Icons.devices_outlined),
             title: Text(l.accountConnections),
-            subtitle: Text(l.accountConnectionsInUse(a.activeConnections ?? 0, a.maxConnections!)),
+            subtitle: Text(
+              [
+                l.accountConnectionsInUse(a.activeConnections ?? 0, a.maxConnections!),
+                if ((a.activeConnections ?? 0) >= a.maxConnections!) l.accountConnectionsFull,
+              ].join('\n'),
+            ),
           ),
         if (a.createdAt != null)
           ListTile(

@@ -301,12 +301,27 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get accountConnections => 'Bağlantılar';
+  String get accountConnections => 'Aynı anda izleme';
 
   @override
   String accountConnectionsInUse(int active, int max) {
-    return '$max bağlantının $active tanesi kullanımda';
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'Aynı anda en fazla $max cihazda izlenebilir',
+      one: 'Aynı anda tek cihazda izlenebilir',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      active,
+      locale: localeName,
+      other: 'Şu an bu hesapta $active yayın açık.',
+      zero: 'Şu an bu hesapta açık yayın yok.',
+    );
+    return '$_temp0. $_temp1';
   }
+
+  @override
+  String get accountConnectionsFull => 'Hepsi kullanımda; yeni bir yayın açılmayabilir ya da açık olanı kapatabilir.';
 
   @override
   String get accountCreated => 'Oluşturulma';

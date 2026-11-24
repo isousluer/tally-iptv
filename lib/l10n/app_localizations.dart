@@ -581,14 +581,20 @@ abstract class AppLocalizations {
   /// No description provided for @accountConnections.
   ///
   /// In en, this message translates to:
-  /// **'Connections'**
+  /// **'Watching at once'**
   String get accountConnections;
 
-  /// No description provided for @accountConnectionsInUse.
+  /// How many streams the provider lets this account play at the same time, and how many are open now.
   ///
   /// In en, this message translates to:
-  /// **'{active} of {max} in use'**
+  /// **'{max, plural, =1{One device can watch at a time} other{Up to {max} devices can watch at once}}. {active, plural, =0{Nothing is playing on this account right now.} =1{1 stream is playing on this account right now.} other{{active} streams are playing on this account right now.}}'**
   String accountConnectionsInUse(int active, int max);
+
+  /// No description provided for @accountConnectionsFull.
+  ///
+  /// In en, this message translates to:
+  /// **'All of them are in use, so a new stream may not start, or may stop the one already playing.'**
+  String get accountConnectionsFull;
 
   /// No description provided for @accountCreated.
   ///

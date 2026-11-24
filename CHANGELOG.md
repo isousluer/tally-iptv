@@ -3,6 +3,12 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## Unreleased
+
+### Changed
+- Account info explains connections in plain words: how many devices can watch at once on the account, how many
+  streams are playing now, and what happens when all of them are in use.
+
 ## 0.1.6 (2026-11-24)
 
 ### Added
