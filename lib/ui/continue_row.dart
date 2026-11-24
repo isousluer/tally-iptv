@@ -32,7 +32,8 @@ class ContinueRow extends ConsumerWidget {
           child: Text(context.l10n.continueWatching, style: t.titleLarge),
         ),
         SizedBox(
-          height: 168,
+          // Still, gap and two text lines, which grow with the font size.
+          height: 220 * 9 / 16 + 6 + MediaQuery.textScalerOf(context).scale(40),
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -87,6 +88,8 @@ class ContinueRow extends ConsumerWidget {
             },
           ),
         ),
+        // Room between the strip and the poster grid below it.
+        const SizedBox(height: 12),
       ],
     );
   }

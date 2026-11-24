@@ -5,6 +5,9 @@ All notable changes to Tally are listed here. Downloads are on the
 
 ## Unreleased
 
+### Added
+- On a tablet held sideways, the player tells you once that a double tap on the video goes full screen and back.
+
 ### Fixed
 - Tablets held sideways show the player with the channel list or details next to the video, instead of always
   going full screen like a phone turned sideways. The full screen button still fills the screen.
@@ -14,6 +17,7 @@ All notable changes to Tally are listed here. Downloads are on the
 - Back in full screen leaves full screen instead of closing the player.
 - When a stream can't play, the play buttons no longer cover the message and its Try again button.
 - The guide says "1 min left" in a program's last minute instead of "0 min left".
+- Continue watching leaves room between the time left and what comes below it, and makes room for larger text.
 
 ## 0.1.5 (2026-11-24)
 

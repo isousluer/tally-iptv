@@ -1116,6 +1116,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get backToLive => 'Canlıya dön';
 
   @override
+  String get doubleTapFullScreenTip =>
+      'İpucu: Tam ekran için videoya iki kez dokun, bu panele dönmek için yine iki kez dokun.';
+
+  @override
   String get today => 'Bugün';
 
   @override

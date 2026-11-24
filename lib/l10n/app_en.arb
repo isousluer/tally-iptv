@@ -741,6 +741,10 @@
   },
   "noPastPrograms": "No recordings are available for this channel right now.",
   "backToLive": "Back to live",
+  "doubleTapFullScreenTip": "Tip: double-tap the video for full screen, and again to bring this panel back.",
+  "@doubleTapFullScreenTip": {
+    "description": "Shown once on a tablet held sideways, when the player opens with its side panel."
+  },
   "today": "Today",
   "yesterday": "Yesterday",
   "hasArchive": "Past programs available",

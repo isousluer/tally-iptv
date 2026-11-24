@@ -1133,6 +1133,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backToLive => 'Back to live';
 
   @override
+  String get doubleTapFullScreenTip => 'Tip: double-tap the video for full screen, and again to bring this panel back.';
+
+  @override
   String get today => 'Today';
 
   @override

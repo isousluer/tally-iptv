@@ -320,6 +320,7 @@
   "pastProgramsOf": "Geçmiş yayınlar · {channel}",
   "noPastPrograms": "Bu kanalın şu an izlenebilecek kaydı yok.",
   "backToLive": "Canlıya dön",
+  "doubleTapFullScreenTip": "İpucu: Tam ekran için videoya iki kez dokun, bu panele dönmek için yine iki kez dokun.",
   "today": "Bugün",
   "yesterday": "Dün",
   "hasArchive": "Geçmiş yayınlar izlenebilir",

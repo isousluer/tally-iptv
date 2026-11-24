@@ -2012,6 +2012,12 @@ abstract class AppLocalizations {
   /// **'Back to live'**
   String get backToLive;
 
+  /// Shown once on a tablet held sideways, when the player opens with its side panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip: double-tap the video for full screen, and again to bring this panel back.'**
+  String get doubleTapFullScreenTip;
+
   /// No description provided for @today.
   ///
   /// In en, this message translates to:

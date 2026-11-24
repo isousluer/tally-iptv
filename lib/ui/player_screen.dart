@@ -445,6 +445,28 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   bool _videoOnly(BuildContext context) =>
       _fullscreen || (_isMobile && isPhone(context) && MediaQuery.orientationOf(context) == Orientation.landscape);
 
+  bool _tipChecked = false;
+
+  /// Once ever, on a tablet held sideways: full screen is a double tap away.
+  void _maybeShowFullScreenTip() {
+    if (_tipChecked) return;
+    _tipChecked = true;
+    const key = 'tip_double_tap_full_screen';
+    final prefs = ref.read(prefsProvider);
+    if (prefs.getBool(key) ?? false) return;
+    prefs.setBool(key, true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.doubleTapFullScreenTip),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    });
+  }
+
   bool? _barsHidden;
 
   /// Hides the status and navigation bars whenever only the video shows,
@@ -697,6 +719,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (videoOnly) {
       body = surface;
     } else if (wide) {
+      if (_isMobile && !Device.isTv) _maybeShowFullScreenTip();
       body = Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
