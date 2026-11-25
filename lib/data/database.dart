@@ -3,6 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'category_filter.dart';
+import 'channel_merge.dart';
 import 'models.dart';
 
 /// SQLite storage for playlists, items, favorites, history and guide data.
@@ -32,12 +33,16 @@ class AppDatabase {
           await _createGroupPrefs(db);
           await _createChannelLists(db);
           await _createFilters(db);
+          await _createHealth(db);
         },
         onUpgrade: (db, from, _) async {
           if (from < 2) await _createGroupPrefs(db);
           if (from < 3) await db.execute('ALTER TABLE items ADD COLUMN archive_days INTEGER');
           if (from < 4) await _createChannelLists(db);
-          if (from < 5) await _createFilters(db);
+          if (from < 5) {
+            await _createFilters(db);
+            await _createHealth(db);
+          }
         },
       ),
     );
@@ -137,6 +142,17 @@ class AppDatabase {
         playlist_id INTEGER PRIMARY KEY REFERENCES playlists(id) ON DELETE CASCADE,
         countries TEXT NOT NULL DEFAULT '',
         hide_adult INTEGER NOT NULL DEFAULT 0
+      )''');
+
+  /// How each stream did the last times it was played, by item key.
+  static Future<void> _createHealth(Database db) => db.execute('''
+      CREATE TABLE stream_health(
+        playlist_id INTEGER NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
+        ukey TEXT NOT NULL,
+        fails INTEGER NOT NULL DEFAULT 0,
+        height INTEGER,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY(playlist_id, ukey)
       )''');
 
   // ---------------------------------------------------------------- playlists
@@ -297,6 +313,43 @@ class AppDatabase {
         }, conflictAlgorithm: ConflictAlgorithm.ignore);
       }
     });
+  }
+
+  Future<Map<String, StreamHealth>> streamHealth(int playlistId) async {
+    final rows = await db.query('stream_health', where: 'playlist_id = ?', whereArgs: [playlistId]);
+    return {
+      for (final r in rows) r['ukey'] as String: StreamHealth(fails: r['fails'] as int, height: r['height'] as int?),
+    };
+  }
+
+  /// Notes that [key] played (with its picture [height]) or failed. Returns
+  /// whether anything a list shows changed: it started or stopped failing,
+  /// or its quality is now known.
+  Future<bool> recordPlay(int playlistId, String key, {required bool ok, int? height}) async {
+    final old = await db.query('stream_health', where: 'playlist_id = ? AND ukey = ?', whereArgs: [playlistId, key]);
+    final before = old.isEmpty
+        ? const StreamHealth()
+        : StreamHealth(fails: old.first['fails'] as int, height: old.first['height'] as int?);
+    final after = ok
+        ? StreamHealth(height: height ?? before.height)
+        : StreamHealth(fails: before.fails + 1, height: before.height);
+    await db.insert('stream_health', {
+      'playlist_id': playlistId,
+      'ukey': key,
+      'fails': after.fails,
+      'height': after.height,
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    return before.failing != after.failing || before.height != after.height;
+  }
+
+  /// Every live channel of [group] in playlist order, for finding copies.
+  Future<List<MediaItem>> liveInGroup(int playlistId, String group) async {
+    final rows = await db.rawQuery(
+      'SELECT i.*, $_favExpr FROM items i WHERE i.playlist_id = ? AND i.kind = ? AND i.grp = ? ORDER BY i.id',
+      [playlistId, ContentKind.live.dbValue, group],
+    );
+    return rows.map(MediaItem.fromRow).toList();
   }
 
   Future<bool> isGroupLocked(int playlistId, ContentKind kind, String group) async {

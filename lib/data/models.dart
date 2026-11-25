@@ -96,6 +96,7 @@ class MediaItem {
     this.plot,
     this.favorite = false,
     this.archiveDays,
+    this.copies = 1,
   });
 
   final int id;
@@ -119,6 +120,10 @@ class MediaItem {
 
   /// Live channels whose provider keeps recordings: how many days back.
   final int? archiveDays;
+
+  /// Live channels: how many copies of this channel (HD, SD...) the list
+  /// shows as this one row. Not stored.
+  final int copies;
   bool get hasArchive => (archiveDays ?? 0) > 0;
 
   Map<String, Object?> toRow() => {
@@ -163,7 +168,7 @@ class MediaItem {
   @override
   int get hashCode => Object.hash(playlistId, key);
 
-  MediaItem copyWith({bool? favorite}) => MediaItem(
+  MediaItem copyWith({bool? favorite, int? copies}) => MediaItem(
     id: id,
     playlistId: playlistId,
     kind: kind,
@@ -179,6 +184,7 @@ class MediaItem {
     plot: plot,
     favorite: favorite ?? this.favorite,
     archiveDays: archiveDays,
+    copies: copies ?? this.copies,
   );
 }
 

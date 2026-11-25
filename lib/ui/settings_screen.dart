@@ -71,6 +71,13 @@ class SettingsScreen extends ConsumerWidget {
                 value: settings.autoRefresh,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setAutoRefresh(v),
               ),
+              SwitchListTile(
+                secondary: const Icon(Icons.layers_outlined),
+                title: Text(l.mergeCopiesTitle),
+                subtitle: Text(l.mergeCopiesSubtitle),
+                value: settings.mergeCopies,
+                onChanged: (v) => ref.read(settingsProvider.notifier).setMergeCopies(v),
+              ),
               ListTile(
                 leading: const Icon(Icons.category_outlined),
                 title: Text(l.categories),

@@ -1285,4 +1285,30 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get streamCopies => 'Quality';
+
+  @override
+  String copyFallback(String from, String to) {
+    return '$from didn\'t play, trying $to';
+  }
+
+  @override
+  String get streamTimedOut => 'The stream didn\'t start. The provider isn\'t sending anything.';
+
+  @override
+  String copiesCount(int count) {
+    return '$count qualities';
+  }
+
+  @override
+  String get streamFailing => 'Didn\'t play the last times';
+
+  @override
+  String get mergeCopiesTitle => 'Merge copies of a channel';
+
+  @override
+  String get mergeCopiesSubtitle =>
+      'HD, SD and Full HD copies show as one channel. The best one plays, and the next one when it doesn\'t.';
 }

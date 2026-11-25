@@ -1265,4 +1265,30 @@ class AppLocalizationsTr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get streamCopies => 'Kalite';
+
+  @override
+  String copyFallback(String from, String to) {
+    return '$from açılmadı, $to deneniyor';
+  }
+
+  @override
+  String get streamTimedOut => 'Yayın başlamadı. Sağlayıcı görüntü göndermiyor.';
+
+  @override
+  String copiesCount(int count) {
+    return '$count kalite';
+  }
+
+  @override
+  String get streamFailing => 'Son denemelerde açılmadı';
+
+  @override
+  String get mergeCopiesTitle => 'Kanal kopyalarını birleştir';
+
+  @override
+  String get mergeCopiesSubtitle =>
+      'HD, SD ve Full HD kopyalar tek kanal olarak görünür. En iyisi açılır, açılmazsa sıradaki denenir.';
 }

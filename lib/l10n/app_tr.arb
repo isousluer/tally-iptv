@@ -357,5 +357,12 @@
   "cleanupLater": "Bunu istediğin zaman Ayarlar › Kategoriler'den değiştirebilirsin.",
   "cleanupSave": "Kaydet",
   "cleanupSkip": "Hepsini göster",
-  "cleanupDone": "{count, plural, =0{Hiçbir şey gizlenmedi} other{{count} kategori gizlendi}}"
+  "cleanupDone": "{count, plural, =0{Hiçbir şey gizlenmedi} other{{count} kategori gizlendi}}",
+  "streamCopies": "Kalite",
+  "copyFallback": "{from} açılmadı, {to} deneniyor",
+  "streamTimedOut": "Yayın başlamadı. Sağlayıcı görüntü göndermiyor.",
+  "copiesCount": "{count} kalite",
+  "streamFailing": "Son denemelerde açılmadı",
+  "mergeCopiesTitle": "Kanal kopyalarını birleştir",
+  "mergeCopiesSubtitle": "HD, SD ve Full HD kopyalar tek kanal olarak görünür. En iyisi açılır, açılmazsa sıradaki denenir."
 }

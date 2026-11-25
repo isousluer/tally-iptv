@@ -2239,6 +2239,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Nothing hidden} =1{Hid 1 category} other{Hid {count} categories}}'**
   String cleanupDone(int count);
+
+  /// No description provided for @streamCopies.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality'**
+  String get streamCopies;
+
+  /// No description provided for @copyFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} didn\'t play, trying {to}'**
+  String copyFallback(String from, String to);
+
+  /// No description provided for @streamTimedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'The stream didn\'t start. The provider isn\'t sending anything.'**
+  String get streamTimedOut;
+
+  /// No description provided for @copiesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} qualities'**
+  String copiesCount(int count);
+
+  /// No description provided for @streamFailing.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t play the last times'**
+  String get streamFailing;
+
+  /// No description provided for @mergeCopiesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge copies of a channel'**
+  String get mergeCopiesTitle;
+
+  /// No description provided for @mergeCopiesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'HD, SD and Full HD copies show as one channel. The best one plays, and the next one when it doesn\'t.'**
+  String get mergeCopiesSubtitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
+import '../data/channel_merge.dart';
 import '../data/database.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
@@ -93,6 +94,18 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   final _subs = <StreamSubscription<Object?>>[];
 
+  /// Live TV: copies of the current channel (HD, SD...), best first, and the
+  /// ones tried since the viewer picked it. When one doesn't play, the next
+  /// untried copy opens on its own.
+  List<MediaItem> _copies = const [];
+  final _tried = <String>{};
+
+  /// Live TV: gives up on a stream that neither plays nor fails.
+  Timer? _openTimer;
+
+  /// Whether this stream's result is already written to its health.
+  bool _settled = false;
+
   bool get _isLive => _item.kind == ContentKind.live && !_req.catchUp;
 
   @override
@@ -109,6 +122,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         if (!mounted || _hasVideo || e.toLowerCase().contains('seek')) return;
         // Stream addresses often carry the account name and password.
         setState(() => _error = e.replaceAll(RegExp(r'\w+://\S+?(?=\.?(\s|$))'), 'the stream'));
+        _streamFailed();
       }),
     );
     _subs.add(
@@ -117,6 +131,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
           _hasVideo = true;
           if (mounted && _error != null) setState(() => _error = null);
           _updatePip();
+          _streamPlayed();
         }
       }),
     );
@@ -142,6 +157,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         .map((h) => h.$1.item)
         .where((i) => i.kind == ContentKind.live && i.key != _item.key && i.url != null)
         .firstOrNull;
+    _loadCopies(_item);
     _open(_url, start: _req.startAt);
     _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) => _saveProgress());
     if (_fullscreen) _setFullscreen(true);
@@ -171,9 +187,81 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_subDelay != 0) await _setDelay('sub-delay', 0);
     _aspect = ref.read(prefsProvider).getString(_aspectKey);
     await _setMpv('video-aspect-override', _aspect ?? 'no');
+    _settled = false;
+    _openTimer?.cancel();
+    if (_isLive) {
+      _openTimer = Timer(const Duration(seconds: 15), () {
+        if (mounted && !_hasVideo) _streamFailed();
+      });
+    }
     await _player.open(Media(url, start: start > Duration.zero ? start : null));
     if (_rate != 1 && !_isLive) await _player.setRate(_rate);
     if (_isLive) unawaited(_recordLive());
+  }
+
+  Future<void> _loadCopies(MediaItem channel) async {
+    _tried
+      ..clear()
+      ..add(channel.key);
+    if (channel.kind != ContentKind.live) {
+      _copies = const [];
+      return;
+    }
+    final copies = await copiesOf(ref, channel);
+    if (mounted && _item.key == channel.key) setState(() => _copies = copies);
+  }
+
+  Future<void> _noteHealth({required bool ok}) async {
+    final changed = await _db.recordPlay(_item.playlistId, _item.key, ok: ok, height: ok ? _player.state.height : null);
+    if (changed) _container.read(healthVersionProvider.notifier).bump();
+  }
+
+  void _streamPlayed() {
+    if (_settled || !_isLive) return;
+    _settled = true;
+    _openTimer?.cancel();
+    _noteHealth(ok: true);
+  }
+
+  /// Notes the failure and moves on to the next copy of the channel, if any.
+  void _streamFailed() {
+    if (_settled || !_isLive || !mounted) return;
+    _settled = true;
+    _openTimer?.cancel();
+    _noteHealth(ok: false);
+    final next = _copies.where((c) => c.url != null && !_tried.contains(c.key)).firstOrNull;
+    if (next == null) {
+      if (_error == null) setState(() => _error = context.l10n.streamTimedOut);
+      return;
+    }
+    final health = _container.read(streamHealthProvider).value ?? const {};
+    final l = context.l10n;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l.copyFallback(qualityLabel(_item, health[_item.key]), qualityLabel(next, health[next.key]))),
+        ),
+      );
+    _tried.add(next.key);
+    setState(() {
+      _item = next;
+      _url = next.url!;
+    });
+    _open(_url);
+  }
+
+  /// Plays another copy of the channel the viewer picked in the options.
+  void _pickCopy(MediaItem copy) {
+    if (copy.url == null || copy.key == _item.key) return;
+    _tried
+      ..clear()
+      ..add(copy.key);
+    setState(() {
+      _item = copy;
+      _url = copy.url!;
+    });
+    _open(_url);
   }
 
   /// Plays the current stream in another app, for the rare stream mpv can't.
@@ -335,7 +423,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   void _zap(int delta) {
     if (!_canZap) return;
     final list = _req.siblings;
-    final i = list.indexWhere((c) => c.key == _item.key);
+    final family = familyKey(_item);
+    final i = list.indexWhere((c) => c.key == _item.key || familyKey(c) == family);
     _switchTo(list[((i < 0 ? 0 : i) + delta) % list.length]);
   }
 
@@ -350,6 +439,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _item = channel;
       _url = channel.url!;
     });
+    _loadCopies(channel);
     _showChannelInfo();
     _zapTimer?.cancel();
     _zapTimer = Timer(now ? Duration.zero : const Duration(milliseconds: 400), () {
@@ -529,6 +619,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         onExternal: _openExternally,
         aspect: _aspect,
         onAspect: _setAspect,
+        copies: _isLive ? _copies : const [],
+        current: _item,
+        health: ref.read(streamHealthProvider).value ?? const {},
+        onCopy: _pickCopy,
       ),
     ).then((_) => _takeKeys());
   }
@@ -544,6 +638,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     _saveTimer?.cancel();
     _sleepTimer?.cancel();
     _zapTimer?.cancel();
+    _openTimer?.cancel();
     _bannerTimer?.cancel();
     _digitTimer?.cancel();
     _keys.dispose();
@@ -1312,8 +1407,18 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     required this.onExternal,
     required this.aspect,
     required this.onAspect,
+    this.copies = const [],
+    this.current,
+    this.health = const {},
+    this.onCopy,
   });
   final bool isLive;
+
+  /// Copies of the live channel, best first, and the one playing.
+  final List<MediaItem> copies;
+  final MediaItem? current;
+  final Map<String, StreamHealth> health;
+  final ValueChanged<MediaItem>? onCopy;
   final VoidCallback? onExternal;
   final String? aspect;
   final ValueChanged<String?> onAspect;
@@ -1406,6 +1511,15 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.copies.length > 1) ...[
+                heading(l.streamCopies),
+                _choices<MediaItem>(widget.copies, widget.current, (c) => copyLabel(c, widget.copies, widget.health), (
+                  c,
+                ) {
+                  Navigator.pop(context);
+                  widget.onCopy?.call(c);
+                }),
+              ],
               heading(l.pictureSize),
               if (widget.smallPlayer)
                 Padding(
@@ -2368,7 +2482,10 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
   static const _rowHeight = 68.0;
   late final _scroll = ScrollController(initialScrollOffset: _offsetFor(_index));
 
-  int get _index => widget.channels.indexWhere((c) => c.key == widget.current.key);
+  int get _index {
+    final family = familyKey(widget.current);
+    return widget.channels.indexWhere((c) => c.key == widget.current.key || familyKey(c) == family);
+  }
   double _offsetFor(int i) => max(0, i - 2) * _rowHeight;
 
   @override

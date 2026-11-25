@@ -841,5 +841,29 @@
         "type": "int"
       }
     }
-  }
+  },
+  "streamCopies": "Quality",
+  "copyFallback": "{from} didn't play, trying {to}",
+  "@copyFallback": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "streamTimedOut": "The stream didn't start. The provider isn't sending anything.",
+  "copiesCount": "{count} qualities",
+  "@copiesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "streamFailing": "Didn't play the last times",
+  "mergeCopiesTitle": "Merge copies of a channel",
+  "mergeCopiesSubtitle": "HD, SD and Full HD copies show as one channel. The best one plays, and the next one when it doesn't."
 }

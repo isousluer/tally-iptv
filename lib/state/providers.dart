@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/backup.dart';
+import '../data/channel_merge.dart';
 import '../data/database.dart';
 import '../data/models.dart';
 import '../data/repository.dart';
@@ -219,6 +220,8 @@ final itemsProvider = StreamProvider.family<List<MediaItem>, ItemQuery>((ref, q)
     return;
   }
   final sort = ref.watch(sortProvider(q.kind));
+  final merge = q.kind == ContentKind.live && ref.watch(settingsProvider.select((s) => s.mergeCopies));
+  final health = merge ? await ref.watch(streamHealthProvider.future) : const <String, StreamHealth>{};
   final all = <MediaItem>[];
   var chunk = 300;
   while (true) {
@@ -234,11 +237,32 @@ final itemsProvider = StreamProvider.family<List<MediaItem>, ItemQuery>((ref, q)
       offset: all.length,
     );
     all.addAll(part);
-    yield List.unmodifiable(all);
+    yield List.unmodifiable(merge ? mergeCopies(all, health) : all);
     if (part.length < chunk) return;
     chunk = 5000;
   }
 });
+
+/// Bumped when a stream starts or stops failing, or its quality is learned.
+final healthVersionProvider = NotifierProvider<DataVersion, int>(DataVersion.new);
+
+final streamHealthProvider = FutureProvider<Map<String, StreamHealth>>((ref) async {
+  final p = ref.watch(activePlaylistProvider);
+  ref.watch(healthVersionProvider);
+  if (p == null) return const {};
+  return ref.watch(databaseProvider).streamHealth(p.id);
+});
+
+/// The copies of [channel] (itself included), best first. Just the channel
+/// when merging is off or it has no copies.
+Future<List<MediaItem>> copiesOf(WidgetRef ref, MediaItem channel) async {
+  if (channel.kind != ContentKind.live || !ref.read(settingsProvider).mergeCopies) return [channel];
+  final db = ref.read(databaseProvider);
+  final family = familyKey(channel);
+  final same = (await db.liveInGroup(channel.playlistId, channel.group)).where((c) => familyKey(c) == family).toList();
+  if (same.length < 2) return [channel];
+  return rankCopies(same, await db.streamHealth(channel.playlistId));
+}
 
 final favoritesProvider = FutureProvider<List<MediaItem>>((ref) async {
   final p = ref.watch(activePlaylistProvider);
@@ -496,6 +520,7 @@ class AppSettings {
     this.subtitleSize = SubtitleSize.medium,
     this.subtitleBackground = SubtitleBackground.box,
     this.subtitlePosition = SubtitlePosition.low,
+    this.mergeCopies = true,
   });
 
   final VideoFit videoFit;
@@ -519,6 +544,9 @@ class AppSettings {
   final SubtitleSize subtitleSize;
   final SubtitleBackground subtitleBackground;
   final SubtitlePosition subtitlePosition;
+
+  /// Show copies of a channel (HD, SD...) as one row that plays the best.
+  final bool mergeCopies;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -542,6 +570,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
         SubtitleBackground.box,
       ),
       subtitlePosition: _enumPref(SubtitlePosition.values, p.getString('subtitle_position'), SubtitlePosition.low),
+      mergeCopies: p.getBool('merge_copies') ?? true,
     );
   }
 
@@ -564,6 +593,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setAutoNext(bool v) async {
     await _p.setBool('auto_next', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setMergeCopies(bool v) async {
+    await _p.setBool('merge_copies', v);
     ref.invalidateSelf();
   }
 

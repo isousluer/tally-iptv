@@ -43,9 +43,7 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
         if (list.isEmpty) {
           return EmptyState(
             icon: _group == groupFavorites ? Icons.star_border : Icons.live_tv_outlined,
-            title: _group == groupFavorites
-                ? l.noFavoriteChannels
-                : l.noChannelsHere,
+            title: _group == groupFavorites ? l.noFavoriteChannels : l.noChannelsHere,
             message: _group == groupFavorites ? l.favoriteChannelsHint : null,
           );
         }
@@ -96,6 +94,7 @@ class _ChannelList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final guide = ref.watch(nowPlayingProvider).value ?? const {};
     final now = ref.watch(clockProvider).value ?? DateTime.now();
+    final health = ref.watch(streamHealthProvider).value ?? const {};
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       itemCount: channels.length,
@@ -109,6 +108,7 @@ class _ChannelList extends ConsumerWidget {
             channel: c,
             program: program,
             now: now,
+            failing: health[c.key]?.failing ?? false,
             onTap: () => openItem(context, ref, c, siblings: channels),
             onFavorite: () => ref.read(favoritesControllerProvider).toggle(c),
           ),
@@ -126,9 +126,13 @@ class ChannelRow extends StatelessWidget {
     required this.now,
     required this.onTap,
     required this.onFavorite,
+    this.failing = false,
   });
 
   final MediaItem channel;
+
+  /// Didn't play the last times it was tried.
+  final bool failing;
   final EpgProgram? program;
   final DateTime now;
   final VoidCallback onTap;
@@ -167,6 +171,22 @@ class ChannelRow extends StatelessWidget {
                         Expanded(
                           child: Text(channel.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.titleSmall),
                         ),
+                        if (channel.copies > 1)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Text(
+                              context.l10n.copiesCount(channel.copies),
+                              style: t.labelSmall!.copyWith(color: AppColors.muted),
+                            ),
+                          ),
+                        if (failing)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Tooltip(
+                              message: context.l10n.streamFailing,
+                              child: const Icon(Icons.portable_wifi_off, size: 15, color: AppColors.muted),
+                            ),
+                          ),
                         if (channel.hasArchive)
                           Padding(
                             padding: const EdgeInsets.only(left: 6),
