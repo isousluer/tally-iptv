@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -7,10 +8,12 @@ import 'package:intl/intl.dart' as intl;
 import 'package:material_ui/material_ui.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../data/channel_merge.dart';
 import '../data/database.dart';
 import '../data/models.dart';
+import '../data/timeshift.dart';
 import '../l10n/strings.dart';
 import '../platform/device.dart';
 import '../state/providers.dart';
@@ -115,6 +118,42 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   bool get _isLive => _item.kind == ContentKind.live && !_req.catchUp;
 
+  /// Live TV: the part kept on disk for pausing and rewinding.
+  late final _shift = _Timeshift(_player);
+
+  /// Where mpv keeps live TV for rewinding. Emptied once per app run, in case
+  /// a crash left an old file behind.
+  static Future<Directory>? _shiftDir;
+
+  static Future<Directory> _timeshiftDir() => _shiftDir ??= _makeTimeshiftDir();
+
+  static Future<Directory> _makeTimeshiftDir() async {
+    final dir = Directory('${(await getTemporaryDirectory()).path}/timeshift');
+    try {
+      if (await dir.exists()) await dir.delete(recursive: true);
+      await dir.create(recursive: true);
+    } catch (_) {}
+    return dir;
+  }
+
+  /// Live TV goes to a file on disk so it can be paused and rewound; films
+  /// and recordings keep mpv's usual cache in memory.
+  Future<void> _setupCache() async {
+    final minutes = _isLive ? ref.read(settingsProvider).timeshiftMinutes : 0;
+    var bytes = 0;
+    if (minutes > 0) {
+      final dir = await _timeshiftDir();
+      bytes = timeshiftBytes(minutes, await Device.freeSpace(dir.path));
+      if (bytes > 0) await _setMpv('demuxer-cache-dir', dir.path);
+    }
+    final on = bytes > 0;
+    await _setMpv('cache', on ? 'yes' : 'auto');
+    await _setMpv('cache-on-disk', on ? 'yes' : 'no');
+    await _setMpv('demuxer-seekable-cache', on ? 'yes' : 'auto');
+    await _setMpv('demuxer-max-back-bytes', on ? '$bytes' : '${50 * 1024 * 1024}');
+    _shift.enabled = on;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -207,9 +246,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   /// are in use, or null when there's room, it isn't Xtream, or the server
   /// doesn't answer quickly.
   Future<XtreamAccount?> _busyAccount() async {
-    final playlist = (ref.read(playlistsProvider).value ?? const [])
-        .where((p) => p.id == _item.playlistId)
-        .firstOrNull;
+    final playlist = (ref.read(playlistsProvider).value ?? const []).where((p) => p.id == _item.playlistId).firstOrNull;
     if (playlist == null || !playlist.isXtream) return null;
     try {
       final a = await ref.read(repositoryProvider).xtreamFor(playlist).account().timeout(const Duration(seconds: 3));
@@ -269,7 +306,9 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     // goes on; without this the player stopped at the end of what it had.
     await _setMpv(
       'stream-lavf-o',
-      _isLive ? 'reconnect=1,reconnect_streamed=1,reconnect_at_eof=1,reconnect_delay_max=4' : 'reconnect=1,reconnect_delay_max=4',
+      _isLive
+          ? 'reconnect=1,reconnect_streamed=1,reconnect_at_eof=1,reconnect_delay_max=4'
+          : 'reconnect=1,reconnect_delay_max=4',
     );
     _settled = false;
     _openTimer?.cancel();
@@ -278,6 +317,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         if (mounted && !_hasVideo) _streamFailed();
       });
     }
+    await _setupCache();
     await _player.open(Media(url, start: start > Duration.zero ? start : null));
     if (_audioOnly) {
       await _setMpv('vid', 'no');
@@ -820,6 +860,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     }
+    _shift.dispose();
     _player.dispose();
     super.dispose();
   }
@@ -949,6 +990,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       title: _req.title ?? _item.name,
       subtitle: _req.subtitle,
       isLive: _isLive,
+      shift: _isLive ? _shift : null,
       error: _error,
       audioOnly: _audioOnly,
       controlsVisible: _controlsVisible,
@@ -1050,6 +1092,7 @@ class _VideoSurface extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.isLive,
+    this.shift,
     required this.error,
     required this.controlsVisible,
     required this.fullscreen,
@@ -1092,6 +1135,7 @@ class _VideoSurface extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool isLive;
+  final _Timeshift? shift;
   final String? error;
   final bool controlsVisible;
   final bool fullscreen;
@@ -1214,6 +1258,7 @@ class _VideoSurface extends StatelessWidget {
               title: title,
               subtitle: subtitle,
               isLive: isLive,
+              shift: shift,
               fullscreen: fullscreen,
               sleepAt: sleepAt,
               onBack: onBack,
@@ -1914,6 +1959,7 @@ class _Controls extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.isLive,
+    this.shift,
     required this.fullscreen,
     required this.sleepAt,
     required this.onBack,
@@ -1944,6 +1990,9 @@ class _Controls extends StatelessWidget {
   final String title;
   final String? subtitle;
   final bool isLive;
+
+  /// Live TV kept on disk, when rewinding is on.
+  final _Timeshift? shift;
   final bool fullscreen;
   final DateTime? sleepAt;
   final VoidCallback onBack;
@@ -2013,66 +2062,74 @@ class _Controls extends StatelessWidget {
                 child: hasError
                     ? const SizedBox.shrink()
                     : Center(
-                        child: StreamBuilder<bool>(
-                          stream: player.stream.playing,
-                          initialData: player.state.playing,
-                          builder: (_, s) {
-                            final playing = s.data ?? false;
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Live TV can't be rewound; the side buttons change
-                                // channel instead.
-                                if (onPrevChannel != null)
+                        child: ValueListenableBuilder<LiveWindow?>(
+                          valueListenable: shift ?? _noWindow,
+                          builder: (_, window, _) => StreamBuilder<bool>(
+                            stream: player.stream.playing,
+                            initialData: player.state.playing,
+                            builder: (_, s) {
+                              final playing = s.data ?? false;
+                              // Live TV can go back only as far as the disk keeps it.
+                              final canSeek = !isLive || (window?.useful ?? false);
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // On live TV the outer buttons change channel.
+                                  if (onPrevChannel != null)
+                                    _RoundButton(
+                                      icon: Icons.skip_previous,
+                                      tooltip: context.l10n.previousChannel,
+                                      onPressed: () {
+                                        onPrevChannel!();
+                                        onInteract();
+                                      },
+                                    ),
+                                  if (canSeek)
+                                    _RoundButton(
+                                      icon: Icons.replay_10,
+                                      tooltip: context.l10n.back10,
+                                      onPressed: () {
+                                        isLive
+                                            ? shift?.seekBy(-10)
+                                            : player.seek(player.state.position - const Duration(seconds: 10));
+                                        onInteract();
+                                      },
+                                    ),
+                                  const SizedBox(width: 20),
                                   _RoundButton(
-                                    icon: Icons.skip_previous,
-                                    tooltip: context.l10n.previousChannel,
+                                    icon: playing ? Icons.pause : Icons.play_arrow,
+                                    tooltip: playing ? context.l10n.pause : context.l10n.play,
+                                    big: true,
                                     onPressed: () {
-                                      onPrevChannel!();
+                                      player.playOrPause();
                                       onInteract();
                                     },
                                   ),
-                                if (!isLive)
-                                  _RoundButton(
-                                    icon: Icons.replay_10,
-                                    tooltip: context.l10n.back10,
-                                    onPressed: () {
-                                      player.seek(player.state.position - const Duration(seconds: 10));
-                                      onInteract();
-                                    },
-                                  ),
-                                const SizedBox(width: 20),
-                                _RoundButton(
-                                  icon: playing ? Icons.pause : Icons.play_arrow,
-                                  tooltip: playing ? context.l10n.pause : context.l10n.play,
-                                  big: true,
-                                  onPressed: () {
-                                    player.playOrPause();
-                                    onInteract();
-                                  },
-                                ),
-                                const SizedBox(width: 20),
-                                if (!isLive)
-                                  _RoundButton(
-                                    icon: Icons.forward_10,
-                                    tooltip: context.l10n.forward10,
-                                    onPressed: () {
-                                      player.seek(player.state.position + const Duration(seconds: 10));
-                                      onInteract();
-                                    },
-                                  ),
-                                if (onNextChannel != null)
-                                  _RoundButton(
-                                    icon: Icons.skip_next,
-                                    tooltip: context.l10n.nextChannel,
-                                    onPressed: () {
-                                      onNextChannel!();
-                                      onInteract();
-                                    },
-                                  ),
-                              ],
-                            );
-                          },
+                                  const SizedBox(width: 20),
+                                  if (canSeek)
+                                    _RoundButton(
+                                      icon: Icons.forward_10,
+                                      tooltip: context.l10n.forward10,
+                                      onPressed: () {
+                                        isLive
+                                            ? shift?.seekBy(10)
+                                            : player.seek(player.state.position + const Duration(seconds: 10));
+                                        onInteract();
+                                      },
+                                    ),
+                                  if (onNextChannel != null)
+                                    _RoundButton(
+                                      icon: Icons.skip_next,
+                                      tooltip: context.l10n.nextChannel,
+                                      onPressed: () {
+                                        onNextChannel!();
+                                        onInteract();
+                                      },
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
                         ),
                       ),
               ),
@@ -2082,11 +2139,25 @@ class _Controls extends StatelessWidget {
                   children: [
                     Expanded(
                       child: isLive
-                          ? Text(
-                              subtitle ?? '',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.bodySmall!.copyWith(color: Colors.white70),
+                          ? ValueListenableBuilder<LiveWindow?>(
+                              valueListenable: shift ?? _noWindow,
+                              builder: (_, window, _) {
+                                final text = Text(
+                                  subtitle ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: t.bodySmall!.copyWith(color: Colors.white70),
+                                );
+                                if (window == null || !window.useful || hasError) return text;
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if ((subtitle ?? '').isNotEmpty) text,
+                                    _LiveBar(shift: shift!, window: window, onInteract: onInteract),
+                                  ],
+                                );
+                              },
                             )
                           : _SeekBar(player: player, onInteract: onInteract),
                     ),
@@ -2107,6 +2178,153 @@ class _Controls extends StatelessWidget {
             ],
           ),
         ),
+      ],
+    );
+  }
+}
+
+final _noWindow = ValueNotifier<LiveWindow?>(null);
+
+/// Live TV kept on disk by mpv: reads how far back it reaches once a second
+/// and moves playback within it.
+class _Timeshift extends ValueNotifier<LiveWindow?> {
+  _Timeshift(this.player) : super(null);
+  final Player player;
+  Timer? _timer;
+  double? _target;
+  DateTime _targetUntil = DateTime(0);
+
+  set enabled(bool on) {
+    _timer?.cancel();
+    _timer = null;
+    value = null;
+    if (on) _timer = Timer.periodic(const Duration(seconds: 1), (_) => _read());
+  }
+
+  Future<void> _read() async {
+    final native = player.platform;
+    if (native is! NativePlayer) return;
+    try {
+      final state = await native.getProperty('demuxer-cache-state');
+      final pos = await native.getProperty('time-pos');
+      var w = LiveWindow.parse(state, pos);
+      // mpv reports the old position for a moment after a seek; keep the
+      // target meanwhile so a second tap adds up.
+      final target = _target;
+      if (w != null && target != null && DateTime.now().isBefore(_targetUntil)) {
+        w = LiveWindow(start: w.start, end: w.end, position: target);
+      }
+      if (_timer != null) value = w;
+    } catch (_) {}
+  }
+
+  void seekTo(double seconds) {
+    final w = value;
+    if (w == null) return;
+    // Just short of the newest picture, so playback doesn't run dry at once.
+    final to = seconds.clamp(w.start, max(w.start, w.end - 1)).toDouble();
+    player.seek(Duration(milliseconds: (to * 1000).round()));
+    _target = to;
+    _targetUntil = DateTime.now().add(const Duration(milliseconds: 1500));
+    value = LiveWindow(start: w.start, end: w.end, position: to);
+  }
+
+  void seekBy(double seconds) {
+    final w = value;
+    if (w != null) seekTo(w.position + seconds);
+  }
+
+  void goLive() {
+    final w = value;
+    if (w != null) seekTo(w.end);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _timer = null;
+    super.dispose();
+  }
+}
+
+/// Live TV with rewinding: a bar over what the disk keeps, how far behind
+/// live playback is, and a button back to live.
+class _LiveBar extends StatefulWidget {
+  const _LiveBar({required this.shift, required this.window, required this.onInteract});
+  final _Timeshift shift;
+  final LiveWindow window;
+  final VoidCallback onInteract;
+
+  @override
+  State<_LiveBar> createState() => _LiveBarState();
+}
+
+class _LiveBarState extends State<_LiveBar> {
+  double? _drag;
+
+  static String _fmt(double seconds) {
+    final d = Duration(seconds: seconds.round());
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60).toString().padLeft(h > 0 ? 2 : 1, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return h > 0 ? '$h:$m:$s' : '$m:$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final w = widget.window;
+    final style = Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, fontFeatures: tabular);
+    final value = (_drag ?? w.position).clamp(w.start, w.end).toDouble();
+    final behind = w.end - value;
+    final live = _drag == null ? w.isLive : behind < LiveWindow.liveSlack;
+    return Row(
+      children: [
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 3,
+              activeTrackColor: AppColors.tally,
+              inactiveTrackColor: Colors.white24,
+              thumbColor: AppColors.tally,
+              overlayShape: SliderComponentShape.noOverlay,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Slider(
+                value: value,
+                min: w.start,
+                max: w.end,
+                onChanged: (v) {
+                  setState(() => _drag = v);
+                  widget.onInteract();
+                },
+                onChangeEnd: (v) {
+                  widget.shift.seekTo(v);
+                  setState(() => _drag = null);
+                },
+              ),
+            ),
+          ),
+        ),
+        if (live)
+          Text(l.live, style: style.copyWith(color: AppColors.tally))
+        else ...[
+          Text(l.behindLive(_fmt(behind)), style: style),
+          TextButton(
+            onPressed: () {
+              widget.shift.goLive();
+              widget.onInteract();
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.tally,
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+            child: Text(l.goLive),
+          ),
+        ],
       ],
     );
   }

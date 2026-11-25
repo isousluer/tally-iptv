@@ -12,6 +12,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.StatFs
 import android.provider.Settings
 import android.util.Rational
 import android.view.WindowManager
@@ -89,6 +90,13 @@ class MainActivity : FlutterActivity() {
                     result.success(null)
                 }
                 "onMobileData" -> result.success(onMobileData())
+                "freeSpace" -> result.success(
+                    try {
+                        StatFs(((call.arguments as? String) ?: cacheDir.absolutePath)).availableBytes
+                    } catch (_: Exception) {
+                        null
+                    }
+                )
                 "openExternally" -> {
                     val args = call.arguments as Map<*, *>
                     result.success(openExternally(args["url"] as String, args["title"] as? String))

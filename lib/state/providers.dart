@@ -522,6 +522,7 @@ class AppSettings {
     this.subtitlePosition = SubtitlePosition.low,
     this.mergeCopies = true,
     this.warnMobileData = true,
+    this.timeshiftMinutes = 10,
   });
 
   final VideoFit videoFit;
@@ -551,6 +552,9 @@ class AppSettings {
 
   /// Say so when a stream opens on mobile data.
   final bool warnMobileData;
+
+  /// Live TV kept on disk for pausing and rewinding, in minutes; 0 is off.
+  final int timeshiftMinutes;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -576,6 +580,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
       subtitlePosition: _enumPref(SubtitlePosition.values, p.getString('subtitle_position'), SubtitlePosition.low),
       mergeCopies: p.getBool('merge_copies') ?? true,
       warnMobileData: p.getBool('warn_mobile_data') ?? true,
+      timeshiftMinutes: p.getInt('timeshift_minutes') ?? 10,
     );
   }
 
@@ -603,6 +608,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setWarnMobileData(bool v) async {
     await _p.setBool('warn_mobile_data', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setTimeshiftMinutes(int v) async {
+    await _p.setInt('timeshift_minutes', v);
     ref.invalidateSelf();
   }
 

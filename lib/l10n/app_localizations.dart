@@ -2359,6 +2359,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Watch anyway'**
   String get watchAnyway;
+
+  /// No description provided for @timeshiftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause and rewind live TV'**
+  String get timeshiftTitle;
+
+  /// No description provided for @timeshiftSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {minutes} min, kept on this phone'**
+  String timeshiftSubtitle(int minutes);
+
+  /// No description provided for @timeshiftHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The last minutes of the channel you watch are kept on the phone\'s storage, about 40 MB a minute, and deleted when you close it. Less is kept when space runs low.'**
+  String get timeshiftHint;
+
+  /// No description provided for @minutesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String minutesShort(int minutes);
+
+  /// No description provided for @behindLive.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} behind'**
+  String behindLive(String time);
+
+  /// No description provided for @goLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to live'**
+  String get goLive;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

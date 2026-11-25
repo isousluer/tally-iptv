@@ -74,6 +74,9 @@ class Device {
   /// True when the phone is online through mobile data, not Wi-Fi.
   static Future<bool> onMobileData() async => await _safe(() => _ch.invokeMethod<bool>('onMobileData'), false) ?? false;
 
+  /// Bytes free on the storage holding [path], or null when unknown.
+  static Future<int?> freeSpace(String path) => _safe(() => _ch.invokeMethod<int>('freeSpace', path), null);
+
   static Future<T?> _safe<T>(Future<T?> Function() run, T? fallback) async {
     try {
       return await run();

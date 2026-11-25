@@ -1336,4 +1336,29 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get watchAnyway => 'Yine de izle';
+
+  @override
+  String get timeshiftTitle => 'Canlı yayını durdur ve geri sar';
+
+  @override
+  String timeshiftSubtitle(int minutes) {
+    return '$minutes dakikaya kadar, telefonda tutulur';
+  }
+
+  @override
+  String get timeshiftHint =>
+      'İzlediğin kanalın son dakikaları telefonun hafızasında tutulur (dakikada yaklaşık 40 MB) ve kapatınca silinir. Yer azsa daha kısa tutulur.';
+
+  @override
+  String minutesShort(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String behindLive(String time) {
+    return '$time geride';
+  }
+
+  @override
+  String get goLive => 'Canlıya dön';
 }

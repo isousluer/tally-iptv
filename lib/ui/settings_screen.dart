@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../app_info.dart';
 import '../data/backup.dart';
+import '../data/timeshift.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
@@ -103,6 +104,12 @@ class SettingsScreen extends ConsumerWidget {
                 title: Text(l.autoNextTitle),
                 value: settings.autoNext,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setAutoNext(v),
+              ),
+              ListTile(
+                leading: const Icon(Icons.history),
+                title: Text(l.timeshiftTitle),
+                subtitle: Text(settings.timeshiftMinutes == 0 ? l.off : l.timeshiftSubtitle(settings.timeshiftMinutes)),
+                onTap: () => _pickTimeshift(context, ref, settings.timeshiftMinutes),
               ),
               ListTile(
                 leading: const Icon(Icons.audiotrack_outlined),
@@ -269,6 +276,29 @@ Future<void> _pickLanguage(BuildContext context, WidgetRef ref, String? current)
     ),
   );
   if (picked != null) await ref.read(settingsProvider.notifier).setLanguage(picked.$1);
+}
+
+Future<void> _pickTimeshift(BuildContext context, WidgetRef ref, int current) async {
+  final l = context.l10n;
+  final picked = await showDialog<int>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: Text(l.timeshiftTitle),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+          child: Text(l.timeshiftHint, style: Theme.of(ctx).textTheme.bodySmall!.copyWith(color: AppColors.muted)),
+        ),
+        for (final m in timeshiftChoices)
+          ListTile(
+            title: Text(m == 0 ? l.off : l.minutesShort(m)),
+            trailing: m == current ? const Icon(Icons.check, color: AppColors.tally) : null,
+            onTap: () => Navigator.pop(ctx, m),
+          ),
+      ],
+    ),
+  );
+  if (picked != null) await ref.read(settingsProvider.notifier).setTimeshiftMinutes(picked);
 }
 
 Future<void> _backup(BuildContext context, WidgetRef ref) async {

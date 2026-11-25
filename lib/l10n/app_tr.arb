@@ -377,5 +377,11 @@
   "accountBusyTitle": "Hesap başka cihazda açık",
   "accountBusyBody": "Bu hesap şu an başka bir cihazda açık ({active}/{max}). Burada izlersen iki cihaz da takılabilir. Önce diğer cihazı kapat.",
   "accountBusyDropping": "Bu hesap şu an başka bir cihazda açık ({active}/{max}), bu yüzden sağlayıcı cihazlardan birini sürekli kesiyor. Önce diğer cihazı kapat.",
-  "watchAnyway": "Yine de izle"
+  "watchAnyway": "Yine de izle",
+  "timeshiftTitle": "Canlı yayını durdur ve geri sar",
+  "timeshiftSubtitle": "{minutes} dakikaya kadar, telefonda tutulur",
+  "timeshiftHint": "İzlediğin kanalın son dakikaları telefonun hafızasında tutulur (dakikada yaklaşık 40 MB) ve kapatınca silinir. Yer azsa daha kısa tutulur.",
+  "minutesShort": "{minutes} dk",
+  "behindLive": "{time} geride",
+  "goLive": "Canlıya dön"
 }

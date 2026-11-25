@@ -1356,4 +1356,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get watchAnyway => 'Watch anyway';
+
+  @override
+  String get timeshiftTitle => 'Pause and rewind live TV';
+
+  @override
+  String timeshiftSubtitle(int minutes) {
+    return 'Up to $minutes min, kept on this phone';
+  }
+
+  @override
+  String get timeshiftHint =>
+      'The last minutes of the channel you watch are kept on the phone\'s storage, about 40 MB a minute, and deleted when you close it. Less is kept when space runs low.';
+
+  @override
+  String minutesShort(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String behindLive(String time) {
+    return '$time behind';
+  }
+
+  @override
+  String get goLive => 'Back to live';
 }
