@@ -842,6 +842,51 @@ class _VideoSurface extends StatelessWidget {
   final ValueChanged<SubtitleTrack> onSubtitle;
   final Widget? nextCard;
 
+  Widget _errorBody(BuildContext context, TextTheme t, {required bool roomy}) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      if (roomy) ...[const Icon(Icons.portable_wifi_off, color: AppColors.muted, size: 34), const SizedBox(height: 10)],
+      Text(context.l10n.streamCouldNotPlay, style: t.titleMedium),
+      const SizedBox(height: 4),
+      Text(
+        error!,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: t.bodySmall!.copyWith(color: AppColors.muted),
+      ),
+      const SizedBox(height: 14),
+      // The play buttons are hidden here, so changing channel happens on
+      // either side of Try again.
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (onPrevChannel != null)
+            IconButton(
+              tooltip: context.l10n.previousChannel,
+              onPressed: onPrevChannel,
+              icon: const Icon(Icons.skip_previous, color: Colors.white),
+            ),
+          const SizedBox(width: 8),
+          OutlinedButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
+          const SizedBox(width: 8),
+          if (onNextChannel != null)
+            IconButton(
+              tooltip: context.l10n.nextChannel,
+              onPressed: onNextChannel,
+              icon: const Icon(Icons.skip_next, color: Colors.white),
+            ),
+        ],
+      ),
+      if (onExternal != null)
+        TextButton.icon(
+          onPressed: onExternal,
+          icon: const Icon(Icons.open_in_new, size: 18),
+          label: Text(context.l10n.openInOtherApp),
+        ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
@@ -855,44 +900,29 @@ class _VideoSurface extends StatelessWidget {
               ? const Center(child: CircularProgressIndicator(strokeWidth: 2.5))
               : const SizedBox.shrink(),
         ),
+        if (error != null) const ColoredBox(color: Colors.black87),
+        _GestureLayer(player: player, onTap: onTap, onDoubleTap: onFullscreen, onInteract: onInteract),
+        // Above the gesture layer, so its buttons take taps; the space around
+        // them still lets taps through to show the controls.
         if (error != null)
-          Container(
-            color: Colors.black87,
-            padding: const EdgeInsets.all(24),
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.portable_wifi_off, color: AppColors.muted, size: 34),
-                const SizedBox(height: 10),
-                Text(context.l10n.streamCouldNotPlay, style: t.titleMedium),
-                const SizedBox(height: 4),
-                Text(
-                  error!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: t.bodySmall!.copyWith(color: AppColors.muted),
+          Padding(
+            // Clear of the control bars at the top and bottom, so their
+            // buttons, such as full screen, stay free to tap.
+            padding: const EdgeInsets.fromLTRB(16, 48, 16, 48),
+            child: LayoutBuilder(
+              builder: (context, box) => Center(
+                // The small player is short; shrink rather than spill over
+                // the control bars.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: box.maxWidth,
+                    child: _errorBody(context, t, roomy: box.maxHeight > 180),
+                  ),
                 ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    OutlinedButton(onPressed: onRetry, child: Text(context.l10n.tryAgain)),
-                    if (onExternal != null)
-                      TextButton.icon(
-                        onPressed: onExternal,
-                        icon: const Icon(Icons.open_in_new, size: 18),
-                        label: Text(context.l10n.openInOtherApp),
-                      ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
-        _GestureLayer(player: player, onTap: onTap, onDoubleTap: onFullscreen, onInteract: onInteract),
         IgnorePointer(
           ignoring: !controlsVisible,
           child: AnimatedOpacity(
