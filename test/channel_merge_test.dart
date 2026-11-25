@@ -36,14 +36,20 @@ void main() {
       ch('TR: ATV HD', group: 'TR-ULUSAL', key: 'atv2'),
     ];
     final merged = mergeCopies(items, const {});
-    expect(merged.map((c) => c.name), [
-      'TR: beIN SPORTS 1 FHD',
-      'TR: ATV HD',
-      'TR: ATV AVRUPA HD',
-      'TR: ATV HD',
-    ]);
+    // Rows that stand for several copies drop the quality from the name.
+    expect(merged.map((c) => c.name), ['TR: beIN SPORTS 1', 'TR: ATV HD', 'TR: ATV AVRUPA HD', 'TR: ATV HD']);
     expect(merged.first.copies, 3);
     expect(merged[1].copies, 1);
+  });
+
+  test('quality tags come off a name, keeping its spelling', () {
+    expect(nameWithoutQuality('TR: beIN SPORTS 1 FHD'), 'TR: beIN SPORTS 1');
+    expect(nameWithoutQuality('TR: beIN SPORTS 1 SD/MOBIL'), 'TR: beIN SPORTS 1');
+    expect(nameWithoutQuality('TR: beIN SPORTS 1 FHD ᴿᴬᵂ'), 'TR: beIN SPORTS 1');
+    expect(nameWithoutQuality('|TR| ATV 4K HEVC'), '|TR| ATV');
+    expect(nameWithoutQuality('Show TV (HD)'), 'Show TV');
+    expect(nameWithoutQuality('TRT Haber Canlı'), 'TRT Haber Canlı');
+    expect(nameWithoutQuality('HD'), 'HD');
   });
 
   test('labels tell copies apart', () {

@@ -52,6 +52,41 @@ String baseChannelName(String name) {
   return words.join(' ');
 }
 
+/// Tags that only say how good a copy looks; dropped from the name of a
+/// row that stands for several copies.
+const _qualityTags = {
+  '4K', 'UHD', 'FHD', 'FULLHD', 'HD', 'SD', 'HQ', 'LQ', 'HEVC', 'H265', 'H264', 'X265', 'RAW', 'MOBIL', //
+  'MOBILE', '2160P', '1080P', '1080I', '720P', '576P', '540P', '480P', '360P', '50FPS', '60FPS', 'FPS',
+};
+
+/// Small capital and superscript letters some lists use ("ᴿᴬᵂ").
+const _small = {
+  'ᴬ': 'A', 'ᴮ': 'B', 'ᴰ': 'D', 'ᴱ': 'E', 'ᴳ': 'G', 'ᴴ': 'H', 'ᴵ': 'I', 'ᴶ': 'J', 'ᴷ': 'K', 'ᴸ': 'L', //
+  'ᴹ': 'M', 'ᴺ': 'N', 'ᴼ': 'O', 'ᴾ': 'P', 'ᴿ': 'R', 'ᵀ': 'T', 'ᵁ': 'U', 'ⱽ': 'V', 'ᵂ': 'W',
+};
+
+final _word = RegExp(r'[^\s\-_|/()\[\]:.,+]+');
+final _emptyBrackets = RegExp(r'\(\s*\)|\[\s*\]');
+final _spaces = RegExp(r'\s+');
+final _trailing = RegExp(r'[\s\-_|/,.:]+$');
+
+/// [name] without its quality tags, in its own spelling:
+/// "TR: beIN SPORTS 1 FHD ᴿᴬᵂ" becomes "TR: beIN SPORTS 1". Unchanged when
+/// nothing would be left.
+String nameWithoutQuality(String name) {
+  final out = name
+      .replaceAllMapped(_word, (m) {
+        final w = m.group(0)!;
+        final plain = _fold(w.split('').map((c) => _small[c] ?? c).join());
+        return _qualityTags.contains(plain) ? '' : w;
+      })
+      .replaceAll(_emptyBrackets, ' ')
+      .replaceAll(_spaces, ' ')
+      .replaceAll(_trailing, '')
+      .trim();
+  return baseChannelName(out).isEmpty ? name : out;
+}
+
 /// Copies are channels of the same category with the same base name.
 String familyKey(MediaItem c) {
   final base = baseChannelName(c.name);
@@ -112,7 +147,14 @@ List<MediaItem> mergeCopies(List<MediaItem> items, Map<String, StreamHealth> hea
       continue;
     }
     final best = rankCopies(copies, health).first;
-    out.add(best.copyWith(copies: copies.length, favorite: copies.any((x) => x.favorite)));
+    out.add(
+      best.copyWith(
+        copies: copies.length,
+        favorite: copies.any((x) => x.favorite),
+        // The row stands for every copy, so its name shouldn't promise one.
+        name: nameWithoutQuality(best.name),
+      ),
+    );
   }
   return out;
 }

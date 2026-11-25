@@ -168,12 +168,12 @@ class MediaItem {
   @override
   int get hashCode => Object.hash(playlistId, key);
 
-  MediaItem copyWith({bool? favorite, int? copies}) => MediaItem(
+  MediaItem copyWith({bool? favorite, int? copies, String? name}) => MediaItem(
     id: id,
     playlistId: playlistId,
     kind: kind,
     key: key,
-    name: name,
+    name: name ?? this.name,
     group: group,
     logo: logo,
     url: url,
