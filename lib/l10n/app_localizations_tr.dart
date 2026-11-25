@@ -1313,4 +1313,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get warnMobileDataSubtitle => 'Wi-Fi olmadan bir yayın başlayınca kısa bir uyarı gösterir.';
+
+  @override
+  String get reconnecting => 'Bağlantı koptu, yeniden bağlanılıyor…';
+
+  @override
+  String get streamKeepsDropping =>
+      'Sağlayıcı bu yayını sürekli kesiyor. Hesap başka bir cihazda açık olabilir: Ayarlar › listen › Hesap bölümüne bak.';
 }

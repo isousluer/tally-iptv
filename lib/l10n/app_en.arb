@@ -872,5 +872,7 @@
   "stop": "Stop",
   "mobileDataNotice": "You're on mobile data. Live TV uses about 1 to 3 GB an hour.",
   "warnMobileDataTitle": "Warn on mobile data",
-  "warnMobileDataSubtitle": "A short notice when a video starts without Wi-Fi."
+  "warnMobileDataSubtitle": "A short notice when a video starts without Wi-Fi.",
+  "reconnecting": "Connection dropped, reconnecting…",
+  "streamKeepsDropping": "The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account."
 }

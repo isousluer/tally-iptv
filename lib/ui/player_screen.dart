@@ -154,6 +154,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     _subs.add(_player.stream.position.listen(_watchForNext));
     _subs.add(
       _player.stream.completed.listen((done) {
+        if (done && _isLive && _hasVideo) {
+          _reconnect();
+          return;
+        }
         if (done && _req.upNext.isNotEmpty && !_nextCancelled && ref.read(settingsProvider).autoNext) _playNext();
       }),
     );
@@ -202,6 +206,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (_subDelay != 0) await _setDelay('sub-delay', 0);
     _aspect = ref.read(prefsProvider).getString(_aspectKey);
     await _setMpv('video-aspect-override', _aspect ?? 'no');
+    // Some providers close a live connection every half minute or so, as if
+    // the stream had ended. ffmpeg opens it again at once, so the picture
+    // goes on; without this the player stopped at the end of what it had.
+    await _setMpv(
+      'stream-lavf-o',
+      _isLive ? 'reconnect=1,reconnect_streamed=1,reconnect_at_eof=1,reconnect_delay_max=4' : 'reconnect=1,reconnect_delay_max=4',
+    );
     _settled = false;
     _openTimer?.cancel();
     if (_isLive) {
@@ -268,6 +279,30 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     _settled = true;
     _openTimer?.cancel();
     _noteHealth(ok: true);
+  }
+
+  /// When the provider closed a live stream, in the last few minutes.
+  final List<DateTime> _drops = [];
+
+  /// A live stream has no end: when it ends anyway the provider dropped the
+  /// connection, so open it again instead of stopping. Gives up when it keeps
+  /// dropping, which usually means the account's connections are all in use.
+  void _reconnect() {
+    if (!mounted) return;
+    final now = DateTime.now();
+    _drops
+      ..removeWhere((t) => now.difference(t) > const Duration(minutes: 3))
+      ..add(now);
+    final l = context.l10n;
+    if (_drops.length > 4) {
+      setState(() => _error = l.streamKeepsDropping);
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(duration: const Duration(seconds: 2), content: Text(l.reconnecting)));
+    _settled = true;
+    _open(_url);
   }
 
   /// Notes the failure and moves on to the next copy of the channel, if any.

@@ -2323,6 +2323,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A short notice when a video starts without Wi-Fi.'**
   String get warnMobileDataSubtitle;
+
+  /// No description provided for @reconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection dropped, reconnecting…'**
+  String get reconnecting;
+
+  /// No description provided for @streamKeepsDropping.
+  ///
+  /// In en, this message translates to:
+  /// **'The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account.'**
+  String get streamKeepsDropping;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

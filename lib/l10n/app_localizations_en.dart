@@ -1333,4 +1333,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get warnMobileDataSubtitle => 'A short notice when a video starts without Wi-Fi.';
+
+  @override
+  String get reconnecting => 'Connection dropped, reconnecting…';
+
+  @override
+  String get streamKeepsDropping =>
+      'The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account.';
 }

@@ -371,5 +371,7 @@
   "stop": "Durdur",
   "mobileDataNotice": "Mobil verideysin. Canlı yayın saatte yaklaşık 1–3 GB harcar.",
   "warnMobileDataTitle": "Mobil veride uyar",
-  "warnMobileDataSubtitle": "Wi-Fi olmadan bir yayın başlayınca kısa bir uyarı gösterir."
+  "warnMobileDataSubtitle": "Wi-Fi olmadan bir yayın başlayınca kısa bir uyarı gösterir.",
+  "reconnecting": "Bağlantı koptu, yeniden bağlanılıyor…",
+  "streamKeepsDropping": "Sağlayıcı bu yayını sürekli kesiyor. Hesap başka bir cihazda açık olabilir: Ayarlar › listen › Hesap bölümüne bak."
 }
