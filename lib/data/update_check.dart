@@ -9,7 +9,7 @@ class AppRelease {
   /// Version without the leading "v", like `0.1.2`.
   final String version;
 
-  /// Release page, where the APKs and installers are.
+  /// Release page, where the APKs are.
   final String url;
 }
 

@@ -108,7 +108,7 @@ jobs:
           | File | For |
           | --- | --- |
           | \`tally-$VERSION-arm64-v8a.apk\` | Almost every phone and tablet from the last few years. **Start here.** |
-          | \`tally-$VERSION-armeabi-v7a.apk\` | Older or low-cost phones and many Android TV boxes |
+          | \`tally-$VERSION-armeabi-v7a.apk\` | Older or low-cost phones and tablets |
           | \`tally-$VERSION-x86_64.apk\` | Emulators and Intel/AMD Android devices |
           | \`tally-$VERSION-universal.apk\` | Works everywhere, but about three times larger |
 

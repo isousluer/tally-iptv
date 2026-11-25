@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -46,7 +45,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   late MediaItem _item = widget.request.item;
   late String _url = widget.request.url;
 
-  bool _fullscreen = Device.isTv;
+  bool _fullscreen = false;
   bool _controlsVisible = true;
   bool _pip = Device.inPip;
   bool _pipSupported = false;
@@ -91,7 +90,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   final _subs = <StreamSubscription<Object?>>[];
 
   bool get _isLive => _item.kind == ContentKind.live && !_req.catchUp;
-  bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
   @override
   void initState() {
@@ -298,7 +296,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       await _player.pause();
       if (!mounted) return;
       // Back would only leave full screen, so do that first.
-      if (_fullscreen && !Device.isTv) {
+      if (_fullscreen) {
         await _setFullscreen(false);
         await WidgetsBinding.instance.endOfFrame;
       }
@@ -355,7 +353,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (!_canZap) return;
     _hideTimer?.cancel();
     setState(() => _controlsVisible = false);
-    final portrait = !Device.isTv && MediaQuery.orientationOf(context) == Orientation.portrait;
+    final portrait = MediaQuery.orientationOf(context) == Orientation.portrait;
     final list = _ChannelPicker(channels: _req.siblings, current: _item);
     final MediaItem? picked;
     if (portrait) {
@@ -443,7 +441,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   /// Only the video shows in full screen, and when a phone is turned
   /// sideways. A tablet held sideways keeps the panel next to the video.
   bool _videoOnly(BuildContext context) =>
-      _fullscreen || (_isMobile && isPhone(context) && MediaQuery.orientationOf(context) == Orientation.landscape);
+      _fullscreen || (isPhone(context) && MediaQuery.orientationOf(context) == Orientation.landscape);
 
   bool _tipChecked = false;
 
@@ -472,26 +470,17 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   /// Hides the status and navigation bars whenever only the video shows,
   /// including when a phone is simply turned sideways.
   void _hideSystemBars(bool hide) {
-    if (!_isMobile || _barsHidden == hide) return;
+    if (_barsHidden == hide) return;
     _barsHidden = hide;
     SystemChrome.setEnabledSystemUIMode(hide ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge);
   }
 
   Future<void> _setFullscreen(bool value) async {
     setState(() => _fullscreen = value);
-    if (_isMobile) {
-      // build() hides the system bars to match.
-      if (value) {
-        if (!Device.isTv) {
-          await SystemChrome.setPreferredOrientations([
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
-          ]);
-        }
-      } else {
-        await SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-      }
-    }
+    // build() hides the system bars to match.
+    await SystemChrome.setPreferredOrientations(
+      value ? [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight] : DeviceOrientation.values,
+    );
   }
 
   void _showOptions() {
@@ -517,7 +506,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         subDelay: _subDelay,
         onAudioDelay: (v) => _setDelay('audio-delay', v),
         onSubDelay: (v) => _setDelay('sub-delay', v),
-        onExternal: Device.canOpenExternally ? _openExternally : null,
+        onExternal: _openExternally,
       ),
     ).then((_) => _takeKeys());
   }
@@ -543,7 +532,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     _saveProgress().whenComplete(() => container.invalidate(historyProvider));
     Device.setAutoPip(false);
     Device.resetBrightness();
-    if (_fullscreen && _isMobile) {
+    if (_fullscreen) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     }
@@ -599,8 +588,6 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _typeDigit(digit);
       return KeyEventResult.handled;
     }
-    // On a TV the arrows move between buttons while the controls show.
-    final arrowsZap = _isLive && (!_controlsVisible || !Device.isTv);
     if (_isLive && (k == LogicalKeyboardKey.channelUp || k == LogicalKeyboardKey.pageUp)) {
       _zap(1);
       return KeyEventResult.handled;
@@ -609,7 +596,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _zap(-1);
       return KeyEventResult.handled;
     }
-    if (arrowsZap && (k == LogicalKeyboardKey.arrowUp || k == LogicalKeyboardKey.arrowDown)) {
+    if (_isLive && (k == LogicalKeyboardKey.arrowUp || k == LogicalKeyboardKey.arrowDown)) {
       _zap(k == LogicalKeyboardKey.arrowUp ? -1 : 1);
       return KeyEventResult.handled;
     }
@@ -625,7 +612,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       _player.playOrPause();
     } else if (k == LogicalKeyboardKey.keyF) {
       _setFullscreen(!_fullscreen);
-    } else if (k == LogicalKeyboardKey.escape && _fullscreen && !Device.isTv) {
+    } else if (k == LogicalKeyboardKey.escape && _fullscreen) {
       _setFullscreen(false);
     } else if (k == LogicalKeyboardKey.contextMenu || k == LogicalKeyboardKey.keyM) {
       _showOptions();
@@ -684,10 +671,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       sleepAt: _sleepAt,
       onTap: () => _controlsVisible ? setState(() => _controlsVisible = false) : _bumpControls(),
       onInteract: _bumpControls,
-      onBack: () => videoOnly && _fullscreen && !Device.isTv ? _setFullscreen(false) : Navigator.of(context).pop(),
+      onBack: () => videoOnly && _fullscreen ? _setFullscreen(false) : Navigator.of(context).pop(),
       onFullscreen: () => _setFullscreen(!_fullscreen),
       onRetry: () => _open(_url, start: _player.state.position),
-      onExternal: Device.canOpenExternally ? _openExternally : null,
+      onExternal: _openExternally,
       onOptions: _showOptions,
       onPip: _pipSupported ? Device.enterPip : null,
       onAudio: _pickAudio,
@@ -719,7 +706,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     if (videoOnly) {
       body = surface;
     } else if (wide) {
-      if (_isMobile && !Device.isTv) _maybeShowFullScreenTip();
+      _maybeShowFullScreenTip();
       body = Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -754,7 +741,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     }
 
     // Back leaves full screen first, like the back button on the video.
-    final leaveFullscreenFirst = _fullscreen && !Device.isTv;
+    final leaveFullscreenFirst = _fullscreen;
     return PopScope(
       canPop: !leaveFullscreenFirst,
       onPopInvokedWithResult: (didPop, _) {
@@ -952,8 +939,6 @@ class _GestureLayerState extends State<_GestureLayer> {
   double _volume = 0.5;
   Timer? _hide;
 
-  bool get _android => Platform.isAndroid;
-
   @override
   void initState() {
     super.initState();
@@ -961,12 +946,8 @@ class _GestureLayerState extends State<_GestureLayer> {
   }
 
   Future<void> _load() async {
-    if (_android) {
-      _brightness = await Device.brightness();
-      _volume = await Device.volume();
-    } else {
-      _volume = widget.player.state.volume / 100;
-    }
+    _brightness = await Device.brightness();
+    _volume = await Device.volume();
   }
 
   /// Swipes that start this close to the top or bottom of the screen open
@@ -989,13 +970,13 @@ class _GestureLayerState extends State<_GestureLayer> {
       return;
     }
     final left = d.localPosition.dx < width / 2;
-    final kind = left && _android ? _Adjust.brightness : _Adjust.volume;
+    final kind = left ? _Adjust.brightness : _Adjust.volume;
     setState(() {
       _adjusting = kind;
       _value = kind == _Adjust.brightness ? _brightness : _volume;
     });
     // Volume may have changed with the hardware buttons since last time.
-    if (kind == _Adjust.volume && _android) {
+    if (kind == _Adjust.volume) {
       Device.volume().then((v) {
         if (mounted && _adjusting == _Adjust.volume) setState(() => _value = _volume = v);
       });
@@ -1012,11 +993,7 @@ class _GestureLayerState extends State<_GestureLayer> {
       Device.setBrightness(v);
     } else {
       _volume = v;
-      if (_android) {
-        Device.setVolume(v);
-      } else {
-        widget.player.setVolume(v * 100);
-      }
+      Device.setVolume(v);
     }
   }
 

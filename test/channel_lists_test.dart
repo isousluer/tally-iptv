@@ -10,8 +10,10 @@ void main() {
   late AppDatabase db;
   late int pid;
 
+  setUpAll(sqfliteFfiInit);
+
   setUp(() async {
-    db = await AppDatabase.open(path: inMemoryDatabasePath);
+    db = await AppDatabase.open(path: inMemoryDatabasePath, factory: databaseFactoryFfi);
     pid = await db.insertPlaylist(const Playlist(id: 0, name: 'Test', type: SourceType.m3uUrl, url: 'http://x'));
     await db.replaceItems(pid, [channel(pid, 'a', 'A'), channel(pid, 'b', 'B'), channel(pid, 'c', 'C')]);
   });

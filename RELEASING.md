@@ -34,21 +34,21 @@ same key; a lost key means people have to uninstall and reinstall.
 
 ## Each release
 
-1. Bump `version` in `pubspec.yaml` (for example `0.1.2+3`) and `appVersion` in `lib/app_info.dart`. A test fails
+1. Bump `version` in `pubspec.yaml` (for example `1.0.1+9`; the build number after `+` must always go up) and `appVersion` in `lib/app_info.dart`. A test fails
    if they differ.
-2. In `CHANGELOG.md`, rename `## Unreleased` to `## 0.1.2 (YYYY-MM-DD)`.
+2. In `CHANGELOG.md`, rename `## Unreleased` to `## 1.0.1 (YYYY-MM-DD)`.
 3. Commit, then tag and push:
 
    ```powershell
-   git tag v0.1.2
+   git tag v1.0.1
    ```
 
    ```powershell
-   git push origin main v0.1.2
+   git push origin main v1.0.1
    ```
 
 4. Wait for the **Release** workflow to finish, open the draft on the Releases page, read it over and press
    **Publish**.
 
 If the workflow fails because the tag and `pubspec.yaml` disagree or the changelog section is missing, fix it, then
-move the tag: `git tag -f v0.1.2` and `git push -f origin v0.1.2`.
+move the tag: `git tag -f v1.0.1` and `git push -f origin v1.0.1`.

@@ -37,35 +37,3 @@ jobs:
           name: tally-android
           path: build/app/outputs/flutter-apk/*.apk
 
-  linux:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libmpv-dev mpv
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - run: flutter build linux --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tally-linux
-          path: build/linux/x64/release/bundle
-
-  windows:
-    needs: test
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - run: flutter build windows --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tally-windows
-          path: build/windows/x64/runner/Release

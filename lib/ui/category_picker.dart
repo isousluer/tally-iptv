@@ -192,7 +192,7 @@ Future<void> showCategorySheet(
   );
 }
 
-/// Tablet, desktop and TV layout: categories in a column beside the list.
+/// Tablet layout: categories in a column beside the list.
 class CategoryPanel extends ConsumerWidget {
   const CategoryPanel({super.key, required this.kind, required this.selected, required this.onSelected});
   final ContentKind kind;

@@ -11,7 +11,7 @@ Thanks for helping make Tally better! This guide explains how to get your change
 
 Open an issue and include:
 
-- Your platform and app version (Settings → About)
+- Your phone or tablet model, Android version and app version (Settings → About)
 - Your source type (M3U link, M3U file or Xtream Codes) — **never post your playlist URL or credentials**
 - What you did, what you expected, and what happened instead
 

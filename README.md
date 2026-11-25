@@ -4,7 +4,7 @@
 
 # Tally
 
-**A fast, simple and open-source IPTV player.**
+**A fast, simple and open-source IPTV player for Android phones and tablets.**
 
 Bring your own M3U playlist or Xtream Codes account and watch live TV, movies and series,
 with a TV guide, favorites and playback that picks up where you left off.
@@ -57,8 +57,8 @@ with a TV guide, favorites and playback that picks up where you left off.
 - Plays almost anything thanks to [libmpv](https://mpv.io/) (through [media_kit](https://github.com/media-kit/media-kit)): HLS, MPEG-TS, MKV, MP4 and more
 - Choose audio and subtitle tracks; your language choice is remembered
 - Swipe up and down for brightness (left) and volume (right), double-tap for full screen
-- Picture-in-picture on Android, sleep timer and playback speed
-- Keyboard and remote keys: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek, number keys jump to a channel, `B` (or the remote's Last key) goes back to the previous channel, `I` shows stream info
+- Picture-in-picture, sleep timer and playback speed
+- With a keyboard: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek, number keys jump to a channel, `B` (or the remote's Last key) goes back to the previous channel, `I` shows stream info
 
 ### Your data
 - **Parental lock**: lock categories behind a PIN
@@ -70,21 +70,15 @@ with a TV guide, favorites and playback that picks up where you left off.
 Get the latest APK from the [Releases page](https://github.com/isousluer/tally-iptv/releases/latest).
 Android may ask you to allow installs from your browser or file manager the first time.
 
-| Platform | Status |
-| --- | --- |
-| Android (phone and tablet) | ✅ Available |
-| Android TV | 🧪 Works with a remote, still being polished |
-| Windows, Linux | 🛠️ In progress |
-| macOS, iOS | 📅 Planned |
+Tally runs on Android phones and tablets (Android 7.0 or newer). Other platforms such as Android TV, iOS or desktop
+are not planned.
 
 ## Building from source
 
 ### Requirements
 
 - [Flutter](https://docs.flutter.dev/get-started/install) **3.50 or newer** (stable channel)
-- **Android:** Android SDK and JDK 17+
-- **Windows:** Visual Studio 2022 with the *Desktop development with C++* workload, and **Developer Mode** turned on (Flutter plugins use symlinks)
-- **Linux:** `sudo apt install clang cmake ninja-build pkg-config libgtk-3-dev libmpv-dev mpv`
+- Android SDK and JDK 17+
 
 ### Run
 
@@ -92,15 +86,13 @@ Android may ask you to allow installs from your browser or file manager the firs
 git clone https://github.com/isousluer/tally-iptv.git
 cd tally-iptv
 flutter pub get
-flutter run            # pick a connected device
+flutter run            # on a connected phone or emulator
 ```
 
 ### Release builds
 
 ```bash
-flutter build apk --release --split-per-abi   # Android
-flutter build windows --release               # Windows
-flutter build linux --release                 # Linux
+flutter build apk --release --split-per-abi
 ```
 
 ### Tests
@@ -118,7 +110,7 @@ lib/
 │   ├── m3u_parser.dart      M3U / M3U8 parser (runs in a background isolate)
 │   ├── xtream_client.dart   Xtream Codes player API client
 │   ├── epg_parser.dart      Streaming XMLTV parser with gzip support
-│   ├── database.dart        SQLite (sqflite / sqflite_common_ffi on desktop)
+│   ├── database.dart        SQLite (sqflite)
 │   └── repository.dart      Loads sources and keeps the database in sync
 ├── state/
 │   └── providers.dart       Riverpod providers
@@ -139,13 +131,10 @@ The mockups were made with [Stitch](https://stitch.withgoogle.com) and live in [
 
 ## Roadmap
 
-- [ ] Windows and Linux releases
 - [ ] Full-screen TV guide grid
-- [ ] Polished Android TV layout
 - [ ] Custom user agent and headers per playlist
 - [x] Turkish and English (more translations welcome)
 - [ ] Stalker / MAC portal support
-- [ ] macOS and iOS
 
 ## Contributing
 

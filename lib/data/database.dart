@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'models.dart';
 
@@ -11,16 +9,11 @@ class AppDatabase {
   AppDatabase._(this.db);
   final Database db;
 
-  /// Opens the app's database, or the one at [path] (tests pass
-  /// `inMemoryDatabasePath`).
-  static Future<AppDatabase> open({String? path}) async {
-    final DatabaseFactory factory;
-    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      sqfliteFfiInit();
-      factory = databaseFactoryFfi;
-    } else {
-      factory = databaseFactory;
-    }
+  /// Opens the app's database, or the one at [path]. Tests pass
+  /// `inMemoryDatabasePath` and the FFI [factory], since they run on the
+  /// development machine.
+  static Future<AppDatabase> open({String? path, DatabaseFactory? factory}) async {
+    factory ??= databaseFactory;
     if (path == null) {
       final dir = await getApplicationSupportDirectory();
       await dir.create(recursive: true);
@@ -161,6 +154,17 @@ class AppDatabase {
         await batch.commit(noResult: true);
       }
     });
+  }
+
+  /// Every item of one kind, in playlist order.
+  Future<List<MediaItem>> allItems(int playlistId, ContentKind kind) async {
+    final rows = await db.query(
+      'items',
+      where: 'playlist_id = ? AND kind = ?',
+      whereArgs: [playlistId, kind.dbValue],
+      orderBy: 'id',
+    );
+    return rows.map(MediaItem.fromRow).toList();
   }
 
   static const _favExpr =

@@ -3,7 +3,6 @@ package io.github.isousluer.tally
 import android.app.PictureInPictureParams
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -67,7 +66,6 @@ class MainActivity : FlutterActivity() {
                     result.success(null)
                 }
                 "enterPip" -> result.success(enterPip())
-                "isTv" -> result.success(isTv())
                 "openExternally" -> {
                     val args = call.arguments as Map<*, *>
                     result.success(openExternally(args["url"] as String, args["title"] as? String))
@@ -110,12 +108,6 @@ class MainActivity : FlutterActivity() {
         val lp = window.attributes
         lp.screenBrightness = v
         window.attributes = lp
-    }
-
-    private fun isTv(): Boolean {
-        val ui = getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-        return ui.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION ||
-            packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
     }
 
     private fun pipSupported() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
