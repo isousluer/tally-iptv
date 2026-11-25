@@ -24,7 +24,6 @@ class VodScreen extends ConsumerStatefulWidget {
 
 class _VodScreenState extends ConsumerState<VodScreen> {
   String _group = groupAll;
-  final String _search = '';
 
   bool get _movies => widget.kind == ContentKind.movie;
 
@@ -32,7 +31,7 @@ class _VodScreenState extends ConsumerState<VodScreen> {
   Widget build(BuildContext context) {
     final count = ref.watch(countProvider(widget.kind)).value ?? 0;
 
-    final query = (kind: widget.kind, group: _group, search: _search);
+    final query = (kind: widget.kind, group: _group, search: '');
     final items = ref.watch(itemsProvider(query));
     final l = context.l10n;
     final wideLayout = isWide(context);
@@ -52,7 +51,7 @@ class _VodScreenState extends ConsumerState<VodScreen> {
       ],
     );
     final body = <Widget>[
-      if (_group == groupAll && _search.isEmpty) SliverToBoxAdapter(child: ContinueRow(kind: widget.kind)),
+      if (_group == groupAll) SliverToBoxAdapter(child: ContinueRow(kind: widget.kind)),
       const SliverToBoxAdapter(child: SizedBox(height: 12)),
       ...items.when(
         loading: () => [const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))],
@@ -64,12 +63,10 @@ class _VodScreenState extends ConsumerState<VodScreen> {
                 hasScrollBody: false,
                 child: EmptyState(
                   icon: _movies ? Icons.movie_outlined : Icons.video_library_outlined,
-                  title: _search.isNotEmpty
-                      ? l.nothingMatches(_search)
-                      : _group == groupFavorites
+                  title: _group == groupFavorites
                       ? (_movies ? l.noFavoriteMovies : l.noFavoriteSeries)
                       : (_movies ? l.noMoviesInPlaylist : l.noSeriesInPlaylist),
-                  message: count == 0 && _search.isEmpty && _group == groupAll
+                  message: count == 0 && _group == groupAll
                       ? (_movies ? l.playlistHasNoMovies : l.playlistHasNoSeries)
                       : null,
                 ),

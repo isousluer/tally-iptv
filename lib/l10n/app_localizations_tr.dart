@@ -814,11 +814,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playlistHasNoSeries => 'Listende dizi yok. Xtream Codes hesaplarında genelde bulunur.';
 
   @override
-  String noChannelsMatch(String query) {
-    return '\"$query\" ile eşleşen kanal yok';
-  }
-
-  @override
   String get noFavoriteChannels => 'Henüz favori kanal yok';
 
   @override

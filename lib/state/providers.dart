@@ -198,28 +198,45 @@ int? listIdOf(String group) =>
 
 typedef ItemQuery = ({ContentKind kind, String group, String search});
 
-final itemsProvider = FutureProvider.family<List<MediaItem>, ItemQuery>((ref, q) async {
+/// Items of a category, all of them. The first few arrive at once so the
+/// screen fills right away; the rest follow in larger chunks, so even lists
+/// of 50,000 movies show in full without a long wait up front.
+final itemsProvider = StreamProvider.family<List<MediaItem>, ItemQuery>((ref, q) async* {
   final p = ref.watch(activePlaylistProvider);
   ref.watch(contentVersionProvider);
   ref.watch(groupsVersionProvider);
   final open = ref.watch(lockedContentOpenProvider);
-  if (p == null) return const [];
+  if (p == null) {
+    yield const [];
+    return;
+  }
+  final db = ref.watch(databaseProvider);
   final listId = listIdOf(q.group);
   if (listId != null) {
     ref.watch(channelListsVersionProvider);
-    return ref.watch(databaseProvider).channelListItems(p.id, listId, includeLocked: open);
+    yield await db.channelListItems(p.id, listId, includeLocked: open);
+    return;
   }
-  return ref
-      .watch(databaseProvider)
-      .items(
-        p.id,
-        q.kind,
-        group: q.group == groupAll || q.group == groupFavorites ? null : q.group,
-        favoritesOnly: q.group == groupFavorites,
-        search: q.search,
-        includeLocked: open,
-        sort: ref.watch(sortProvider(q.kind)),
-      );
+  final sort = ref.watch(sortProvider(q.kind));
+  final all = <MediaItem>[];
+  var chunk = 300;
+  while (true) {
+    final part = await db.items(
+      p.id,
+      q.kind,
+      group: q.group == groupAll || q.group == groupFavorites ? null : q.group,
+      favoritesOnly: q.group == groupFavorites,
+      search: q.search,
+      includeLocked: open,
+      sort: sort,
+      limit: chunk,
+      offset: all.length,
+    );
+    all.addAll(part);
+    yield List.unmodifiable(all);
+    if (part.length < chunk) return;
+    chunk = 5000;
+  }
 });
 
 final favoritesProvider = FutureProvider<List<MediaItem>>((ref) async {

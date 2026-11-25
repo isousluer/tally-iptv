@@ -263,6 +263,7 @@ class AppDatabase {
     bool includeLocked = false,
     ItemSort sort = ItemSort.playlist,
     int limit = 5000,
+    int offset = 0,
   }) async {
     final where = <String>['i.playlist_id = ?', 'i.kind = ?'];
     final args = <Object?>[playlistId, kind.dbValue];
@@ -280,8 +281,8 @@ class AppDatabase {
       where.add('EXISTS(SELECT 1 FROM favorites f WHERE f.playlist_id = i.playlist_id AND f.ukey = i.ukey)');
     }
     final rows = await db.rawQuery(
-      'SELECT i.*, $_favExpr FROM items i WHERE ${where.join(' AND ')} ORDER BY ${_orderBy(sort)} LIMIT ?',
-      [...args, limit],
+      'SELECT i.*, $_favExpr FROM items i WHERE ${where.join(' AND ')} ORDER BY ${_orderBy(sort)} LIMIT ? OFFSET ?',
+      [...args, limit, offset],
     );
     return rows.map(MediaItem.fromRow).toList();
   }

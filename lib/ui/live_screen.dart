@@ -22,13 +22,12 @@ class LiveScreen extends ConsumerStatefulWidget {
 
 class _LiveScreenState extends ConsumerState<LiveScreen> {
   String _group = groupAll;
-  final String _search = '';
 
   @override
   Widget build(BuildContext context) {
     final playlist = ref.watch(activePlaylistProvider);
     final count = ref.watch(countProvider(ContentKind.live)).value ?? 0;
-    final query = (kind: ContentKind.live, group: _group, search: _search);
+    final query = (kind: ContentKind.live, group: _group, search: '');
     final items = ref.watch(itemsProvider(query));
 
     final wide = isWide(context);
@@ -44,9 +43,7 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
         if (list.isEmpty) {
           return EmptyState(
             icon: _group == groupFavorites ? Icons.star_border : Icons.live_tv_outlined,
-            title: _search.isNotEmpty
-                ? l.noChannelsMatch(_search)
-                : _group == groupFavorites
+            title: _group == groupFavorites
                 ? l.noFavoriteChannels
                 : l.noChannelsHere,
             message: _group == groupFavorites ? l.favoriteChannelsHint : null,

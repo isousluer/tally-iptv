@@ -524,14 +524,6 @@
   "noSeriesInPlaylist": "No series in this playlist",
   "playlistHasNoMovies": "Your playlist doesn't include movies. Xtream Codes accounts usually do.",
   "playlistHasNoSeries": "Your playlist doesn't include series. Xtream Codes accounts usually do.",
-  "noChannelsMatch": "No channels match \"{query}\"",
-  "@noChannelsMatch": {
-    "placeholders": {
-      "query": {
-        "type": "String"
-      }
-    }
-  },
   "noFavoriteChannels": "No favorite channels yet",
   "noChannelsHere": "No channels here",
   "favoriteChannelsHint": "Tap the star next to a channel to keep it here.",

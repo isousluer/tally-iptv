@@ -826,11 +826,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistHasNoSeries => 'Your playlist doesn\'t include series. Xtream Codes accounts usually do.';
 
   @override
-  String noChannelsMatch(String query) {
-    return 'No channels match \"$query\"';
-  }
-
-  @override
   String get noFavoriteChannels => 'No favorite channels yet';
 
   @override

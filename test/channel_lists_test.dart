@@ -54,4 +54,10 @@ void main() {
     await db.deletePlaylist(pid);
     expect(await db.db.query('channel_lists'), isEmpty);
   });
+
+  test('pages through items in a stable order', () async {
+    final first = await db.items(pid, ContentKind.live, limit: 2);
+    final rest = await db.items(pid, ContentKind.live, limit: 2, offset: 2);
+    expect([...first, ...rest].map((i) => i.key), ['a', 'b', 'c']);
+  });
 }

@@ -1454,12 +1454,6 @@ abstract class AppLocalizations {
   /// **'Your playlist doesn\'t include series. Xtream Codes accounts usually do.'**
   String get playlistHasNoSeries;
 
-  /// No description provided for @noChannelsMatch.
-  ///
-  /// In en, this message translates to:
-  /// **'No channels match \"{query}\"'**
-  String noChannelsMatch(String query);
-
   /// No description provided for @noFavoriteChannels.
   ///
   /// In en, this message translates to:
