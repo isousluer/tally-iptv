@@ -2557,6 +2557,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The sports appear once today\'s matches are loaded.'**
   String get matchesSportsLoading;
+
+  /// No description provided for @transferCameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Tally isn\'t allowed to use the camera. Allow it in the app\'s settings, or enter the code by hand.'**
+  String get transferCameraDenied;
+
+  /// No description provided for @transferOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get transferOpenSettings;
+
+  /// No description provided for @transferCameraFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera couldn\'t be opened ({reason}). Try again, or enter the code by hand.'**
+  String transferCameraFailed(String reason);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

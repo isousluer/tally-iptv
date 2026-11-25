@@ -918,5 +918,9 @@
   "matchesShow": "Show above the channel list",
   "matchesAllSports": "All sports",
   "matchesSportsHeading": "Sports",
-  "matchesSportsLoading": "The sports appear once today's matches are loaded."
+  "matchesSportsLoading": "The sports appear once today's matches are loaded.",
+  "transferCameraDenied": "Tally isn't allowed to use the camera. Allow it in the app's settings, or enter the code by hand.",
+  "transferOpenSettings": "Open settings",
+  "transferCameraFailed": "The camera couldn't be opened ({reason}). Try again, or enter the code by hand.",
+  "@transferCameraFailed": {"placeholders": {"reason": {"type": "String"}}}
 }

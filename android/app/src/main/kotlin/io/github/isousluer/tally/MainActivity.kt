@@ -101,6 +101,17 @@ class MainActivity : FlutterActivity() {
                     val args = call.arguments as Map<*, *>
                     result.success(openExternally(args["url"] as String, args["title"] as? String))
                 }
+                "openAppSettings" -> result.success(
+                    try {
+                        startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                        true
+                    } catch (e: ActivityNotFoundException) {
+                        false
+                    }
+                )
                 else -> result.notImplemented()
             }
         }

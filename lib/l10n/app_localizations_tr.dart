@@ -1448,4 +1448,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get matchesSportsLoading => 'Spor dalları bugünün maçları yüklenince görünür.';
+
+  @override
+  String get transferCameraDenied =>
+      'Tally\'nin kamerayı kullanma izni yok. Uygulama ayarlarından izin ver ya da kodu elle gir.';
+
+  @override
+  String get transferOpenSettings => 'Ayarları aç';
+
+  @override
+  String transferCameraFailed(String reason) {
+    return 'Kamera açılamadı ($reason). Tekrar dene ya da kodu elle gir.';
+  }
 }

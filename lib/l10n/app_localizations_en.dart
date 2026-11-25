@@ -1468,4 +1468,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchesSportsLoading => 'The sports appear once today\'s matches are loaded.';
+
+  @override
+  String get transferCameraDenied =>
+      'Tally isn\'t allowed to use the camera. Allow it in the app\'s settings, or enter the code by hand.';
+
+  @override
+  String get transferOpenSettings => 'Open settings';
+
+  @override
+  String transferCameraFailed(String reason) {
+    return 'The camera couldn\'t be opened ($reason). Try again, or enter the code by hand.';
+  }
 }

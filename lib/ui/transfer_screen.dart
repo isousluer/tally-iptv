@@ -6,6 +6,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../data/backup.dart';
 import '../data/transfer.dart';
 import '../l10n/strings.dart';
+import '../platform/device.dart';
 import '../state/providers.dart';
 import 'settings_screen.dart' show runRestore;
 import 'theme.dart';
@@ -165,6 +166,59 @@ class _SendScreenState extends ConsumerState<_SendScreen> {
   }
 }
 
+/// Why the camera didn't open, with a way forward: the app's settings when
+/// the permission was refused, another try otherwise.
+class _CameraError extends StatelessWidget {
+  const _CameraError({required this.error, required this.scanner});
+  final MobileScannerException error;
+  final MobileScannerController scanner;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final t = Theme.of(context).textTheme;
+    final denied = error.errorCode == MobileScannerErrorCode.permissionDenied;
+    final reason = error.errorDetails?.message ?? error.errorCode.name;
+    return ColoredBox(
+      color: AppColors.surface,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(denied ? Icons.no_photography_outlined : Icons.videocam_off_outlined, color: AppColors.muted),
+              const SizedBox(height: 10),
+              Text(
+                error.errorCode == MobileScannerErrorCode.unsupported
+                    ? l.transferNoCamera
+                    : denied
+                    ? l.transferCameraDenied
+                    : l.transferCameraFailed(reason),
+                textAlign: TextAlign.center,
+                style: t.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              if (denied)
+                FilledButton.tonal(onPressed: Device.openAppSettings, child: Text(l.transferOpenSettings))
+              else if (error.errorCode != MobileScannerErrorCode.unsupported)
+                FilledButton.tonal(
+                  onPressed: () async {
+                    try {
+                      await scanner.stop();
+                      await scanner.start();
+                    } catch (_) {}
+                  },
+                  child: Text(l.tryAgain),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ReceiveScreen extends StatefulWidget {
   const _ReceiveScreen();
 
@@ -172,12 +226,27 @@ class _ReceiveScreen extends StatefulWidget {
   State<_ReceiveScreen> createState() => _ReceiveScreenState();
 }
 
-class _ReceiveScreenState extends State<_ReceiveScreen> {
+class _ReceiveScreenState extends State<_ReceiveScreen> with WidgetsBindingObserver {
   final _scanner = MobileScannerController(formats: const [BarcodeFormat.qrCode]);
   bool _done = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Back from the app's settings with the camera allowed: try again.
+    if (state == AppLifecycleState.resumed && _scanner.value.error != null && !_done) {
+      _scanner.stop().then((_) => _scanner.start()).catchError((_) {});
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scanner.dispose();
     super.dispose();
   }
@@ -260,15 +329,7 @@ class _ReceiveScreenState extends State<_ReceiveScreen> {
                   child: MobileScanner(
                     controller: _scanner,
                     onDetect: _detect,
-                    errorBuilder: (context, _) => ColoredBox(
-                      color: AppColors.surface,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Text(l.transferNoCamera, textAlign: TextAlign.center, style: t.bodyMedium),
-                        ),
-                      ),
-                    ),
+                    errorBuilder: (context, error) => _CameraError(error: error, scanner: _scanner),
                   ),
                 ),
               ),

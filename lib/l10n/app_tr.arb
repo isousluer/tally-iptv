@@ -410,5 +410,8 @@
   "matchesShow": "Kanal listesinin üstünde göster",
   "matchesAllSports": "Tüm sporlar",
   "matchesSportsHeading": "Spor dalları",
-  "matchesSportsLoading": "Spor dalları bugünün maçları yüklenince görünür."
+  "matchesSportsLoading": "Spor dalları bugünün maçları yüklenince görünür.",
+  "transferCameraDenied": "Tally'nin kamerayı kullanma izni yok. Uygulama ayarlarından izin ver ya da kodu elle gir.",
+  "transferOpenSettings": "Ayarları aç",
+  "transferCameraFailed": "Kamera açılamadı ({reason}). Tekrar dene ya da kodu elle gir."
 }

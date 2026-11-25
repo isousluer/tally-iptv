@@ -75,6 +75,10 @@ class Device {
   static Future<bool> onMobileData() async => await _safe(() => _ch.invokeMethod<bool>('onMobileData'), false) ?? false;
 
   /// Bytes free on the storage holding [path], or null when unknown.
+  /// Opens this app's page in Android's settings, for permissions.
+  static Future<bool> openAppSettings() async =>
+      await _safe(() => _ch.invokeMethod<bool>('openAppSettings'), false) ?? false;
+
   static Future<int?> freeSpace(String path) => _safe(() => _ch.invokeMethod<int>('freeSpace', path), null);
 
   static Future<T?> _safe<T>(Future<T?> Function() run, T? fallback) async {
