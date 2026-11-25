@@ -20,9 +20,11 @@ class SportsStrip extends ConsumerWidget {
     final t = Theme.of(context).textTheme;
     final l = context.l10n;
     final now = ref.watch(clockProvider).value ?? DateTime.now();
+    // Each channel once, for flicking through them in the player.
+    final seen = <String>{};
     final channels = [
       for (final s in listings)
-        if (s.channel != null) s.channel!,
+        if (s.channel != null && seen.add(s.channel!.key)) s.channel!,
     ];
     final scale = MediaQuery.textScalerOf(context);
 
