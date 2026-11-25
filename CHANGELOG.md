@@ -3,7 +3,7 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
-## 1.1.0 (unreleased)
+## 1.1.0 (2026-11-25)
 
 ### New
 - Pause and rewind live TV. The last minutes of the channel you watch are kept on the phone (off, 5, 10 or 30
@@ -11,7 +11,8 @@ All notable changes to Tally are listed here. Downloads are on the
   see how far behind live you are, and go back to live with one tap.
 - Swipe left or right on the picture to change channel.
 - Today's matches above the channel list, for people in Turkey: time, competition and the channel from your own
-  list. Tap one to watch it; matches on channels you don't have are dimmed.
+  list. Tap one to watch it; matches on channels you don't have are dimmed. Turn it off or pick
+  the sports you want (only football, say) in Settings.
 - Send your lists, favorites and settings to another device over your home Wi-Fi with a QR code, no cloud in
   between. A code can be typed in when there's no camera.
 - Copies of a channel (HD, SD, Full HD) show as one row that plays the best copy and moves on to the next one

@@ -1,4 +1,4 @@
-/// Today's sports on Turkish TV, read from sporekrani.com's listing, and
+/// Today's sports on Turkish TV, read from a TV listings site, and
 /// the viewer's channels that show them.
 library;
 
@@ -59,7 +59,7 @@ final _alt = RegExp(r'<img[^>]*alt="([^"]*)"');
 /// The site's word for "not on TV".
 const _noChannel = 'YAYIN YOK';
 
-/// Reads the event rows of sporekrani.com's home page for the day [day]
+/// Reads the event rows of the listings home page for the day [day]
 /// (other days are skipped). Empty when the page looks different from
 /// what this expects.
 List<SportEvent> parseSportEvents(String html, DateTime day) {

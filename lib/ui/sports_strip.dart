@@ -7,7 +7,7 @@ import '../state/sports.dart';
 import 'playback.dart';
 import 'theme.dart';
 
-/// Today's matches on Turkish TV (from sporekrani.com), above the channel
+/// Today's matches on Turkish TV, above the channel
 /// list. A tap opens the viewer's channel for it; matches on channels the
 /// list doesn't have are dimmed. Hidden when there is nothing to show.
 class SportsStrip extends ConsumerWidget {

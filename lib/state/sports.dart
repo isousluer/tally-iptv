@@ -11,7 +11,7 @@ import 'providers.dart';
 const _cacheKey = 'sport_events_cache';
 const _maxAge = Duration(hours: 3);
 
-/// sporekrani.com lists Turkish TV, so the strip only shows to people in
+/// The listing covers Turkish TV, so the strip only shows to people in
 /// Turkey or using the app in Turkish.
 bool sportsListingApplies(String? appLanguage) {
   final device = WidgetsBinding.instance.platformDispatcher.locales;
