@@ -10,6 +10,7 @@ All notable changes to Tally are listed here. Downloads are on the
   going back to the list.
 - On a channel that can't play, the full screen, options and other player buttons work again. The message no
   longer spills over them in the small player.
+- The player options sheet closes when you pull it down, however long it is. Pull it up to see all options.
 
 ## 1.0.0 (2026-11-25)
 

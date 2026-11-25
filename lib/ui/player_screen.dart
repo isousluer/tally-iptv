@@ -1391,124 +1391,135 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
       ),
     );
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            heading(l.pictureSize),
-            if (widget.smallPlayer)
+    // A draggable sheet: when the list is scrolled to the top, pulling down
+    // shrinks the sheet and closes it, however long the options are.
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      minChildSize: 0.25,
+      maxChildSize: 0.95,
+      snap: true,
+      snapSizes: const [0.6],
+      builder: (_, scroll) => SafeArea(
+        child: SingleChildScrollView(
+          controller: scroll,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              heading(l.pictureSize),
+              if (widget.smallPlayer)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  child: Text(l.pictureSizeSmallPlayer, style: t.bodySmall!.copyWith(color: AppColors.muted)),
+                ),
+              _choices<VideoFit>(
+                VideoFit.values,
+                fit,
+                (f) => switch (f) {
+                  VideoFit.fit => l.fitFit,
+                  VideoFit.fill => l.fitFill,
+                  VideoFit.stretch => l.fitStretch,
+                },
+                (f) => ref.read(settingsProvider.notifier).setVideoFit(f),
+              ),
+              heading(l.aspectRatio),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Text(l.pictureSizeSmallPlayer, style: t.bodySmall!.copyWith(color: AppColors.muted)),
+                child: Text(
+                  widget.isLive ? l.aspectRatioHintChannel : l.aspectRatioHintVideo,
+                  style: t.bodySmall!.copyWith(color: AppColors.muted),
+                ),
               ),
-            _choices<VideoFit>(
-              VideoFit.values,
-              fit,
-              (f) => switch (f) {
-                VideoFit.fit => l.fitFit,
-                VideoFit.fill => l.fitFill,
-                VideoFit.stretch => l.fitStretch,
-              },
-              (f) => ref.read(settingsProvider.notifier).setVideoFit(f),
-            ),
-            heading(l.aspectRatio),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-              child: Text(
-                widget.isLive ? l.aspectRatioHintChannel : l.aspectRatioHintVideo,
-                style: t.bodySmall!.copyWith(color: AppColors.muted),
-              ),
-            ),
-            _choices<String?>(const [null, '16:9', '4:3'], _aspect, (a) => a ?? l.aspectOriginal, (a) {
-              setState(() => _aspect = a);
-              widget.onAspect(a);
-            }),
-            if (!widget.isLive) ...[
-              heading(l.playbackSpeed),
-              _choices<double>(_rates, _rate, _rateLabel, (r) {
-                setState(() => _rate = r);
-                widget.onRate(r);
+              _choices<String?>(const [null, '16:9', '4:3'], _aspect, (a) => a ?? l.aspectOriginal, (a) {
+                setState(() => _aspect = a);
+                widget.onAspect(a);
               }),
+              if (!widget.isLive) ...[
+                heading(l.playbackSpeed),
+                _choices<double>(_rates, _rate, _rateLabel, (r) {
+                  setState(() => _rate = r);
+                  widget.onRate(r);
+                }),
+              ],
+              heading(
+                l.sleepTimer,
+                left == null || left.isNegative ? null : l.stopsIn(formatDuration(left + const Duration(seconds: 59))),
+              ),
+              _choices<int?>(
+                [null, ..._sleeps],
+                null,
+                (m) => m == null
+                    ? l.off
+                    : m < 60
+                    ? l.timerMinutes(m)
+                    : m % 60 == 0
+                    ? l.timerHours(m ~/ 60)
+                    : l.timerHoursMinutes(m ~/ 60, m % 60),
+                (m) {
+                  widget.onSleep(m == null ? null : Duration(minutes: m));
+                  setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
+                },
+              ),
+              heading(l.sync),
+              _DelayRow(
+                icon: Icons.graphic_eq,
+                label: l.audioDelay,
+                hint: l.audioDelayHint,
+                value: _audioDelay,
+                onChanged: (v) {
+                  setState(() => _audioDelay = v);
+                  widget.onAudioDelay(v);
+                },
+              ),
+              _DelayRow(
+                icon: Icons.subtitles_outlined,
+                label: l.subtitleDelay,
+                hint: l.subtitleDelayHint,
+                value: _subDelay,
+                onChanged: (v) {
+                  setState(() => _subDelay = v);
+                  widget.onSubDelay(v);
+                },
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.closed_caption_outlined),
+                title: Text(l.subtitleStyle),
+                onTap: () => showSubtitleStyle(context),
+              ),
+              SwitchListTile(
+                secondary: const Icon(Icons.info_outline),
+                title: Text(l.streamInfo),
+                subtitle: Text(l.streamInfoHint),
+                value: _streamInfo,
+                onChanged: (v) {
+                  setState(() => _streamInfo = v);
+                  widget.onStreamInfo(v);
+                },
+              ),
+              if (widget.onExternal != null)
+                ListTile(
+                  leading: const Icon(Icons.open_in_new),
+                  title: Text(l.openInOtherApp),
+                  subtitle: Text(l.openInOtherAppHint),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.onExternal!();
+                  },
+                ),
+              if (widget.pipSupported)
+                ListTile(
+                  leading: const Icon(Icons.picture_in_picture_alt_outlined),
+                  title: Text(l.pictureInPicture),
+                  subtitle: Text(l.pictureInPictureHint),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.onPip();
+                  },
+                ),
+              const SizedBox(height: 12),
             ],
-            heading(
-              l.sleepTimer,
-              left == null || left.isNegative ? null : l.stopsIn(formatDuration(left + const Duration(seconds: 59))),
-            ),
-            _choices<int?>(
-              [null, ..._sleeps],
-              null,
-              (m) => m == null
-                  ? l.off
-                  : m < 60
-                  ? l.timerMinutes(m)
-                  : m % 60 == 0
-                  ? l.timerHours(m ~/ 60)
-                  : l.timerHoursMinutes(m ~/ 60, m % 60),
-              (m) {
-                widget.onSleep(m == null ? null : Duration(minutes: m));
-                setState(() => _sleepAt = m == null ? null : DateTime.now().add(Duration(minutes: m)));
-              },
-            ),
-            heading(l.sync),
-            _DelayRow(
-              icon: Icons.graphic_eq,
-              label: l.audioDelay,
-              hint: l.audioDelayHint,
-              value: _audioDelay,
-              onChanged: (v) {
-                setState(() => _audioDelay = v);
-                widget.onAudioDelay(v);
-              },
-            ),
-            _DelayRow(
-              icon: Icons.subtitles_outlined,
-              label: l.subtitleDelay,
-              hint: l.subtitleDelayHint,
-              value: _subDelay,
-              onChanged: (v) {
-                setState(() => _subDelay = v);
-                widget.onSubDelay(v);
-              },
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.closed_caption_outlined),
-              title: Text(l.subtitleStyle),
-              onTap: () => showSubtitleStyle(context),
-            ),
-            SwitchListTile(
-              secondary: const Icon(Icons.info_outline),
-              title: Text(l.streamInfo),
-              subtitle: Text(l.streamInfoHint),
-              value: _streamInfo,
-              onChanged: (v) {
-                setState(() => _streamInfo = v);
-                widget.onStreamInfo(v);
-              },
-            ),
-            if (widget.onExternal != null)
-              ListTile(
-                leading: const Icon(Icons.open_in_new),
-                title: Text(l.openInOtherApp),
-                subtitle: Text(l.openInOtherAppHint),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onExternal!();
-                },
-              ),
-            if (widget.pipSupported)
-              ListTile(
-                leading: const Icon(Icons.picture_in_picture_alt_outlined),
-                title: Text(l.pictureInPicture),
-                subtitle: Text(l.pictureInPictureHint),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onPip();
-                },
-              ),
-            const SizedBox(height: 12),
-          ],
+          ),
         ),
       ),
     );
