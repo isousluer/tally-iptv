@@ -889,5 +889,10 @@
   "@minutesShort": {"placeholders": {"minutes": {"type": "int"}}},
   "behindLive": "{time} behind",
   "@behindLive": {"placeholders": {"time": {"type": "String"}}},
-  "goLive": "Back to live"
+  "goLive": "Back to live",
+  "todaysMatches": "Today's matches",
+  "matchOn": "On now",
+  "matchNotOnTv": "Not on TV",
+  "matchNotInList": "{channel} · not in your list",
+  "@matchNotInList": {"placeholders": {"channel": {"type": "String"}}}
 }

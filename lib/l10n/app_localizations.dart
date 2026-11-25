@@ -2395,6 +2395,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to live'**
   String get goLive;
+
+  /// No description provided for @todaysMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s matches'**
+  String get todaysMatches;
+
+  /// No description provided for @matchOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On now'**
+  String get matchOn;
+
+  /// No description provided for @matchNotOnTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on TV'**
+  String get matchNotOnTv;
+
+  /// No description provided for @matchNotInList.
+  ///
+  /// In en, this message translates to:
+  /// **'{channel} · not in your list'**
+  String matchNotInList(String channel);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1381,4 +1381,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goLive => 'Back to live';
+
+  @override
+  String get todaysMatches => 'Today\'s matches';
+
+  @override
+  String get matchOn => 'On now';
+
+  @override
+  String get matchNotOnTv => 'Not on TV';
+
+  @override
+  String matchNotInList(String channel) {
+    return '$channel · not in your list';
+  }
 }

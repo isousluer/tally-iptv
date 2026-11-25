@@ -10,6 +10,7 @@ import 'playback.dart';
 import 'playlist_switcher.dart';
 import 'search_screen.dart';
 import 'sort_button.dart';
+import 'sports_strip.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -50,6 +51,15 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
         return _ChannelList(channels: list);
       },
     );
+    final body = _group == groupAll
+        ? Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SportsStrip(),
+              Expanded(child: content),
+            ],
+          )
+        : content;
 
     return SafeArea(
       bottom: false,
@@ -71,14 +81,14 @@ class _LiveScreenState extends ConsumerState<LiveScreen> {
                 children: [
                   CategoryPanel(kind: ContentKind.live, selected: _group, onSelected: select),
                   const SizedBox(width: 8),
-                  Expanded(child: content),
+                  Expanded(child: body),
                 ],
               ),
             )
           else ...[
             CategoryBar(kind: ContentKind.live, selected: _group, onSelected: select),
             const SizedBox(height: 12),
-            Expanded(child: content),
+            Expanded(child: body),
           ],
         ],
       ),

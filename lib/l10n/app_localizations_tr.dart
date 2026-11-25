@@ -1361,4 +1361,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get goLive => 'Canlıya dön';
+
+  @override
+  String get todaysMatches => 'Bugünün maçları';
+
+  @override
+  String get matchOn => 'Şimdi';
+
+  @override
+  String get matchNotOnTv => 'Yayını yok';
+
+  @override
+  String matchNotInList(String channel) {
+    return '$channel · listende yok';
+  }
 }

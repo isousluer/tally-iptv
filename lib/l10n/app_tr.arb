@@ -383,5 +383,9 @@
   "timeshiftHint": "İzlediğin kanalın son dakikaları telefonun hafızasında tutulur (dakikada yaklaşık 40 MB) ve kapatınca silinir. Yer azsa daha kısa tutulur.",
   "minutesShort": "{minutes} dk",
   "behindLive": "{time} geride",
-  "goLive": "Canlıya dön"
+  "goLive": "Canlıya dön",
+  "todaysMatches": "Bugünün maçları",
+  "matchOn": "Şimdi",
+  "matchNotOnTv": "Yayını yok",
+  "matchNotInList": "{channel} · listende yok"
 }
