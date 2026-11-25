@@ -2240,17 +2240,20 @@ class _Controls extends StatelessWidget {
 final _noWindow = ValueNotifier<LiveWindow?>(null);
 
 /// Live TV kept on disk by mpv: reads how far back it reaches once a second
-/// and moves playback within it.
+/// and moves playback within it. How far behind live the viewer is comes
+/// from [TimeshiftTracker], so it only changes when the viewer acts.
 class _Timeshift extends ValueNotifier<LiveWindow?> {
   _Timeshift(this.player) : super(null);
   final Player player;
+  final _tracker = TimeshiftTracker();
   Timer? _timer;
-  double? _target;
-  DateTime _targetUntil = DateTime(0);
+  DateTime? _lastRead;
 
   set enabled(bool on) {
     _timer?.cancel();
     _timer = null;
+    _tracker.reset();
+    _lastRead = null;
     value = null;
     if (on) _timer = Timer.periodic(const Duration(seconds: 1), (_) => _read());
   }
@@ -2261,36 +2264,35 @@ class _Timeshift extends ValueNotifier<LiveWindow?> {
     try {
       final state = await native.getProperty('demuxer-cache-state');
       final pos = await native.getProperty('time-pos');
-      var w = LiveWindow.parse(state, pos);
-      // mpv reports the old position for a moment after a seek; keep the
-      // target meanwhile so a second tap adds up.
-      final target = _target;
-      if (w != null && target != null && DateTime.now().isBefore(_targetUntil)) {
-        w = LiveWindow(start: w.start, end: w.end, position: target);
-      }
-      if (_timer != null) value = w;
+      final raw = LiveWindow.parse(state, pos);
+      final now = DateTime.now();
+      final elapsed = _lastRead == null ? 0.0 : now.difference(_lastRead!).inMilliseconds / 1000;
+      _lastRead = now;
+      if (_timer == null) return;
+      value = raw == null ? null : _tracker.update(raw, paused: !player.state.playing, elapsed: elapsed);
     } catch (_) {}
+  }
+
+  void _seek(double to) {
+    final w = value;
+    if (w == null) return;
+    player.seek(Duration(milliseconds: (to * 1000).round()));
+    value = LiveWindow(start: w.start, end: w.end, position: to, behind: _tracker.behind);
   }
 
   void seekTo(double seconds) {
     final w = value;
-    if (w == null) return;
-    // Just short of the newest picture, so playback doesn't run dry at once.
-    final to = seconds.clamp(w.start, max(w.start, w.end - 1)).toDouble();
-    player.seek(Duration(milliseconds: (to * 1000).round()));
-    _target = to;
-    _targetUntil = DateTime.now().add(const Duration(milliseconds: 1500));
-    value = LiveWindow(start: w.start, end: w.end, position: to);
+    if (w != null) _seek(_tracker.seekTo(w, seconds));
   }
 
   void seekBy(double seconds) {
     final w = value;
-    if (w != null) seekTo(w.position + seconds);
+    if (w != null) _seek(_tracker.seekBy(w, seconds));
   }
 
   void goLive() {
     final w = value;
-    if (w != null) seekTo(w.end);
+    if (w != null) _seek(_tracker.seekTo(w, w.end));
   }
 
   @override
@@ -2331,7 +2333,8 @@ class _LiveBarState extends State<_LiveBar> {
     final style = Theme.of(context).textTheme.labelSmall!.copyWith(color: Colors.white, fontFeatures: tabular);
     final value = (_drag ?? w.position).clamp(w.start, w.end).toDouble();
     final behind = w.end - value;
-    final live = _drag == null ? w.isLive : behind < LiveWindow.liveSlack;
+    final live = _drag == null ? w.isLive : behind < 1;
+    final shown = _drag == null ? w.behind : behind;
     return Row(
       children: [
         Expanded(
@@ -2365,7 +2368,7 @@ class _LiveBarState extends State<_LiveBar> {
         if (live)
           Text(l.live, style: style.copyWith(color: AppColors.tally))
         else ...[
-          Text(l.behindLive(_fmt(behind)), style: style),
+          Text(l.behindLive(_fmt(shown)), style: style),
           TextButton(
             onPressed: () {
               widget.shift.goLive();
