@@ -2161,6 +2161,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This file is not a Tally backup.'**
   String get errNotBackup;
+
+  /// No description provided for @cleanupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidy up your list'**
+  String get cleanupTitle;
+
+  /// No description provided for @cleanupMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Tidy up the list'**
+  String get cleanupMenu;
+
+  /// No description provided for @cleanupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'This list has channels from {count} countries. Pick the ones you want to see. If you pick none, everything stays.'**
+  String cleanupIntro(int count);
+
+  /// No description provided for @cleanupIntroNoCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what this list shows.'**
+  String get cleanupIntroNoCountries;
+
+  /// No description provided for @cleanupCountries.
+  ///
+  /// In en, this message translates to:
+  /// **'Countries'**
+  String get cleanupCountries;
+
+  /// No description provided for @cleanupCountryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {count}'**
+  String cleanupCountryCount(String name, String count);
+
+  /// No description provided for @cleanupNoCountryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories that don\'t name a country, like most movie and series categories, always stay.'**
+  String get cleanupNoCountryNote;
+
+  /// No description provided for @cleanupHideAdult.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide adult categories'**
+  String get cleanupHideAdult;
+
+  /// No description provided for @cleanupAdultFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found by category name: {names}'**
+  String cleanupAdultFound(String names);
+
+  /// No description provided for @cleanupLater.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this any time in Settings › Categories.'**
+  String get cleanupLater;
+
+  /// No description provided for @cleanupSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get cleanupSave;
+
+  /// No description provided for @cleanupSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Show everything'**
+  String get cleanupSkip;
+
+  /// No description provided for @cleanupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing hidden} =1{Hid 1 category} other{Hid {count} categories}}'**
+  String cleanupDone(int count);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

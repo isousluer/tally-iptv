@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../data/category_filter.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import 'cleanup_screen.dart';
 import 'menu.dart';
 import 'parental.dart';
 import 'theme.dart';
@@ -53,7 +55,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   Future<void> _lockAdult(List<GroupInfo> groups) async {
     final p = ref.read(activePlaylistProvider);
     if (p == null) return;
-    final matches = groups.where((g) => adultGroupPattern.hasMatch(g.name) && !g.locked).toList();
+    final matches = groups.where((g) => isAdultGroup(g.name) && !g.locked).toList();
     final messenger = ScaffoldMessenger.of(context);
     if (matches.isEmpty) {
       messenger.showSnackBar(SnackBar(content: Text(context.l10n.noAdultCategories)));
@@ -112,8 +114,11 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               onSelected: (v) {
                 if (v == 'adult') _lockAdult(groups ?? const []);
                 if (v == 'reset') _reset();
+                final p = ref.read(activePlaylistProvider);
+                if (v == 'cleanup' && p != null) openCleanup(context, ref, p.id, always: true);
               },
               itemBuilder: (_) => [
+                PopupMenuItem(value: 'cleanup', child: Text(context.l10n.cleanupMenu)),
                 PopupMenuItem(value: 'adult', child: Text(context.l10n.lockAdultCategories)),
                 PopupMenuItem(value: 'reset', child: Text(context.l10n.showAllRestoreOrder)),
               ],

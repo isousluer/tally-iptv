@@ -140,6 +140,7 @@ class PlaylistRepository {
     }
 
     await db.replaceItems(p.id, items);
+    await db.applyFilterToNewGroups(p.id);
     final updated = p.copyWith(epgUrl: epgUrl, lastUpdated: DateTime.now());
     await db.updatePlaylist(updated);
     return updated;

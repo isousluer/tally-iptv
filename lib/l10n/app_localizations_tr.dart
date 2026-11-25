@@ -1211,4 +1211,58 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get errNotBackup => 'Bu dosya bir Tally yedeği değil.';
+
+  @override
+  String get cleanupTitle => 'Listeni düzenle';
+
+  @override
+  String get cleanupMenu => 'Listeyi düzenle';
+
+  @override
+  String cleanupIntro(int count) {
+    return 'Bu listede $count ülkeden kanal var. Görmek istediklerini seç. Hiçbirini seçmezsen hepsi kalır.';
+  }
+
+  @override
+  String get cleanupIntroNoCountries => 'Bu listenin neleri göstereceğini seç.';
+
+  @override
+  String get cleanupCountries => 'Ülkeler';
+
+  @override
+  String cleanupCountryCount(String name, String count) {
+    return '$name · $count';
+  }
+
+  @override
+  String get cleanupNoCountryNote =>
+      'Ülke belirtmeyen kategoriler, örneğin çoğu film ve dizi kategorisi, her zaman kalır.';
+
+  @override
+  String get cleanupHideAdult => 'Yetişkin kategorileri gizle';
+
+  @override
+  String cleanupAdultFound(String names) {
+    return 'Kategori adından bulunanlar: $names';
+  }
+
+  @override
+  String get cleanupLater => 'Bunu istediğin zaman Ayarlar › Kategoriler\'den değiştirebilirsin.';
+
+  @override
+  String get cleanupSave => 'Kaydet';
+
+  @override
+  String get cleanupSkip => 'Hepsini göster';
+
+  @override
+  String cleanupDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kategori gizlendi',
+      zero: 'Hiçbir şey gizlenmedi',
+    );
+    return '$_temp0';
+  }
 }

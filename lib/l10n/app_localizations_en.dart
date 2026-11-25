@@ -1230,4 +1230,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errNotBackup => 'This file is not a Tally backup.';
+
+  @override
+  String get cleanupTitle => 'Tidy up your list';
+
+  @override
+  String get cleanupMenu => 'Tidy up the list';
+
+  @override
+  String cleanupIntro(int count) {
+    return 'This list has channels from $count countries. Pick the ones you want to see. If you pick none, everything stays.';
+  }
+
+  @override
+  String get cleanupIntroNoCountries => 'Choose what this list shows.';
+
+  @override
+  String get cleanupCountries => 'Countries';
+
+  @override
+  String cleanupCountryCount(String name, String count) {
+    return '$name · $count';
+  }
+
+  @override
+  String get cleanupNoCountryNote =>
+      'Categories that don\'t name a country, like most movie and series categories, always stay.';
+
+  @override
+  String get cleanupHideAdult => 'Hide adult categories';
+
+  @override
+  String cleanupAdultFound(String names) {
+    return 'Found by category name: $names';
+  }
+
+  @override
+  String get cleanupLater => 'You can change this any time in Settings › Categories.';
+
+  @override
+  String get cleanupSave => 'Save';
+
+  @override
+  String get cleanupSkip => 'Show everything';
+
+  @override
+  String cleanupDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hid $count categories',
+      one: 'Hid 1 category',
+      zero: 'Nothing hidden',
+    );
+    return '$_temp0';
+  }
 }

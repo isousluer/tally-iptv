@@ -797,5 +797,49 @@
       }
     }
   },
-  "errNotBackup": "This file is not a Tally backup."
+  "errNotBackup": "This file is not a Tally backup.",
+  "cleanupTitle": "Tidy up your list",
+  "cleanupMenu": "Tidy up the list",
+  "cleanupIntro": "This list has channels from {count} countries. Pick the ones you want to see. If you pick none, everything stays.",
+  "@cleanupIntro": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cleanupIntroNoCountries": "Choose what this list shows.",
+  "cleanupCountries": "Countries",
+  "cleanupCountryCount": "{name} · {count}",
+  "@cleanupCountryCount": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "cleanupNoCountryNote": "Categories that don't name a country, like most movie and series categories, always stay.",
+  "cleanupHideAdult": "Hide adult categories",
+  "cleanupAdultFound": "Found by category name: {names}",
+  "@cleanupAdultFound": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "cleanupLater": "You can change this any time in Settings › Categories.",
+  "cleanupSave": "Save",
+  "cleanupSkip": "Show everything",
+  "cleanupDone": "{count, plural, =0{Nothing hidden} =1{Hid 1 category} other{Hid {count} categories}}",
+  "@cleanupDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

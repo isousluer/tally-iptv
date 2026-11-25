@@ -26,6 +26,7 @@ class PlaylistsNotifier extends AsyncNotifier<List<Playlist>> {
     final created = await ref.read(repositoryProvider).add(draft, onProgress: onProgress);
     await _reload();
     await ref.read(activePlaylistIdProvider.notifier).select(created.id);
+    ref.read(pendingCleanupProvider.notifier).set(created.id);
     unawaited(refreshEpg(created));
     return created;
   }
@@ -467,9 +468,6 @@ class ParentalUnlocked extends Notifier<bool> {
 
 final parentalUnlockedProvider = NotifierProvider<ParentalUnlocked, bool>(ParentalUnlocked.new);
 
-/// Category names that usually hold adult content.
-final adultGroupPattern = RegExp(r'adult|xxx|porn|erotic|\+18|18\+|\bfor adults\b|yeti[sş]kin', caseSensitive: false);
-
 // ----------------------------------------------------------------- settings
 
 /// How the picture fills the player: whole picture, cropped to fill, or stretched.
@@ -624,3 +622,15 @@ class SortNotifier extends Notifier<ItemSort> {
 }
 
 final sortProvider = NotifierProvider.family<SortNotifier, ItemSort, ContentKind>(SortNotifier.new);
+
+// ---------------------------------------------------------------- cleanup
+
+/// Set after a playlist is added, so the home screen can offer the wizard
+/// once the new list is on screen.
+class PendingCleanup extends Notifier<int?> {
+  @override
+  int? build() => null;
+  void set(int? id) => state = id;
+}
+
+final pendingCleanupProvider = NotifierProvider<PendingCleanup, int?>(PendingCleanup.new);

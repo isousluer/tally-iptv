@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'category_filter.dart';
 import 'models.dart';
 
 /// SQLite storage for playlists, items, favorites, history and guide data.
@@ -22,7 +23,7 @@ class AppDatabase {
     final db = await factory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 4,
+        version: 5,
         onConfigure: (db) async {
           await db.execute('PRAGMA foreign_keys = ON');
         },
@@ -30,11 +31,13 @@ class AppDatabase {
           await _create(db);
           await _createGroupPrefs(db);
           await _createChannelLists(db);
+          await _createFilters(db);
         },
         onUpgrade: (db, from, _) async {
           if (from < 2) await _createGroupPrefs(db);
           if (from < 3) await db.execute('ALTER TABLE items ADD COLUMN archive_days INTEGER');
           if (from < 4) await _createChannelLists(db);
+          if (from < 5) await _createFilters(db);
         },
       ),
     );
@@ -126,6 +129,15 @@ class AppDatabase {
         PRIMARY KEY(list_id, ukey)
       )''');
   }
+
+  /// What the cleanup wizard chose per playlist, so categories that appear
+  /// in later updates follow the same choice.
+  static Future<void> _createFilters(Database db) => db.execute('''
+      CREATE TABLE playlist_filters(
+        playlist_id INTEGER PRIMARY KEY REFERENCES playlists(id) ON DELETE CASCADE,
+        countries TEXT NOT NULL DEFAULT '',
+        hide_adult INTEGER NOT NULL DEFAULT 0
+      )''');
 
   // ---------------------------------------------------------------- playlists
 
@@ -220,6 +232,69 @@ class AppDatabase {
           where: 'playlist_id = ? AND kind = ? AND grp = ?',
           whereArgs: [playlistId, kind.dbValue, g],
         );
+      }
+    });
+  }
+
+  /// Every category of [playlistId] with its kind and item count.
+  Future<List<(ContentKind, String, int)>> allGroups(int playlistId) async {
+    final rows = await db.rawQuery(
+      'SELECT kind, grp, COUNT(*) AS n FROM items WHERE playlist_id = ? GROUP BY kind, grp',
+      [playlistId],
+    );
+    return [for (final r in rows) (ContentKindX.parse(r['kind'] as String), r['grp'] as String, r['n'] as int)];
+  }
+
+  Future<CategoryFilter?> filterFor(int playlistId) async {
+    final r = await db.query('playlist_filters', where: 'playlist_id = ?', whereArgs: [playlistId]);
+    if (r.isEmpty) return null;
+    final codes = (r.first['countries'] as String).split(',').where((c) => c.isNotEmpty).toSet();
+    return CategoryFilter(countries: codes, hideAdult: r.first['hide_adult'] == 1);
+  }
+
+  /// Saves [filter] and applies it to every category it has a say about.
+  /// Categories with no country and no adult content keep whatever the
+  /// viewer set by hand.
+  Future<void> applyFilter(int playlistId, CategoryFilter filter) async {
+    final groups = await allGroups(playlistId);
+    await db.transaction((txn) async {
+      await txn.insert('playlist_filters', {
+        'playlist_id': playlistId,
+        'countries': filter.countries.join(','),
+        'hide_adult': filter.hideAdult ? 1 : 0,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      for (final (kind, grp, _) in groups) {
+        if (!filter.concerns(grp)) continue;
+        await _ensureGroupPref(txn, playlistId, kind, grp);
+        await txn.update(
+          'group_prefs',
+          {'hidden': filter.hides(grp) ? 1 : 0},
+          where: 'playlist_id = ? AND kind = ? AND grp = ?',
+          whereArgs: [playlistId, kind.dbValue, grp],
+        );
+      }
+    });
+  }
+
+  /// Applies the saved choice to categories this playlist didn't have before,
+  /// so an update doesn't bring back countries the viewer left out.
+  Future<void> applyFilterToNewGroups(int playlistId) async {
+    final filter = await filterFor(playlistId);
+    if (filter == null) return;
+    final rows = await db.rawQuery(
+      'SELECT DISTINCT i.kind, i.grp FROM items i WHERE i.playlist_id = ? AND NOT EXISTS('
+      'SELECT 1 FROM group_prefs g WHERE g.playlist_id = i.playlist_id AND g.kind = i.kind AND g.grp = i.grp)',
+      [playlistId],
+    );
+    await db.transaction((txn) async {
+      for (final r in rows) {
+        final grp = r['grp'] as String;
+        await txn.insert('group_prefs', {
+          'playlist_id': playlistId,
+          'kind': r['kind'],
+          'grp': grp,
+          'hidden': filter.hides(grp) ? 1 : 0,
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
       }
     });
   }

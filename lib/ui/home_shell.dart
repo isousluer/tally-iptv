@@ -5,6 +5,7 @@ import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
 import 'account_sheet.dart';
+import 'cleanup_screen.dart';
 import 'library_screen.dart';
 import 'live_screen.dart';
 import 'settings_screen.dart';
@@ -29,6 +30,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     // and look for a new version of the app.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (ref.read(settingsProvider).checkUpdates) notifyAboutUpdate(context, ref);
+      _offerCleanup();
     });
     // Later than the update notice, so the two don't replace each other at once.
     Future.delayed(const Duration(seconds: 12), () {
@@ -40,6 +42,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       if (!mounted || updated.isEmpty) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(context.l10n.playlistsAutoUpdated(updated.join(', ')))));
+    });
+  }
+
+  /// Offers to tidy up a list that was just added, once the add screen has
+  /// gone and the home screen is in front.
+  void _offerCleanup() {
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted || ref.read(pendingCleanupProvider) == null) return;
+      if (ModalRoute.of(context)?.isCurrent == false) return _offerCleanup();
+      takePendingCleanup(context, ref);
     });
   }
 
@@ -69,6 +81,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(pendingCleanupProvider, (_, id) {
+      if (id != null) _offerCleanup();
+    });
     final destinations = _destinations(context.l10n);
     final body = IndexedStack(
       index: _index,
