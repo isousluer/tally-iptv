@@ -57,6 +57,7 @@ with a TV guide, favorites and playback that picks up where you left off.
 - Plays almost anything thanks to [libmpv](https://mpv.io/) (through [media_kit](https://github.com/media-kit/media-kit)): HLS, MPEG-TS, MKV, MP4 and more
 - Choose audio and subtitle tracks; your language choice is remembered
 - Swipe up and down for brightness (left) and volume (right), double-tap for full screen
+- Picture size (fit, fill, stretch), and a 16:9 or 4:3 shape for channels that look squashed, remembered per channel
 - Picture-in-picture, sleep timer and playback speed
 - With a keyboard: `Space` play/pause, `F` full screen, `↑`/`↓` change channel, `←`/`→` seek, number keys jump to a channel, `B` (or the remote's Last key) goes back to the previous channel, `I` shows stream info
 
