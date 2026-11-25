@@ -1225,7 +1225,15 @@ class _VideoSurface extends StatelessWidget {
               : const SizedBox.shrink(),
         ),
         if (error != null) const ColoredBox(color: Colors.black87),
-        _GestureLayer(player: player, onTap: onTap, onDoubleTap: onFullscreen, onInteract: onInteract),
+        _GestureLayer(
+          player: player,
+          onTap: onTap,
+          onDoubleTap: onFullscreen,
+          onInteract: onInteract,
+          // Live TV: swipe sideways to change channel, like turning pages.
+          onSwipeLeft: isLive ? onNextChannel : null,
+          onSwipeRight: isLive ? onPrevChannel : null,
+        ),
         // Above the gesture layer, so its buttons take taps; the space around
         // them still lets taps through to show the controls.
         if (error != null)
@@ -1295,13 +1303,23 @@ class _VideoSurface extends StatelessWidget {
 }
 
 /// Tap to show controls, double tap for full screen, and vertical swipes:
-/// left half for brightness (phones), right half for volume.
+/// left half for brightness (phones), right half for volume. On live TV,
+/// sideways swipes change channel.
 class _GestureLayer extends StatefulWidget {
-  const _GestureLayer({required this.player, required this.onTap, required this.onDoubleTap, required this.onInteract});
+  const _GestureLayer({
+    required this.player,
+    required this.onTap,
+    required this.onDoubleTap,
+    required this.onInteract,
+    this.onSwipeLeft,
+    this.onSwipeRight,
+  });
   final Player player;
   final VoidCallback onTap;
   final VoidCallback onDoubleTap;
   final VoidCallback onInteract;
+  final VoidCallback? onSwipeLeft;
+  final VoidCallback? onSwipeRight;
 
   @override
   State<_GestureLayer> createState() => _GestureLayerState();
@@ -1338,6 +1356,14 @@ class _GestureLayerState extends State<_GestureLayer> {
     final top = max(media.systemGestureInsets.top, media.viewPadding.top) + _edge;
     final bottom = max(media.systemGestureInsets.bottom, media.viewPadding.bottom) + _edge;
     return global.dy < top || global.dy > media.size.height - bottom;
+  }
+
+  /// The back gesture lives along the left and right edges.
+  bool _nearSideEdge(Offset global) {
+    final media = MediaQuery.of(context);
+    final left = max(media.systemGestureInsets.left, 16.0);
+    final right = max(media.systemGestureInsets.right, 16.0);
+    return global.dx < left || global.dx > media.size.width - right;
   }
 
   void _start(DragStartDetails d, double width) {
@@ -1381,6 +1407,23 @@ class _GestureLayerState extends State<_GestureLayer> {
     });
   }
 
+  /// How far the current sideways swipe has gone, or null when it started
+  /// at a screen edge.
+  double? _sideways;
+
+  void _swipeEnd(DragEndDetails d, double width) {
+    final dx = _sideways;
+    _sideways = null;
+    if (dx == null) return;
+    final v = d.primaryVelocity ?? 0;
+    // A quarter of the picture, or a quick flick.
+    final far = dx.abs() > min(120.0, width / 4);
+    final fast = v.abs() > 700 && dx.abs() > 24;
+    if (!far && !fast) return;
+    final left = (far ? dx : v) < 0;
+    (left ? widget.onSwipeLeft : widget.onSwipeRight)?.call();
+  }
+
   @override
   void dispose() {
     _hide?.cancel();
@@ -1389,6 +1432,7 @@ class _GestureLayerState extends State<_GestureLayer> {
 
   @override
   Widget build(BuildContext context) {
+    final sideways = widget.onSwipeLeft != null || widget.onSwipeRight != null;
     return LayoutBuilder(
       builder: (context, box) => GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -1398,6 +1442,16 @@ class _GestureLayerState extends State<_GestureLayer> {
         onVerticalDragUpdate: (d) => _update(d, box.maxHeight),
         onVerticalDragEnd: (_) => _end(),
         onVerticalDragCancel: _end,
+        onHorizontalDragStart: sideways
+            ? (d) => _sideways = _nearScreenEdge(d.globalPosition) || _nearSideEdge(d.globalPosition) ? null : 0
+            : null,
+        onHorizontalDragUpdate: sideways
+            ? (d) {
+                if (_sideways != null) _sideways = _sideways! + d.delta.dx;
+              }
+            : null,
+        onHorizontalDragEnd: sideways ? (d) => _swipeEnd(d, box.maxWidth) : null,
+        onHorizontalDragCancel: sideways ? () => _sideways = null : null,
         child: MouseRegion(
           onHover: (_) => widget.onInteract(),
           child: Stack(
