@@ -100,6 +100,13 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   List<MediaItem> _copies = const [];
   final _tried = <String>{};
 
+  /// Sound only: no picture is decoded, and a foreground service keeps the
+  /// sound going with the screen off.
+  bool _audioOnly = false;
+
+  /// Shown once per app run, the first time a stream opens on mobile data.
+  static bool _warnedMobile = false;
+
   /// Live TV: gives up on a stream that neither plays nor fails.
   Timer? _openTimer;
 
@@ -136,6 +143,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       }),
     );
     _subs.add(_player.stream.tracks.listen(_applyTrackPrefs));
+    _subs.add(
+      Device.audioStopped.listen((_) {
+        if (!mounted) return;
+        _player.pause();
+        _setAudioOnly(false);
+      }),
+    );
+    _warnIfMobile();
     _subs.add(_player.stream.position.listen(_watchForNext));
     _subs.add(
       _player.stream.completed.listen((done) {
@@ -168,7 +183,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   }
 
   void _updatePip() {
-    if (!_pipSupported) return;
+    if (!_pipSupported || _audioOnly) return;
     final w = _player.state.width ?? 16;
     final h = _player.state.height ?? 9;
     Device.setAutoPip(true, width: w, height: h);
@@ -195,8 +210,40 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       });
     }
     await _player.open(Media(url, start: start > Duration.zero ? start : null));
+    if (_audioOnly) {
+      await _setMpv('vid', 'no');
+      unawaited(_updateAudioNotice());
+    }
     if (_rate != 1 && !_isLive) await _player.setRate(_rate);
     if (_isLive) unawaited(_recordLive());
+  }
+
+  Future<void> _setAudioOnly(bool on) async {
+    if (on == _audioOnly) return;
+    setState(() => _audioOnly = on);
+    await _setMpv('vid', on ? 'no' : 'auto');
+    if (on) {
+      Device.setAutoPip(false);
+      await _updateAudioNotice();
+    } else {
+      await Device.stopAudioOnly();
+      _updatePip();
+    }
+  }
+
+  Future<void> _updateAudioNotice() async {
+    if (!_audioOnly) return;
+    final l = context.l10n;
+    await Device.startAudioOnly(title: _req.title ?? _item.name, text: l.audioOnlyOn, stop: l.stop);
+  }
+
+  Future<void> _warnIfMobile() async {
+    if (_warnedMobile || !ref.read(settingsProvider).warnMobileData) return;
+    if (!await Device.onMobileData() || !mounted) return;
+    _warnedMobile = true;
+    final l = context.l10n;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(duration: const Duration(seconds: 6), content: Text(l.mobileDataNotice)));
   }
 
   Future<void> _loadCopies(MediaItem channel) async {
@@ -623,6 +670,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         current: _item,
         health: ref.read(streamHealthProvider).value ?? const {},
         onCopy: _pickCopy,
+        audioOnly: _audioOnly,
+        onAudioOnly: _setAudioOnly,
       ),
     ).then((_) => _takeKeys());
   }
@@ -648,6 +697,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     final container = _container;
     _saveProgress().whenComplete(() => container.invalidate(historyProvider));
     Device.setAutoPip(false);
+    if (_audioOnly) Device.stopAudioOnly();
     Device.resetBrightness();
     if (_fullscreen) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -783,6 +833,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       subtitle: _req.subtitle,
       isLive: _isLive,
       error: _error,
+      audioOnly: _audioOnly,
       controlsVisible: _controlsVisible,
       fullscreen: videoOnly,
       sleepAt: _sleepAt,
@@ -905,8 +956,11 @@ class _VideoSurface extends StatelessWidget {
     required this.channelCard,
     required this.digitsCard,
     required this.nextCard,
+    this.audioOnly = false,
   });
 
+  /// Sound only: the picture is off, so a note stands in for it.
+  final bool audioOnly;
   final VoidCallback? onPrevChannel;
   final VoidCallback? onNextChannel;
   final VoidCallback? onChannels;
@@ -989,6 +1043,20 @@ class _VideoSurface extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         _FittedVideo(controller: video, mode: fit),
+        if (audioOnly)
+          ColoredBox(
+            color: Colors.black,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.headphones, color: AppColors.muted, size: 34),
+                  const SizedBox(height: 8),
+                  Text(context.l10n.audioOnlyOn, style: t.bodySmall!.copyWith(color: AppColors.muted)),
+                ],
+              ),
+            ),
+          ),
         StreamBuilder<bool>(
           stream: player.stream.buffering,
           builder: (_, s) => (s.data ?? false) && error == null
@@ -1411,8 +1479,12 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     this.current,
     this.health = const {},
     this.onCopy,
+    this.audioOnly = false,
+    this.onAudioOnly,
   });
   final bool isLive;
+  final bool audioOnly;
+  final ValueChanged<bool>? onAudioOnly;
 
   /// Copies of the live channel, best first, and the one playing.
   final List<MediaItem> copies;
@@ -1601,6 +1673,17 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
                 title: Text(l.subtitleStyle),
                 onTap: () => showSubtitleStyle(context),
               ),
+              if (widget.onAudioOnly != null)
+                SwitchListTile(
+                  secondary: const Icon(Icons.headphones_outlined),
+                  title: Text(l.audioOnly),
+                  subtitle: Text(l.audioOnlyHint),
+                  value: widget.audioOnly,
+                  onChanged: (v) {
+                    Navigator.pop(context);
+                    widget.onAudioOnly!(v);
+                  },
+                ),
               SwitchListTile(
                 secondary: const Icon(Icons.info_outline),
                 title: Text(l.streamInfo),
@@ -2486,6 +2569,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
     final family = familyKey(widget.current);
     return widget.channels.indexWhere((c) => c.key == widget.current.key || familyKey(c) == family);
   }
+
   double _offsetFor(int i) => max(0, i - 2) * _rowHeight;
 
   @override

@@ -6,7 +6,10 @@ import android.content.Intent
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.Manifest
 import android.media.AudioManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -29,6 +32,7 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        instance = this
         val ch = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "tally/device")
         channel = ch
         ch.setMethodCallHandler { call, result ->
@@ -66,6 +70,25 @@ class MainActivity : FlutterActivity() {
                     result.success(null)
                 }
                 "enterPip" -> result.success(enterPip())
+                "startAudioOnly" -> {
+                    val args = call.arguments as Map<*, *>
+                    askForNotifications()
+                    val intent = Intent(this, PlaybackService::class.java)
+                        .putExtra(PlaybackService.EXTRA_TITLE, args["title"] as? String)
+                        .putExtra(PlaybackService.EXTRA_TEXT, args["text"] as? String)
+                        .putExtra(PlaybackService.EXTRA_STOP, args["stop"] as? String)
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+                        result.success(true)
+                    } catch (_: Exception) {
+                        result.success(false)
+                    }
+                }
+                "stopAudioOnly" -> {
+                    stopService(Intent(this, PlaybackService::class.java))
+                    result.success(null)
+                }
+                "onMobileData" -> result.success(onMobileData())
                 "openExternally" -> {
                     val args = call.arguments as Map<*, *>
                     result.success(openExternally(args["url"] as String, args["title"] as? String))
@@ -73,6 +96,35 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    /** Called by the notification's Stop button. */
+    fun notifyAudioStopped() {
+        runOnUiThread { channel?.invokeMethod("audioStopped", null) }
+    }
+
+    /** Android 13 and later need the viewer's yes to show the playback notification. */
+    private fun askForNotifications() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 3)
+        }
+    }
+
+    /** True when the phone is online through mobile data rather than Wi-Fi. */
+    private fun onMobileData(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return false
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
+        return caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) &&
+            !caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+    }
+
+    override fun onDestroy() {
+        if (instance === this) instance = null
+        stopService(Intent(this, PlaybackService::class.java))
+        super.onDestroy()
     }
 
     /** Hands a stream to another video app, letting the viewer pick which one. */
@@ -152,5 +204,10 @@ class MainActivity : FlutterActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         channel?.invokeMethod("pipChanged", isInPictureInPictureMode)
+    }
+
+    companion object {
+        /** The running activity, for the playback service to call back. */
+        var instance: MainActivity? = null
     }
 }

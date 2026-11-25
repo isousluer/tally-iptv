@@ -1311,4 +1311,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mergeCopiesSubtitle =>
       'HD, SD and Full HD copies show as one channel. The best one plays, and the next one when it doesn\'t.';
+
+  @override
+  String get audioOnly => 'Sound only';
+
+  @override
+  String get audioOnlyHint =>
+      'Turns the picture off and keeps playing with the screen off. Saves battery; the provider still sends the whole stream.';
+
+  @override
+  String get audioOnlyOn => 'Sound only';
+
+  @override
+  String get stop => 'Stop';
+
+  @override
+  String get mobileDataNotice => 'You\'re on mobile data. Live TV uses about 1 to 3 GB an hour.';
+
+  @override
+  String get warnMobileDataTitle => 'Warn on mobile data';
+
+  @override
+  String get warnMobileDataSubtitle => 'A short notice when a video starts without Wi-Fi.';
 }

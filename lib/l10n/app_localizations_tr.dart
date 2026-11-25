@@ -1291,4 +1291,26 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get mergeCopiesSubtitle =>
       'HD, SD ve Full HD kopyalar tek kanal olarak görünür. En iyisi açılır, açılmazsa sıradaki denenir.';
+
+  @override
+  String get audioOnly => 'Sadece ses';
+
+  @override
+  String get audioOnlyHint =>
+      'Görüntüyü kapatır, ekran kapalıyken de çalmaya devam eder. Pil tasarrufu sağlar; sağlayıcı yine de tüm yayını gönderir.';
+
+  @override
+  String get audioOnlyOn => 'Sadece ses';
+
+  @override
+  String get stop => 'Durdur';
+
+  @override
+  String get mobileDataNotice => 'Mobil verideysin. Canlı yayın saatte yaklaşık 1–3 GB harcar.';
+
+  @override
+  String get warnMobileDataTitle => 'Mobil veride uyar';
+
+  @override
+  String get warnMobileDataSubtitle => 'Wi-Fi olmadan bir yayın başlayınca kısa bir uyarı gösterir.';
 }

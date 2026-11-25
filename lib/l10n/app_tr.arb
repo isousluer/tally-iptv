@@ -364,5 +364,12 @@
   "copiesCount": "{count} kalite",
   "streamFailing": "Son denemelerde açılmadı",
   "mergeCopiesTitle": "Kanal kopyalarını birleştir",
-  "mergeCopiesSubtitle": "HD, SD ve Full HD kopyalar tek kanal olarak görünür. En iyisi açılır, açılmazsa sıradaki denenir."
+  "mergeCopiesSubtitle": "HD, SD ve Full HD kopyalar tek kanal olarak görünür. En iyisi açılır, açılmazsa sıradaki denenir.",
+  "audioOnly": "Sadece ses",
+  "audioOnlyHint": "Görüntüyü kapatır, ekran kapalıyken de çalmaya devam eder. Pil tasarrufu sağlar; sağlayıcı yine de tüm yayını gönderir.",
+  "audioOnlyOn": "Sadece ses",
+  "stop": "Durdur",
+  "mobileDataNotice": "Mobil verideysin. Canlı yayın saatte yaklaşık 1–3 GB harcar.",
+  "warnMobileDataTitle": "Mobil veride uyar",
+  "warnMobileDataSubtitle": "Wi-Fi olmadan bir yayın başlayınca kısa bir uyarı gösterir."
 }

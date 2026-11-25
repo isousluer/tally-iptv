@@ -2281,6 +2281,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'HD, SD and Full HD copies show as one channel. The best one plays, and the next one when it doesn\'t.'**
   String get mergeCopiesSubtitle;
+
+  /// No description provided for @audioOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound only'**
+  String get audioOnly;
+
+  /// No description provided for @audioOnlyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns the picture off and keeps playing with the screen off. Saves battery; the provider still sends the whole stream.'**
+  String get audioOnlyHint;
+
+  /// No description provided for @audioOnlyOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound only'**
+  String get audioOnlyOn;
+
+  /// No description provided for @stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stop;
+
+  /// No description provided for @mobileDataNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on mobile data. Live TV uses about 1 to 3 GB an hour.'**
+  String get mobileDataNotice;
+
+  /// No description provided for @warnMobileDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn on mobile data'**
+  String get warnMobileDataTitle;
+
+  /// No description provided for @warnMobileDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A short notice when a video starts without Wi-Fi.'**
+  String get warnMobileDataSubtitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

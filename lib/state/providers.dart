@@ -521,6 +521,7 @@ class AppSettings {
     this.subtitleBackground = SubtitleBackground.box,
     this.subtitlePosition = SubtitlePosition.low,
     this.mergeCopies = true,
+    this.warnMobileData = true,
   });
 
   final VideoFit videoFit;
@@ -547,6 +548,9 @@ class AppSettings {
 
   /// Show copies of a channel (HD, SD...) as one row that plays the best.
   final bool mergeCopies;
+
+  /// Say so when a stream opens on mobile data.
+  final bool warnMobileData;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -571,6 +575,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
       ),
       subtitlePosition: _enumPref(SubtitlePosition.values, p.getString('subtitle_position'), SubtitlePosition.low),
       mergeCopies: p.getBool('merge_copies') ?? true,
+      warnMobileData: p.getBool('warn_mobile_data') ?? true,
     );
   }
 
@@ -593,6 +598,11 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setAutoNext(bool v) async {
     await _p.setBool('auto_next', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setWarnMobileData(bool v) async {
+    await _p.setBool('warn_mobile_data', v);
     ref.invalidateSelf();
   }
 

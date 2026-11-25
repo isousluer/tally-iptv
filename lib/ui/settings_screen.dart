@@ -78,6 +78,13 @@ class SettingsScreen extends ConsumerWidget {
                 value: settings.mergeCopies,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setMergeCopies(v),
               ),
+              SwitchListTile(
+                secondary: const Icon(Icons.signal_cellular_alt),
+                title: Text(l.warnMobileDataTitle),
+                subtitle: Text(l.warnMobileDataSubtitle),
+                value: settings.warnMobileData,
+                onChanged: (v) => ref.read(settingsProvider.notifier).setWarnMobileData(v),
+              ),
               ListTile(
                 leading: const Icon(Icons.category_outlined),
                 title: Text(l.categories),
