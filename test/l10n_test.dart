@@ -25,4 +25,11 @@ void main() {
     useLocale(const Locale('en'));
     expect(formatDuration(const Duration(hours: 1, minutes: 5)), '1h 5m');
   });
+
+  test('episode lengths from providers read as minutes', () {
+    expect(formatEpisodeLength('00:45:00'), '45m');
+    expect(formatEpisodeLength('01:02:30'), '1h 2m');
+    expect(formatEpisodeLength('44:10'), '44m');
+    expect(formatEpisodeLength('45 min'), '45 min');
+  });
 }

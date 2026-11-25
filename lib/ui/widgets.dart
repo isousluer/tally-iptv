@@ -294,6 +294,16 @@ class ErrorState extends StatelessWidget {
 
 String formatTime(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
+/// Episode lengths come from providers as "00:45:00" or "45:00"; shows them
+/// as "45m". Anything else is shown as it came.
+String formatEpisodeLength(String raw) {
+  final parts = raw.trim().split(':').map(int.tryParse).toList();
+  if (parts.length < 2 || parts.length > 3 || parts.contains(null)) return raw;
+  final secs = parts.fold<int>(0, (sum, p) => sum * 60 + p!);
+  if (secs <= 0) return raw;
+  return formatDuration(Duration(seconds: secs < 60 ? 60 : secs));
+}
+
 String formatDuration(Duration d) {
   final h = d.inHours;
   final m = d.inMinutes.remainder(60);

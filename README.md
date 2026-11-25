@@ -30,9 +30,9 @@ with a TV guide, favorites and playback that picks up where you left off.
 
 | Live TV | Player | Movies | Series | Add playlist |
 | :---: | :---: | :---: | :---: | :---: |
-| <img src="design/stitch/live-tv.png" width="160"> | <img src="design/stitch/player.png" width="160"> | <img src="design/stitch/movies.png" width="160"> | <img src="design/stitch/series-detail.png" width="160"> | <img src="design/stitch/add-playlist.png" width="160"> |
+| <img src="design/screenshots/live-tv.png" width="160"> | <img src="design/screenshots/player.png" width="160"> | <img src="design/screenshots/movies.png" width="160"> | <img src="design/screenshots/series-detail.png" width="160"> | <img src="design/screenshots/add-playlist.png" width="160"> |
 
-<sub>Design mockups of the main screens.</sub>
+<sub>Screenshots from a phone, with a made-up demo playlist. Tally doesn't come with any channels.</sub>
 
 ## Features
 

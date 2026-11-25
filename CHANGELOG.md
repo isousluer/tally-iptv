@@ -27,6 +27,7 @@ versions and keeps your playlists, favorites and history.
 
 ### Movies and series
 - Posters, ratings, plot, director and cast.
+- Episode lengths read as "45m" instead of "00:45:00".
 - Continue watching, and the next episode starts on its own with a countdown you can cancel.
 
 ### Player

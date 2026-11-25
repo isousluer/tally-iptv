@@ -2754,7 +2754,7 @@ class _EpisodeTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        playing ? context.l10n.playing : episode.duration ?? '',
+                        playing ? context.l10n.playing : formatEpisodeLength(episode.duration ?? ''),
                         style: t.labelSmall!.copyWith(
                           color: playing ? AppColors.tally : AppColors.muted,
                           fontFeatures: tabular,

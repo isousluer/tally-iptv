@@ -343,7 +343,7 @@ class _EpisodeRow extends StatelessWidget {
                         ),
                         if (episode.duration != null)
                           Text(
-                            episode.duration!,
+                            formatEpisodeLength(episode.duration!),
                             style: t.labelSmall!.copyWith(color: AppColors.muted, fontFeatures: tabular),
                           ),
                       ],

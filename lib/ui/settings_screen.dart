@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:material_ui/material_ui.dart';
 
 import '../app_info.dart';
@@ -405,9 +406,7 @@ class _PlaylistTileState extends ConsumerState<_PlaylistTile> {
     final l = context.l10n;
     final updated = p.lastUpdated == null
         ? l.neverUpdated
-        : l.updatedOn(
-            '${p.lastUpdated!.day}.${p.lastUpdated!.month}.${p.lastUpdated!.year} ${formatTime(p.lastUpdated!)}',
-          );
+        : l.updatedOn('${intl.DateFormat.yMMMd(l.localeName).format(p.lastUpdated!)} ${formatTime(p.lastUpdated!)}');
     return ListTile(
       leading: Icon(
         p.isXtream ? Icons.dns_outlined : Icons.playlist_play,
