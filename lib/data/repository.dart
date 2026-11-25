@@ -42,11 +42,18 @@ typedef ProgressCallback = void Function(LoadProgress progress);
 
 /// Loads playlists from their sources and keeps the local database in sync.
 class PlaylistRepository {
-  PlaylistRepository(this.db);
+  PlaylistRepository(this.db, {this.httpClient});
   final AppDatabase db;
 
-  XtreamClient xtreamFor(Playlist p) =>
-      XtreamClient(server: p.server ?? '', username: p.username ?? '', password: p.password ?? '');
+  /// Lets tests stand in for the Xtream server.
+  final http.Client? httpClient;
+
+  XtreamClient xtreamFor(Playlist p) => XtreamClient(
+    server: p.server ?? '',
+    username: p.username ?? '',
+    password: p.password ?? '',
+    client: httpClient,
+  );
 
   /// Recognizes Xtream "get.php?username=…&password=…" M3U links and turns
   /// them into an Xtream login, which gives proper movie and series data.
@@ -100,11 +107,11 @@ class PlaylistRepository {
         epgUrl ??= client.epgUrl;
 
         report(progress = progress.at(LoadStage.live));
-        final live = await _guard(() => client.fetchLive(p.id));
+        final live = await _keepIfEmpty(p.id, ContentKind.live, await _guard(() => client.fetchLive(p.id)));
         report(progress = progress.withCount(LoadStage.live, live.length).at(LoadStage.movies));
-        final movies = await _guard(() => client.fetchMovies(p.id));
+        final movies = await _keepIfEmpty(p.id, ContentKind.movie, await _guard(() => client.fetchMovies(p.id)));
         report(progress = progress.withCount(LoadStage.movies, movies.length).at(LoadStage.series));
-        final series = await _guard(() => client.fetchSeries(p.id));
+        final series = await _keepIfEmpty(p.id, ContentKind.series, await _guard(() => client.fetchSeries(p.id)));
         report(progress = progress.withCount(LoadStage.series, series.length).at(LoadStage.save));
         items = [...live, ...movies, ...series];
         if (items.isEmpty) throw SourceException(strings.errNoContent);
@@ -137,6 +144,14 @@ class PlaylistRepository {
     await db.updatePlaylist(updated);
     return updated;
   }
+
+  /// Xtream servers that are busy or briefly broken sometimes answer a list
+  /// request with an error object instead of a list, which reads as "no
+  /// movies". Replacing the stored movies with nothing would also hide their
+  /// history, favorites and channel lists until the next update, so the
+  /// stored ones stay instead.
+  Future<List<MediaItem>> _keepIfEmpty(int playlistId, ContentKind kind, List<MediaItem> fetched) async =>
+      fetched.isNotEmpty ? fetched : db.allItems(playlistId, kind);
 
   /// Downloads the guide for [p]. Returns the number of programs stored.
   Future<int> refreshEpg(Playlist p) async {
