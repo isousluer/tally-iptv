@@ -3,6 +3,32 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## 1.1.0 (unreleased)
+
+### New
+- Pause and rewind live TV. The last minutes of the channel you watch are kept on the phone (off, 5, 10 or 30
+  minutes in Settings, 10 by default; less when space runs low). Jump 10 seconds back or forward, drag the bar,
+  see how far behind live you are, and go back to live with one tap.
+- Swipe left or right on the picture to change channel.
+- Today's matches above the channel list, for people in Turkey: time, competition and the channel from your own
+  list. Tap one to watch it; matches on channels you don't have are dimmed.
+- Send your lists, favorites and settings to another device over your home Wi-Fi with a QR code, no cloud in
+  between. A code can be typed in when there's no camera.
+- Copies of a channel (HD, SD, Full HD) show as one row that plays the best copy and moves on to the next one
+  when it doesn't play. Channels that keep failing are marked. Turn it off in Settings.
+- A short wizard right after adding a list lets you keep only the countries you want and hide adult categories.
+- Sound only, in the player options: the picture turns off and the sound keeps going with the screen off.
+- A short notice when a video starts on mobile data.
+
+### Changed
+- Merged channel rows show the name without quality tags ("TR: beIN SPORTS 1").
+
+### Fixed
+- Live channels no longer stop when the provider closes the connection every half minute or so; they reconnect
+  on their own.
+- When the account is already open on another device (and allows one at a time), Tally says so before playing,
+  and explains it when a channel keeps dropping, instead of freezing.
+
 ## 1.0.1 (2026-11-25)
 
 ### Fixed
