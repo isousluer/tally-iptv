@@ -1231,10 +1231,8 @@ class _VideoSurface extends StatelessWidget {
           onDoubleTap: onFullscreen,
           onInteract: onInteract,
           // Live TV: swipe sideways to change channel, like turning pages.
-          // Films and series: drag sideways to move through the video.
           onSwipeLeft: isLive ? onNextChannel : null,
           onSwipeRight: isLive ? onPrevChannel : null,
-          scrub: !isLive && error == null,
         ),
         // Above the gesture layer, so its buttons take taps; the space around
         // them still lets taps through to show the controls.
@@ -1306,7 +1304,7 @@ class _VideoSurface extends StatelessWidget {
 
 /// Tap to show controls, double tap for full screen, and vertical swipes:
 /// left half for brightness (phones), right half for volume. On live TV,
-/// sideways swipes change channel; on videos, sideways drags seek.
+/// sideways swipes change channel.
 class _GestureLayer extends StatefulWidget {
   const _GestureLayer({
     required this.player,
@@ -1315,10 +1313,8 @@ class _GestureLayer extends StatefulWidget {
     required this.onInteract,
     this.onSwipeLeft,
     this.onSwipeRight,
-    this.scrub = false,
   });
   final Player player;
-  final bool scrub;
   final VoidCallback onTap;
   final VoidCallback onDoubleTap;
   final VoidCallback onInteract;
@@ -1428,44 +1424,6 @@ class _GestureLayerState extends State<_GestureLayer> {
     (left ? widget.onSwipeLeft : widget.onSwipeRight)?.call();
   }
 
-  /// Seconds a drag across the whole picture moves.
-  static const _scrubSpan = 120.0;
-
-  /// Where playback was when a seeking drag began, and where it would go.
-  /// Null when not seeking.
-  (double from, double to)? _scrub;
-
-  void _scrubStart(DragStartDetails d) {
-    final duration = widget.player.state.duration.inMilliseconds / 1000;
-    if (duration <= 0 || _nearScreenEdge(d.globalPosition) || _nearSideEdge(d.globalPosition)) return;
-    final from = widget.player.state.position.inMilliseconds / 1000;
-    setState(() => _scrub = (from, from));
-    widget.onInteract();
-  }
-
-  void _scrubUpdate(DragUpdateDetails d, double width) {
-    final s = _scrub;
-    if (s == null) return;
-    final duration = widget.player.state.duration.inMilliseconds / 1000;
-    final to = (s.$2 + d.delta.dx / width * _scrubSpan).clamp(0.0, max(0.0, duration - 1)).toDouble();
-    setState(() => _scrub = (s.$1, to));
-  }
-
-  void _scrubEnd() {
-    final s = _scrub;
-    if (s == null) return;
-    setState(() => _scrub = null);
-    if ((s.$2 - s.$1).abs() >= 1) widget.player.seek(Duration(milliseconds: (s.$2 * 1000).round()));
-  }
-
-  static String _clock(double seconds) {
-    final d = Duration(seconds: seconds.round());
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60).toString().padLeft(h > 0 ? 2 : 1, '0');
-    final sec = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return h > 0 ? '$h:$m:$sec' : '$m:$sec';
-  }
-
   @override
   void dispose() {
     _hide?.cancel();
@@ -1474,9 +1432,7 @@ class _GestureLayerState extends State<_GestureLayer> {
 
   @override
   Widget build(BuildContext context) {
-    final scrub = widget.scrub;
     final sideways = widget.onSwipeLeft != null || widget.onSwipeRight != null;
-    final scrubbing = _scrub;
     return LayoutBuilder(
       builder: (context, box) => GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -1486,28 +1442,16 @@ class _GestureLayerState extends State<_GestureLayer> {
         onVerticalDragUpdate: (d) => _update(d, box.maxHeight),
         onVerticalDragEnd: (_) => _end(),
         onVerticalDragCancel: _end,
-        onHorizontalDragStart: scrub
-            ? _scrubStart
-            : sideways
+        onHorizontalDragStart: sideways
             ? (d) => _sideways = _nearScreenEdge(d.globalPosition) || _nearSideEdge(d.globalPosition) ? null : 0
             : null,
-        onHorizontalDragUpdate: scrub
-            ? (d) => _scrubUpdate(d, box.maxWidth)
-            : sideways
+        onHorizontalDragUpdate: sideways
             ? (d) {
                 if (_sideways != null) _sideways = _sideways! + d.delta.dx;
               }
             : null,
-        onHorizontalDragEnd: scrub
-            ? (_) => _scrubEnd()
-            : sideways
-            ? (d) => _swipeEnd(d, box.maxWidth)
-            : null,
-        onHorizontalDragCancel: scrub
-            ? () => setState(() => _scrub = null)
-            : sideways
-            ? () => _sideways = null
-            : null,
+        onHorizontalDragEnd: sideways ? (d) => _swipeEnd(d, box.maxWidth) : null,
+        onHorizontalDragCancel: sideways ? () => _sideways = null : null,
         child: MouseRegion(
           onHover: (_) => widget.onInteract(),
           child: Stack(
@@ -1529,29 +1473,6 @@ class _GestureLayerState extends State<_GestureLayer> {
                               ? Icons.volume_down
                               : Icons.volume_up),
                     value: _value,
-                  ),
-                ),
-              if (scrubbing != null)
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(color: const Color(0xB3000000), borderRadius: BorderRadius.circular(12)),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${scrubbing.$2 >= scrubbing.$1 ? '+' : '−'}${_clock((scrubbing.$2 - scrubbing.$1).abs())}',
-                          style: Theme.of(context).textTheme.titleMedium!
-                              .copyWith(color: AppColors.tally, fontFeatures: tabular),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${_clock(scrubbing.$2)} / ${_clock(widget.player.state.duration.inMilliseconds / 1000)}',
-                          style: Theme.of(context).textTheme.labelMedium!
-                              .copyWith(color: Colors.white, fontFeatures: tabular),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
             ],
