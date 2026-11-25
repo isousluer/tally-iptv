@@ -1375,4 +1375,65 @@ class AppLocalizationsTr extends AppLocalizations {
   String matchNotInList(String channel) {
     return '$channel · listende yok';
   }
+
+  @override
+  String get transferSend => 'Başka cihaza gönder';
+
+  @override
+  String get transferSendSubtitle => 'Listeler, favoriler ve ayarlar; Wi-Fi üzerinden QR kodla';
+
+  @override
+  String get transferReceive => 'Başka cihazdan al';
+
+  @override
+  String get transferReceiveSubtitle => 'Diğer cihazda görünen QR kodu tara';
+
+  @override
+  String get transferSendHint =>
+      'Diğer cihazda Tally › Ayarlar › Başka cihazdan al\'ı aç ve bu kodu tara. İki cihaz da aynı Wi-Fi\'de olmalı.';
+
+  @override
+  String transferManual(String address, String code) {
+    return 'Kamera yoksa: adres $address, kod $code';
+  }
+
+  @override
+  String get transferWaiting => 'Diğer cihaz bekleniyor…';
+
+  @override
+  String get transferSent => 'Gönderildi. Bu ekranı kapatabilirsin.';
+
+  @override
+  String get transferPrivacy => 'Listelerinin giriş bilgileri de gider. Bu kodu yalnızca kendi cihazlarına göster.';
+
+  @override
+  String get transferNoWifi => 'Önce Wi-Fi\'ye bağlan. İki cihaz da aynı ağda olmalı.';
+
+  @override
+  String get transferScanHint => 'Kamerayı diğer cihazdaki QR koda tut.';
+
+  @override
+  String get transferEnterManually => 'Kodu elle gir';
+
+  @override
+  String get transferAddress => 'Adres';
+
+  @override
+  String get transferCode => 'Kod';
+
+  @override
+  String get transferConnect => 'Bağlan';
+
+  @override
+  String get transferBadCode => 'Kod tutmadı. Diğer cihazdakini kontrol et.';
+
+  @override
+  String get transferUnreachable =>
+      'Diğer cihaza ulaşılamadı. Onun ekranı açık kalsın ve iki cihaz da aynı Wi-Fi\'de olsun.';
+
+  @override
+  String get transferNoCamera => 'Kamera kullanılamıyor. Kodu elle gir.';
+
+  @override
+  String get transferReceiving => 'Diğer cihazdan listeler alınıyor…';
 }

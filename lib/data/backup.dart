@@ -9,7 +9,11 @@ import 'database.dart';
 import 'models.dart';
 
 /// Settings copied with a backup. The parental PIN is deliberately left out.
-const _settingKeys = ['video_fit', 'audio_lang', 'subtitle_lang', 'auto_next', 'auto_refresh'];
+const _settingKeys = [
+  'video_fit', 'audio_lang', 'subtitle_lang', 'auto_next', 'auto_refresh', 'app_language', 'check_updates', //
+  'subtitle_size', 'subtitle_background', 'subtitle_position', 'merge_copies', 'warn_mobile_data',
+  'timeshift_minutes',
+];
 
 /// Writes playlists, favorites, watch history, category choices and the
 /// viewer's channel lists to JSON.
@@ -133,6 +137,7 @@ Future<RestoreResult> importBackup(AppDatabase adb, SharedPreferences prefs, Str
       if (!_settingKeys.contains(key)) continue;
       if (value is bool) await prefs.setBool(key as String, value);
       if (value is String) await prefs.setString(key as String, value);
+      if (value is int) await prefs.setInt(key as String, value);
     }
   }
   return RestoreResult(toLoad, skipped, alreadyThere);

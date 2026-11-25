@@ -2419,6 +2419,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{channel} · not in your list'**
   String matchNotInList(String channel);
+
+  /// No description provided for @transferSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to another device'**
+  String get transferSend;
+
+  /// No description provided for @transferSendSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lists, favorites and settings, over Wi-Fi with a QR code'**
+  String get transferSendSubtitle;
+
+  /// No description provided for @transferReceive.
+  ///
+  /// In en, this message translates to:
+  /// **'Get from another device'**
+  String get transferReceive;
+
+  /// No description provided for @transferReceiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR code shown on the other device'**
+  String get transferReceiveSubtitle;
+
+  /// No description provided for @transferSendHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On the other device, open Tally › Settings › Get from another device and scan this code. Both devices need to be on the same Wi-Fi.'**
+  String get transferSendHint;
+
+  /// No description provided for @transferManual.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera? Address {address}, code {code}'**
+  String transferManual(String address, String code);
+
+  /// No description provided for @transferWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the other device…'**
+  String get transferWaiting;
+
+  /// No description provided for @transferSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent. You can close this screen.'**
+  String get transferSent;
+
+  /// No description provided for @transferPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Your list logins go along. Only show this code to your own devices.'**
+  String get transferPrivacy;
+
+  /// No description provided for @transferNoWifi.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to Wi-Fi first. Both devices need to be on the same network.'**
+  String get transferNoWifi;
+
+  /// No description provided for @transferScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the QR code on the other device.'**
+  String get transferScanHint;
+
+  /// No description provided for @transferEnterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code by hand'**
+  String get transferEnterManually;
+
+  /// No description provided for @transferAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get transferAddress;
+
+  /// No description provided for @transferCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get transferCode;
+
+  /// No description provided for @transferConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get transferConnect;
+
+  /// No description provided for @transferBadCode.
+  ///
+  /// In en, this message translates to:
+  /// **'That code didn\'t work. Check it on the other device.'**
+  String get transferBadCode;
+
+  /// No description provided for @transferUnreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach the other device. Keep its screen open and make sure both are on the same Wi-Fi.'**
+  String get transferUnreachable;
+
+  /// No description provided for @transferNoCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera isn\'t available. Enter the code by hand.'**
+  String get transferNoCamera;
+
+  /// No description provided for @transferReceiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting lists from the other device…'**
+  String get transferReceiving;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

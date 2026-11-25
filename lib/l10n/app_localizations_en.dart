@@ -1395,4 +1395,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String matchNotInList(String channel) {
     return '$channel · not in your list';
   }
+
+  @override
+  String get transferSend => 'Send to another device';
+
+  @override
+  String get transferSendSubtitle => 'Lists, favorites and settings, over Wi-Fi with a QR code';
+
+  @override
+  String get transferReceive => 'Get from another device';
+
+  @override
+  String get transferReceiveSubtitle => 'Scan the QR code shown on the other device';
+
+  @override
+  String get transferSendHint =>
+      'On the other device, open Tally › Settings › Get from another device and scan this code. Both devices need to be on the same Wi-Fi.';
+
+  @override
+  String transferManual(String address, String code) {
+    return 'No camera? Address $address, code $code';
+  }
+
+  @override
+  String get transferWaiting => 'Waiting for the other device…';
+
+  @override
+  String get transferSent => 'Sent. You can close this screen.';
+
+  @override
+  String get transferPrivacy => 'Your list logins go along. Only show this code to your own devices.';
+
+  @override
+  String get transferNoWifi => 'Connect to Wi-Fi first. Both devices need to be on the same network.';
+
+  @override
+  String get transferScanHint => 'Point the camera at the QR code on the other device.';
+
+  @override
+  String get transferEnterManually => 'Enter the code by hand';
+
+  @override
+  String get transferAddress => 'Address';
+
+  @override
+  String get transferCode => 'Code';
+
+  @override
+  String get transferConnect => 'Connect';
+
+  @override
+  String get transferBadCode => 'That code didn\'t work. Check it on the other device.';
+
+  @override
+  String get transferUnreachable =>
+      'Couldn\'t reach the other device. Keep its screen open and make sure both are on the same Wi-Fi.';
+
+  @override
+  String get transferNoCamera => 'The camera isn\'t available. Enter the code by hand.';
+
+  @override
+  String get transferReceiving => 'Getting lists from the other device…';
 }

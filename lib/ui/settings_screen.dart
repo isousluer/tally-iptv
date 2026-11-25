@@ -21,6 +21,7 @@ import 'parental.dart';
 import 'player_screen.dart' show languageName;
 import 'subtitle_style.dart';
 import 'theme.dart';
+import 'transfer_screen.dart';
 import 'updates.dart';
 import 'widgets.dart';
 
@@ -188,6 +189,18 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: Text(l.restoreFromFileSubtitle),
                 onTap: () => _restore(context, ref),
               ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_2),
+                title: Text(l.transferSend),
+                subtitle: Text(l.transferSendSubtitle),
+                onTap: () => sendToDevice(context),
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_scanner),
+                title: Text(l.transferReceive),
+                subtitle: Text(l.transferReceiveSubtitle),
+                onTap: () => receiveFromDevice(context, ref),
+              ),
               heading(l.tvGuide),
               ListTile(
                 leading: const Icon(Icons.event_note_outlined),
@@ -334,11 +347,23 @@ Future<void> _backup(BuildContext context, WidgetRef ref) async {
 }
 
 Future<void> _restore(BuildContext context, WidgetRef ref) async {
-  final messenger = ScaffoldMessenger.of(context);
   final l = context.l10n;
   final file = await FilePicker.pickFile(dialogTitle: l.chooseBackup, type: FileType.any);
   if (file == null || !context.mounted) return;
-  final status = ValueNotifier<String>(l.readingBackup);
+  await runRestore(
+    context,
+    ref,
+    l.readingBackup,
+    () async => utf8.decode(await file.readAsBytes(), allowMalformed: true),
+  );
+}
+
+/// Reads a backup with [read] and merges it in, with a progress dialog
+/// that starts with [reading] and a summary at the end.
+Future<void> runRestore(BuildContext context, WidgetRef ref, String reading, Future<String> Function() read) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final l = context.l10n;
+  final status = ValueNotifier<String>(reading);
   showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -358,7 +383,7 @@ Future<void> _restore(BuildContext context, WidgetRef ref) async {
     ),
   );
   try {
-    final json = utf8.decode(await file.readAsBytes(), allowMalformed: true);
+    final json = await read();
     final r = await ref
         .read(playlistsProvider.notifier)
         .restore(json, onLoading: (n) => status.value = l.loadingNamed(n));
