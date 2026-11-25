@@ -523,6 +523,8 @@ class AppSettings {
     this.mergeCopies = true,
     this.warnMobileData = true,
     this.timeshiftMinutes = 10,
+    this.showMatches = true,
+    this.matchSports = const {},
   });
 
   final VideoFit videoFit;
@@ -555,6 +557,12 @@ class AppSettings {
 
   /// Live TV kept on disk for pausing and rewinding, in minutes; 0 is off.
   final int timeshiftMinutes;
+
+  /// Today's matches above the channel list (in Turkey).
+  final bool showMatches;
+
+  /// Sports to show among today's matches; empty shows all.
+  final Set<String> matchSports;
 }
 
 class SettingsNotifier extends Notifier<AppSettings> {
@@ -581,6 +589,8 @@ class SettingsNotifier extends Notifier<AppSettings> {
       mergeCopies: p.getBool('merge_copies') ?? true,
       warnMobileData: p.getBool('warn_mobile_data') ?? true,
       timeshiftMinutes: p.getInt('timeshift_minutes') ?? 10,
+      showMatches: p.getBool('show_matches') ?? true,
+      matchSports: {...?p.getString('match_sports')?.split('|').where((s) => s.isNotEmpty)},
     );
   }
 
@@ -613,6 +623,16 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   Future<void> setTimeshiftMinutes(int v) async {
     await _p.setInt('timeshift_minutes', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setShowMatches(bool v) async {
+    await _p.setBool('show_matches', v);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setMatchSports(Set<String> v) async {
+    await _str('match_sports', v.isEmpty ? null : (v.toList()..sort()).join('|'));
     ref.invalidateSelf();
   }
 

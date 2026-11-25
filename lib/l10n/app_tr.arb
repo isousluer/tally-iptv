@@ -406,5 +406,9 @@
   "transferBadCode": "Kod tutmadı. Diğer cihazdakini kontrol et.",
   "transferUnreachable": "Diğer cihaza ulaşılamadı. Onun ekranı açık kalsın ve iki cihaz da aynı Wi-Fi'de olsun.",
   "transferNoCamera": "Kamera kullanılamıyor. Kodu elle gir.",
-  "transferReceiving": "Diğer cihazdan listeler alınıyor…"
+  "transferReceiving": "Diğer cihazdan listeler alınıyor…",
+  "matchesShow": "Kanal listesinin üstünde göster",
+  "matchesAllSports": "Tüm sporlar",
+  "matchesSportsHeading": "Spor dalları",
+  "matchesSportsLoading": "Spor dalları bugünün maçları yüklenince görünür."
 }

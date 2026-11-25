@@ -1436,4 +1436,16 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get transferReceiving => 'Diğer cihazdan listeler alınıyor…';
+
+  @override
+  String get matchesShow => 'Kanal listesinin üstünde göster';
+
+  @override
+  String get matchesAllSports => 'Tüm sporlar';
+
+  @override
+  String get matchesSportsHeading => 'Spor dalları';
+
+  @override
+  String get matchesSportsLoading => 'Spor dalları bugünün maçları yüklenince görünür.';
 }

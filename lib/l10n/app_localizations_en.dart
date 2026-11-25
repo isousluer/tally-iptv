@@ -1456,4 +1456,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transferReceiving => 'Getting lists from the other device…';
+
+  @override
+  String get matchesShow => 'Show above the channel list';
+
+  @override
+  String get matchesAllSports => 'All sports';
+
+  @override
+  String get matchesSportsHeading => 'Sports';
+
+  @override
+  String get matchesSportsLoading => 'The sports appear once today\'s matches are loaded.';
 }

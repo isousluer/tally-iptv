@@ -2533,6 +2533,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Getting lists from the other device…'**
   String get transferReceiving;
+
+  /// No description provided for @matchesShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show above the channel list'**
+  String get matchesShow;
+
+  /// No description provided for @matchesAllSports.
+  ///
+  /// In en, this message translates to:
+  /// **'All sports'**
+  String get matchesAllSports;
+
+  /// No description provided for @matchesSportsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports'**
+  String get matchesSportsHeading;
+
+  /// No description provided for @matchesSportsLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'The sports appear once today\'s matches are loaded.'**
+  String get matchesSportsLoading;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

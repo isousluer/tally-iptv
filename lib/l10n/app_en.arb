@@ -914,5 +914,9 @@
   "transferBadCode": "That code didn't work. Check it on the other device.",
   "transferUnreachable": "Couldn't reach the other device. Keep its screen open and make sure both are on the same Wi-Fi.",
   "transferNoCamera": "The camera isn't available. Enter the code by hand.",
-  "transferReceiving": "Getting lists from the other device…"
+  "transferReceiving": "Getting lists from the other device…",
+  "matchesShow": "Show above the channel list",
+  "matchesAllSports": "All sports",
+  "matchesSportsHeading": "Sports",
+  "matchesSportsLoading": "The sports appear once today's matches are loaded."
 }

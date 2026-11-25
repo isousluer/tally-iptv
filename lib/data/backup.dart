@@ -12,7 +12,7 @@ import 'models.dart';
 const _settingKeys = [
   'video_fit', 'audio_lang', 'subtitle_lang', 'auto_next', 'auto_refresh', 'app_language', 'check_updates', //
   'subtitle_size', 'subtitle_background', 'subtitle_position', 'merge_copies', 'warn_mobile_data',
-  'timeshift_minutes',
+  'timeshift_minutes', 'show_matches', 'match_sports',
 ];
 
 /// Writes playlists, favorites, watch history, category choices and the

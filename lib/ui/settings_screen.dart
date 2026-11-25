@@ -12,6 +12,7 @@ import '../data/timeshift.dart';
 import '../data/models.dart';
 import '../l10n/strings.dart';
 import '../state/providers.dart';
+import '../state/sports.dart';
 import 'account_sheet.dart';
 import 'add_playlist_screen.dart';
 import 'categories_screen.dart';
@@ -87,6 +88,19 @@ class SettingsScreen extends ConsumerWidget {
                 value: settings.warnMobileData,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setWarnMobileData(v),
               ),
+              if (sportsListingApplies(settings.language))
+                ListTile(
+                  leading: const Icon(Icons.sports_soccer_outlined),
+                  title: Text(l.todaysMatches),
+                  subtitle: Text(
+                    !settings.showMatches
+                        ? l.off
+                        : settings.matchSports.isEmpty
+                        ? l.matchesAllSports
+                        : (settings.matchSports.toList()..sort()).join(', '),
+                  ),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const _MatchesScreen())),
+                ),
               ListTile(
                 leading: const Icon(Icons.category_outlined),
                 title: Text(l.categories),
@@ -289,6 +303,60 @@ Future<void> _pickLanguage(BuildContext context, WidgetRef ref, String? current)
     ),
   );
   if (picked != null) await ref.read(settingsProvider.notifier).setLanguage(picked.$1);
+}
+
+/// Whether today's matches show above the channel list, and which sports.
+class _MatchesScreen extends ConsumerWidget {
+  const _MatchesScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = context.l10n;
+    final t = Theme.of(context).textTheme;
+    final settings = ref.watch(settingsProvider);
+    final notifier = ref.read(settingsProvider.notifier);
+    final chosen = settings.matchSports;
+    final names = {...?ref.watch(sportNamesProvider).value, ...chosen}.toList()..sort();
+    return Scaffold(
+      appBar: AppBar(title: Text(l.todaysMatches)),
+      body: ListView(
+        children: [
+          SwitchListTile(title: Text(l.matchesShow), value: settings.showMatches, onChanged: notifier.setShowMatches),
+          if (settings.showMatches) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              child: Text(l.matchesSportsHeading, style: t.titleSmall!.copyWith(color: AppColors.tally)),
+            ),
+            if (names.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(l.matchesSportsLoading, style: t.bodyMedium!.copyWith(color: AppColors.muted)),
+              )
+            else ...[
+              CheckboxListTile(
+                title: Text(l.matchesAllSports),
+                value: chosen.isEmpty,
+                onChanged: (_) => notifier.setMatchSports(const {}),
+              ),
+              for (final n in names)
+                CheckboxListTile(
+                  title: Text(n),
+                  value: chosen.isEmpty || chosen.contains(n),
+                  onChanged: (on) {
+                    // From "all", ticking one off keeps the rest; ticking
+                    // every one back on is "all" again.
+                    final next = chosen.isEmpty ? names.toSet() : {...chosen};
+                    on == true ? next.add(n) : next.remove(n);
+                    if (next.isEmpty) return;
+                    notifier.setMatchSports(next.containsAll(names) ? const {} : next);
+                  },
+                ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 Future<void> _pickTimeshift(BuildContext context, WidgetRef ref, int current) async {

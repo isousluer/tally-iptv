@@ -70,12 +70,23 @@ final sportEventsProvider = FutureProvider<List<SportEvent>>((ref) async {
   }
 });
 
+/// The sports in today's listing, for picking which to show.
+final sportNamesProvider = FutureProvider<List<String>>((ref) async {
+  final events = await ref.watch(sportEventsProvider.future);
+  return {
+    for (final e in events)
+      if (e.sport.isNotEmpty && e.sport != 'Programlar') e.sport,
+  }.toList()..sort();
+});
+
 /// An event with the viewer's channel for it, when they have one.
 typedef SportListing = ({SportEvent event, MediaItem? channel});
 
 /// Matches and other sports (not studio shows) still to come or under way,
 /// each with a channel from the open playlist.
 final sportListingsProvider = FutureProvider<List<SportListing>>((ref) async {
+  final (show, sports) = ref.watch(settingsProvider.select((s) => (s.showMatches, s.matchSports)));
+  if (!show) return const [];
   final events = await ref.watch(sportEventsProvider.future);
   if (events.isEmpty) return const [];
   final p = ref.watch(activePlaylistProvider);
@@ -96,7 +107,9 @@ final sportListingsProvider = FutureProvider<List<SportListing>>((ref) async {
   final out = [
     for (final e in events)
       // Most matches are over within two and a half hours.
-      if (e.sport != 'Programlar' && now.difference(e.start) < const Duration(minutes: 150))
+      if (e.sport != 'Programlar' &&
+          (sports.isEmpty || sports.contains(e.sport)) &&
+          now.difference(e.start) < const Duration(minutes: 150))
         (event: e, channel: channelFor(e.channels, byKey, health)),
   ];
   // The ones the viewer can watch first, each part in time order.
