@@ -93,10 +93,12 @@ final sportListingsProvider = FutureProvider<List<SportListing>>((ref) async {
   final live = (await db.allItems(p.id, ContentKind.live)).where((c) => !skip.contains(c.group));
   final byKey = indexChannels(live);
   final now = DateTime.now();
-  return [
+  final out = [
     for (final e in events)
       // Most matches are over within two and a half hours.
       if (e.sport != 'Programlar' && now.difference(e.start) < const Duration(minutes: 150))
         (event: e, channel: channelFor(e.channels, byKey, health)),
   ];
+  // The ones the viewer can watch first, each part in time order.
+  return [...out.where((s) => s.channel != null), ...out.where((s) => s.channel == null)];
 });
