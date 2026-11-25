@@ -1340,4 +1340,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get streamKeepsDropping =>
       'The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account.';
+
+  @override
+  String get accountBusyTitle => 'Account open on another device';
+
+  @override
+  String accountBusyBody(int active, int max) {
+    return 'This account is open on another device right now ($active/$max). If you watch here too, both may freeze. Close the other device first.';
+  }
+
+  @override
+  String accountBusyDropping(int active, int max) {
+    return 'This account is open on another device right now ($active/$max), so the provider keeps cutting one of them off. Close the other device first.';
+  }
+
+  @override
+  String get watchAnyway => 'Watch anyway';
 }

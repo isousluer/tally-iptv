@@ -2335,6 +2335,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account.'**
   String get streamKeepsDropping;
+
+  /// No description provided for @accountBusyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account open on another device'**
+  String get accountBusyTitle;
+
+  /// No description provided for @accountBusyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is open on another device right now ({active}/{max}). If you watch here too, both may freeze. Close the other device first.'**
+  String accountBusyBody(int active, int max);
+
+  /// No description provided for @accountBusyDropping.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is open on another device right now ({active}/{max}), so the provider keeps cutting one of them off. Close the other device first.'**
+  String accountBusyDropping(int active, int max);
+
+  /// No description provided for @watchAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch anyway'**
+  String get watchAnyway;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

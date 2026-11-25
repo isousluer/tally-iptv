@@ -874,5 +874,11 @@
   "warnMobileDataTitle": "Warn on mobile data",
   "warnMobileDataSubtitle": "A short notice when a video starts without Wi-Fi.",
   "reconnecting": "Connection dropped, reconnecting…",
-  "streamKeepsDropping": "The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account."
+  "streamKeepsDropping": "The provider keeps closing this stream. The account may be in use on another device: check Settings › your list › Account.",
+  "accountBusyTitle": "Account open on another device",
+  "accountBusyBody": "This account is open on another device right now ({active}/{max}). If you watch here too, both may freeze. Close the other device first.",
+  "@accountBusyBody": {"placeholders": {"active": {"type": "int"}, "max": {"type": "int"}}},
+  "accountBusyDropping": "This account is open on another device right now ({active}/{max}), so the provider keeps cutting one of them off. Close the other device first.",
+  "@accountBusyDropping": {"placeholders": {"active": {"type": "int"}, "max": {"type": "int"}}},
+  "watchAnyway": "Watch anyway"
 }

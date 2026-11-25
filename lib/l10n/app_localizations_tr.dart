@@ -1320,4 +1320,20 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get streamKeepsDropping =>
       'Sağlayıcı bu yayını sürekli kesiyor. Hesap başka bir cihazda açık olabilir: Ayarlar › listen › Hesap bölümüne bak.';
+
+  @override
+  String get accountBusyTitle => 'Hesap başka cihazda açık';
+
+  @override
+  String accountBusyBody(int active, int max) {
+    return 'Bu hesap şu an başka bir cihazda açık ($active/$max). Burada izlersen iki cihaz da takılabilir. Önce diğer cihazı kapat.';
+  }
+
+  @override
+  String accountBusyDropping(int active, int max) {
+    return 'Bu hesap şu an başka bir cihazda açık ($active/$max), bu yüzden sağlayıcı cihazlardan birini sürekli kesiyor. Önce diğer cihazı kapat.';
+  }
+
+  @override
+  String get watchAnyway => 'Yine de izle';
 }

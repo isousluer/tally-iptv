@@ -177,13 +177,71 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         .where((i) => i.kind == ContentKind.live && i.key != _item.key && i.url != null)
         .firstOrNull;
     _loadCopies(_item);
-    _open(_url, start: _req.startAt);
+    _start();
     _saveTimer = Timer.periodic(const Duration(seconds: 10), (_) => _saveProgress());
     if (_fullscreen) _setFullscreen(true);
     _bumpControls();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _showChannelInfo();
     });
+  }
+
+  /// Opens the first stream, after checking that the account is free when
+  /// it is live TV.
+  Future<void> _start() async {
+    if (_isLive && !_recentlyLive) {
+      final busy = await _busyAccount();
+      if (!mounted) return;
+      if (busy != null && !await _askBusy(busy, dropping: false)) return;
+    }
+    if (mounted) await _open(_url, start: _req.startAt);
+  }
+
+  /// When a live stream last played in this app. The provider may still
+  /// count that connection for a little while after the player closed.
+  static DateTime? _lastLive;
+
+  bool get _recentlyLive => _lastLive != null && DateTime.now().difference(_lastLive!) < const Duration(minutes: 2);
+
+  /// The Xtream account behind the current channel when all its connections
+  /// are in use, or null when there's room, it isn't Xtream, or the server
+  /// doesn't answer quickly.
+  Future<XtreamAccount?> _busyAccount() async {
+    final playlist = (ref.read(playlistsProvider).value ?? const [])
+        .where((p) => p.id == _item.playlistId)
+        .firstOrNull;
+    if (playlist == null || !playlist.isXtream) return null;
+    try {
+      final a = await ref.read(repositoryProvider).xtreamFor(playlist).account().timeout(const Duration(seconds: 3));
+      final active = a.activeConnections, max = a.maxConnections;
+      return active != null && max != null && max > 0 && active >= max ? a : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Explains that the account is open elsewhere. True to watch anyway;
+  /// false closes the player.
+  Future<bool> _askBusy(XtreamAccount a, {required bool dropping}) async {
+    final l = context.l10n;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.accountBusyTitle),
+        content: Text(
+          dropping
+              ? l.accountBusyDropping(a.activeConnections!, a.maxConnections!)
+              : l.accountBusyBody(a.activeConnections!, a.maxConnections!),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l.watchAnyway)),
+        ],
+      ),
+    );
+    if (go == true) return true;
+    if (mounted) Navigator.of(context).maybePop();
+    return false;
   }
 
   void _updatePip() {
@@ -294,6 +352,14 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       ..removeWhere((t) => now.difference(t) > const Duration(minutes: 3))
       ..add(now);
     final l = context.l10n;
+    // A second drop within minutes: ask the server whether another device
+    // holds the account, which is what usually causes this.
+    if (_drops.length == 2 && !_askedDrops) {
+      _askedDrops = true;
+      _settled = true;
+      unawaited(_explainDrops());
+      return;
+    }
     if (_drops.length > 4) {
       setState(() => _error = l.streamKeepsDropping);
       return;
@@ -303,6 +369,21 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
       ..showSnackBar(SnackBar(duration: const Duration(seconds: 2), content: Text(l.reconnecting)));
     _settled = true;
     _open(_url);
+  }
+
+  /// Whether the viewer was already told why this stream keeps dropping.
+  bool _askedDrops = false;
+
+  Future<void> _explainDrops() async {
+    // Our own connection is closed at this moment, so a full account means
+    // someone else is watching on it.
+    final busy = await _busyAccount();
+    if (!mounted) return;
+    if (busy != null) {
+      if (!await _askBusy(busy, dropping: true)) return;
+      _drops.clear();
+    }
+    if (mounted) _open(_url);
   }
 
   /// Notes the failure and moves on to the next copy of the channel, if any.
@@ -718,6 +799,7 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   @override
   void dispose() {
+    if (_isLive && _hasVideo) _lastLive = DateTime.now();
     _hideTimer?.cancel();
     _saveTimer?.cancel();
     _sleepTimer?.cancel();

@@ -373,5 +373,9 @@
   "warnMobileDataTitle": "Mobil veride uyar",
   "warnMobileDataSubtitle": "Wi-Fi olmadan bir yayın başlayınca kısa bir uyarı gösterir.",
   "reconnecting": "Bağlantı koptu, yeniden bağlanılıyor…",
-  "streamKeepsDropping": "Sağlayıcı bu yayını sürekli kesiyor. Hesap başka bir cihazda açık olabilir: Ayarlar › listen › Hesap bölümüne bak."
+  "streamKeepsDropping": "Sağlayıcı bu yayını sürekli kesiyor. Hesap başka bir cihazda açık olabilir: Ayarlar › listen › Hesap bölümüne bak.",
+  "accountBusyTitle": "Hesap başka cihazda açık",
+  "accountBusyBody": "Bu hesap şu an başka bir cihazda açık ({active}/{max}). Burada izlersen iki cihaz da takılabilir. Önce diğer cihazı kapat.",
+  "accountBusyDropping": "Bu hesap şu an başka bir cihazda açık ({active}/{max}), bu yüzden sağlayıcı cihazlardan birini sürekli kesiyor. Önce diğer cihazı kapat.",
+  "watchAnyway": "Yine de izle"
 }
