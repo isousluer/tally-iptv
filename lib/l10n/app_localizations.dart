@@ -1796,6 +1796,30 @@ abstract class AppLocalizations {
   /// **'Stretch'**
   String get fitStretch;
 
+  /// No description provided for @aspectRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture shape'**
+  String get aspectRatio;
+
+  /// No description provided for @aspectOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get aspectOriginal;
+
+  /// No description provided for @aspectRatioHintChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'For channels that look squashed or stretched. Remembered for this channel.'**
+  String get aspectRatioHintChannel;
+
+  /// No description provided for @aspectRatioHintVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'For videos that look squashed or stretched. Remembered for this title.'**
+  String get aspectRatioHintVideo;
+
   /// No description provided for @playbackSpeed.
   ///
   /// In en, this message translates to:

@@ -69,6 +69,10 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
   /// Seconds the sound and the subtitles are moved later (or earlier, when
   /// negative) to match the picture. Reset for each new stream.
   double _audioDelay = 0;
+
+  /// Forced shape of the picture, for channels that send the wrong one.
+  /// null shows the shape the stream reports.
+  String? _aspect;
   double _subDelay = 0;
 
   /// Live TV: the channel watched before this one, for jumping back and forth.
@@ -165,6 +169,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
     // mpv keeps delays between files; each stream needs its own.
     if (_audioDelay != 0) await _setDelay('audio-delay', 0);
     if (_subDelay != 0) await _setDelay('sub-delay', 0);
+    _aspect = ref.read(prefsProvider).getString(_aspectKey);
+    await _setMpv('video-aspect-override', _aspect ?? 'no');
     await _player.open(Media(url, start: start > Duration.zero ? start : null));
     if (_rate != 1 && !_isLive) await _player.setRate(_rate);
     if (_isLive) unawaited(_recordLive());
@@ -181,12 +187,26 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
 
   Future<void> _setDelay(String property, double seconds) async {
     setState(() => property == 'audio-delay' ? _audioDelay = seconds : _subDelay = seconds);
+    await _setMpv(property, seconds.toStringAsFixed(2));
+  }
+
+  Future<void> _setMpv(String property, String value) async {
     final native = _player.platform;
     if (native is NativePlayer) {
       try {
-        await native.setProperty(property, seconds.toStringAsFixed(2));
+        await native.setProperty(property, value);
       } catch (_) {}
     }
+  }
+
+  /// Remembered per channel, or per series for episodes.
+  String get _aspectKey => 'aspect:${_item.playlistId}:${_item.key}';
+
+  Future<void> _setAspect(String? ratio) async {
+    setState(() => _aspect = ratio);
+    final prefs = ref.read(prefsProvider);
+    ratio == null ? await prefs.remove(_aspectKey) : await prefs.setString(_aspectKey, ratio);
+    await _setMpv('video-aspect-override', ratio ?? 'no');
   }
 
   Future<void> _recordLive() => _db.saveProgress(
@@ -507,6 +527,8 @@ class _PlayerScreenState extends ConsumerState<PlayerScreen> {
         onAudioDelay: (v) => _setDelay('audio-delay', v),
         onSubDelay: (v) => _setDelay('sub-delay', v),
         onExternal: _openExternally,
+        aspect: _aspect,
+        onAspect: _setAspect,
       ),
     ).then((_) => _takeKeys());
   }
@@ -1258,9 +1280,13 @@ class _OptionsSheet extends ConsumerStatefulWidget {
     required this.onAudioDelay,
     required this.onSubDelay,
     required this.onExternal,
+    required this.aspect,
+    required this.onAspect,
   });
   final bool isLive;
   final VoidCallback? onExternal;
+  final String? aspect;
+  final ValueChanged<String?> onAspect;
   final double audioDelay;
   final double subDelay;
   final ValueChanged<double> onAudioDelay;
@@ -1288,6 +1314,7 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
   late bool _streamInfo = widget.streamInfo;
   late double _audioDelay = widget.audioDelay;
   late double _subDelay = widget.subDelay;
+  late String? _aspect = widget.aspect;
 
   static const _rates = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
   static const _sleeps = [15, 30, 45, 60, 90, 120];
@@ -1355,6 +1382,18 @@ class _OptionsSheetState extends ConsumerState<_OptionsSheet> {
               },
               (f) => ref.read(settingsProvider.notifier).setVideoFit(f),
             ),
+            heading(l.aspectRatio),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Text(
+                widget.isLive ? l.aspectRatioHintChannel : l.aspectRatioHintVideo,
+                style: t.bodySmall!.copyWith(color: AppColors.muted),
+              ),
+            ),
+            _choices<String?>(const [null, '16:9', '4:3'], _aspect, (a) => a ?? l.aspectOriginal, (a) {
+              setState(() => _aspect = a);
+              widget.onAspect(a);
+            }),
             if (!widget.isLive) ...[
               heading(l.playbackSpeed),
               _choices<double>(_rates, _rate, _rateLabel, (r) {

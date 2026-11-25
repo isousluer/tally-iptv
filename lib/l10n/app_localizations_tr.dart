@@ -1006,6 +1006,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get fitStretch => 'Uzat';
 
   @override
+  String get aspectRatio => 'Görüntü oranı';
+
+  @override
+  String get aspectOriginal => 'Orijinal';
+
+  @override
+  String get aspectRatioHintChannel => 'Basık ya da uzamış görünen kanallar için. Bu kanal için hatırlanır.';
+
+  @override
+  String get aspectRatioHintVideo => 'Basık ya da uzamış görünen videolar için. Bu yapım için hatırlanır.';
+
+  @override
   String get playbackSpeed => 'Oynatma hızı';
 
   @override

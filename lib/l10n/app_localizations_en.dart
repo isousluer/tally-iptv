@@ -1025,6 +1025,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fitStretch => 'Stretch';
 
   @override
+  String get aspectRatio => 'Picture shape';
+
+  @override
+  String get aspectOriginal => 'Original';
+
+  @override
+  String get aspectRatioHintChannel => 'For channels that look squashed or stretched. Remembered for this channel.';
+
+  @override
+  String get aspectRatioHintVideo => 'For videos that look squashed or stretched. Remembered for this title.';
+
+  @override
   String get playbackSpeed => 'Playback speed';
 
   @override
