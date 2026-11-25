@@ -2990,6 +2990,7 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
     final t = Theme.of(context).textTheme;
     final guide = ref.watch(nowPlayingProvider).value ?? const {};
     final now = ref.watch(clockProvider).value ?? DateTime.now();
+    final health = ref.watch(streamHealthProvider).value ?? const {};
     final channels = widget.channels;
     final current = _index;
     return ListView.builder(
@@ -3001,6 +3002,10 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
         final c = channels[i];
         final active = i == current;
         final program = c.tvgId == null ? null : guide[c.tvgId!.toLowerCase()];
+        // Merged rows lost "HD", "4K" from their name; show it here. The
+        // playing row shows the copy actually on screen.
+        final shown = active ? widget.current : c;
+        final quality = c.copies > 1 ? qualityLabel(shown, health[shown.key]) : null;
         return Material(
           color: active ? AppColors.tally.withAlpha(0x1F) : Colors.transparent,
           child: InkWell(
@@ -3027,11 +3032,35 @@ class _ChannelListState extends ConsumerState<_ChannelList> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          c.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: t.titleSmall!.copyWith(color: active ? AppColors.tally : null),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                c.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: t.titleSmall!.copyWith(color: active ? AppColors.tally : null),
+                              ),
+                            ),
+                            if (quality != null) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: active ? AppColors.tally : AppColors.muted, width: 1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  quality,
+                                  style: t.labelSmall!.copyWith(
+                                    color: active ? AppColors.tally : AppColors.muted,
+                                    fontSize: 10,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         if (program != null) ...[
                           const SizedBox(height: 2),

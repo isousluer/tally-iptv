@@ -3,6 +3,12 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## 1.1.1 (2026-11-25)
+
+### Changed
+- In the channel list under the player, merged channel rows show their quality (4K, Full HD, HD, SD). The
+  playing row shows the copy on screen.
+
 ## 1.1.0 (2026-11-25)
 
 ### New
