@@ -3,6 +3,12 @@
 All notable changes to Tally are listed here. Downloads are on the
 [Releases page](https://github.com/isousluer/tally-iptv/releases).
 
+## 1.1.2 (2026-11-28)
+
+### Fixed
+- Today's matches find your channel when its name has a number or a note after it ("TR: S Sport Plus 1
+  ( YAYIN ZAMANI AKTİF )" for S Sport Plus), instead of saying it isn't in your list.
+
 ## 1.1.1 (2026-11-25)
 
 ### Changed

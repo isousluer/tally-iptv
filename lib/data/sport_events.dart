@@ -123,16 +123,23 @@ String _fold(String s) => baseChannelName(s);
 
 /// Compares channel names across spellings: "S Sport Plus" matches
 /// "TR: S SPORT+ FHD", "beIN Sports 1" matches "BEIN SPORTS 1 HD".
-String channelMatchKey(String name) => baseChannelName(name.replaceAll('+', ' PLUS ')).replaceAll(' ', '');
+/// Notes in brackets ("( YAYIN ZAMANI AKTİF )") are left out.
+String channelMatchKey(String name) =>
+    baseChannelName(name.replaceAll(_bracketed, ' ').replaceAll('+', ' PLUS ')).replaceAll(' ', '');
+
+final _bracketed = RegExp(r'\([^)]*\)|\[[^\]]*\]');
 
 /// Picks the viewer's channel for an event: the first of its [names] that
-/// the list has, preferring Turkish copies, then the best quality.
+/// the list has, preferring Turkish copies, then the best quality. A name
+/// the list only has with a 1 after it ("S Sport Plus 1") counts too.
 MediaItem? channelFor(List<String> names, Map<String, List<MediaItem>> byKey, Map<String, StreamHealth> health) {
-  for (final n in names) {
-    final found = byKey[channelMatchKey(n)];
-    if (found == null || found.isEmpty) continue;
-    final turkish = found.where(_isTurkish).toList();
-    return rankCopies(turkish.isNotEmpty ? turkish : found, health).first;
+  for (final suffix in const ['', '1']) {
+    for (final n in names) {
+      final found = byKey['${channelMatchKey(n)}$suffix'];
+      if (found == null || found.isEmpty) continue;
+      final turkish = found.where(_isTurkish).toList();
+      return rankCopies(turkish.isNotEmpty ? turkish : found, health).first;
+    }
   }
   return null;
 }

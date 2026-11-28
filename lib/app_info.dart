@@ -2,6 +2,6 @@
 library;
 
 /// Keep in sync with `version` in pubspec.yaml (a test checks it).
-const appVersion = '1.1.1';
+const appVersion = '1.1.2';
 const repoSlug = 'isousluer/tally-iptv';
 const repoUrl = 'https://github.com/$repoSlug';

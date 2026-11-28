@@ -70,4 +70,17 @@ void main() {
     expect(channelFor(['S Sport Plus', 'S Sport'], byKey, const {})!.name, 'TR: S SPORT');
     expect(channelFor(['Tivibu Spor'], byKey, const {}), isNull);
   });
+
+  test('a note in brackets and a trailing 1 still match', () {
+    final byKey = indexChannels([_ch('TR: S Sport Plus 1 ( YAYIN ZAMANI AKTİF )'), _ch('TR: BEIN SPORTS 1 HD')]);
+    expect(channelFor(['S Sport Plus'], byKey, const {})!.name, 'TR: S Sport Plus 1 ( YAYIN ZAMANI AKTİF )');
+    // The exact name wins over the one with a 1 after it.
+    final both = indexChannels([_ch('TR: S SPORT 1'), _ch('TR: S SPORT')]);
+    expect(channelFor(['S Sport'], both, const {})!.name, 'TR: S SPORT');
+    expect(channelFor(['S Sport 2'], byKey, const {}), isNull);
+    // S Sport and S Sport Plus are different channels.
+    expect(channelFor(['S Sport'], byKey, const {}), isNull);
+    final sport = indexChannels([_ch('TR: S SPORT HD')]);
+    expect(channelFor(['S Sport Plus'], sport, const {}), isNull);
+  });
 }
